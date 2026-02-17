@@ -11,7 +11,7 @@ import ru.yandex.practicum.service.KafkaEventService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/hubs")
+@RequestMapping("/events/hubs")
 @RequiredArgsConstructor
 public class HubEventController {
 

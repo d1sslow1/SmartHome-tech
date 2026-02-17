@@ -11,7 +11,7 @@ import ru.yandex.practicum.service.KafkaEventService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/sensors")
+@RequestMapping("/events/sensors")
 @RequiredArgsConstructor
 public class SensorEventController {
 

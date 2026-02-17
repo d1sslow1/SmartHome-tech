@@ -1,6 +1,8 @@
 spring:
   application:
     name: collector
+  jackson:
+    default-property-inclusion: non_null
 
 server:
   port: 8080
@@ -15,3 +17,4 @@ logging:
   level:
     ru.yandex.practicum: DEBUG
     org.apache.kafka: INFO
+    org.springframework.web: DEBUG
