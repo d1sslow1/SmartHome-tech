@@ -3,12 +3,14 @@ package ru.yandex.practicum.model.hub;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
 @ToString
+@FieldDefaults
 public class DeviceAction {
-    private String sensorId;
-    private ActionType type;
-    private Integer value; // может быть null
+     String sensorId;
+     ActionType type;
+     Integer value; 
 }
