@@ -4,13 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import lombok.AccessLevel;
 
 @Getter
 @Setter
 @ToString
-@FieldDefaults
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class DeviceAction {
-     String sensorId;
-     ActionType type;
-     Integer value; 
+    String sensorId;
+    ActionType type;
+    Integer value;
 }
