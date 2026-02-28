@@ -4,3 +4,46 @@ package telemetry.message.event;
 
 option java_multiple_files = true;
 option java_package = "ru.yandex.practicum.grpc.telemetry.event";
+
+import "google/protobuf/timestamp.proto";
+
+message MotionSensorProto {
+  int32 link_quality = 1;    // качество связи
+  bool motion = 2;            // наличие движения
+  int32 voltage = 3;          // напряжение
+}
+
+message TemperatureSensorProto {
+  int32 temperature_c = 1;    // температура по Цельсию
+  int32 temperature_f = 2;    // температура по Фаренгейту
+}
+
+message LightSensorProto {
+  int32 link_quality = 1;    // качество связи
+  int32 luminosity = 2;       // уровень освещенности
+}
+
+message ClimateSensorProto {
+  int32 temperature_c = 1;    // температура
+  int32 humidity = 2;         // влажность
+  int32 co2_level = 3;        // уровень CO2
+}
+
+message SwitchSensorProto {
+  bool state = 1;             // состояние (вкл/выкл)
+}
+
+// Основное событие датчика
+message SensorEventProto {
+  string id = 1;                               // идентификатор датчика
+  google.protobuf.Timestamp timestamp = 2;     // таймстемп события
+  string hubId = 3;                             // идентификатор хаба
+
+  oneof payload {                               // данные конкретного датчика
+    MotionSensorProto motion_sensor = 4;           // датчик движения
+    TemperatureSensorProto temperature_sensor = 5; // датчик температуры
+    LightSensorProto light_sensor = 6;             // датчик освещения
+    ClimateSensorProto climate_sensor = 7;         // климатический датчик
+    SwitchSensorProto switch_sensor = 8;           // переключатель
+  }
+}
