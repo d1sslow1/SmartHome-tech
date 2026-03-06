@@ -41,13 +41,19 @@ public class SnapshotProcessor {
     private final Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
 
     public void start() {
+        log.info("=== SNAPSHOT PROCESSOR STARTING ===");
+        log.info("Kafka consumer: {}", consumer);
+        log.info("Subscribing to topic: {}", snapshotsTopic);
+
         consumer.subscribe(List.of(snapshotsTopic));
         log.info("=== SNAPSHOT PROCESSOR STARTED ===");
         log.info("Subscribed to topic: {}", snapshotsTopic);
 
         try {
             while (true) {
+                log.debug("Polling Kafka...");
                 ConsumerRecords<String, SensorsSnapshotAvro> records = consumer.poll(Duration.ofMillis(1000));
+                log.debug("Poll returned {} records", records.count());
 
                 if (!records.isEmpty()) {
                     log.info("Received {} snapshot records", records.count());
@@ -84,7 +90,7 @@ public class SnapshotProcessor {
         log.info("=== PROCESSING SNAPSHOT FOR HUB: {} ===", hubId);
         log.info("Snapshot timestamp: {}, sensors count: {}",
                 snapshot.getTimestamp(), snapshot.getSensorsState().size());
-        
+
         snapshot.getSensorsState().forEach((sensorId, state) -> {
             log.debug("Sensor: {}, data: {}", sensorId, state.getData());
         });
@@ -104,14 +110,25 @@ public class SnapshotProcessor {
                     scenario.getActions().size());
 
             scenario.getConditions().forEach(cond -> {
-                log.debug("Condition: sensor={}, type={}, op={}, value={}",
+                if (cond.getSensor() == null) {
+                    log.error("Condition has null sensor!");
+                    return;
+                }
+                if (cond.getCondition() == null) {
+                    log.error("Condition has null condition object!");
+                    return;
+                }
+                log.info("Condition: sensor={}, type={}, op={}, value={}",
                         cond.getSensor().getId(),
                         cond.getCondition().getType(),
                         cond.getCondition().getOperation(),
                         cond.getCondition().getValue());
             });
 
-            if (analyzerService.checkScenario(scenario, snapshot)) {
+            boolean scenarioResult = analyzerService.checkScenario(scenario, snapshot);
+            log.info("Scenario '{}' check result: {}", scenario.getName(), scenarioResult);
+
+            if (scenarioResult) {
                 log.info("✅ SCENARIO '{}' ACTIVATED for hub {}", scenario.getName(), hubId);
                 executeActions(hubId, scenario.getName(), scenario.getActions(), snapshot);
             } else {
@@ -129,6 +146,11 @@ public class SnapshotProcessor {
         }
 
         for (ScenarioAction scenarioAction : actions) {
+            if (scenarioAction == null) {
+                log.error("ScenarioAction is null for scenario '{}'", scenarioName);
+                continue;
+            }
+
             if (scenarioAction.getAction() == null) {
                 log.error("Action is null for scenario '{}'", scenarioName);
                 continue;
@@ -141,13 +163,13 @@ public class SnapshotProcessor {
             }
 
             String sensorId = scenarioAction.getSensor().getId();
-
             log.info("Sending command: sensor={}, action={}, value={}",
                     sensorId, action.getType(), action.getValue());
 
             ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto actionType;
             try {
                 actionType = convertActionType(action.getType());
+                log.info("Converted action type: {} -> {}", action.getType(), actionType);
             } catch (Exception e) {
                 log.error("Failed to convert action type: {}", action.getType(), e);
                 continue;
@@ -170,22 +192,36 @@ public class SnapshotProcessor {
                             .build())
                     .build();
 
+            log.info("Sending gRPC request to hub-router: hubId={}, scenario={}, sensor={}",
+                    hubId, scenarioName, sensorId);
+
             try {
                 hubRouterClient.handleDeviceAction(request);
                 log.info("✅ Successfully sent command to device {}", sensorId);
             } catch (Exception e) {
                 log.error("❌ Error sending command to Hub Router for device {}", sensorId, e);
+                log.error("Exception details:", e);
             }
         }
     }
 
     private ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto convertActionType(ActionType type) {
         switch (type) {
-            case ACTIVATE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.ACTIVATE;
-            case DEACTIVATE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.DEACTIVATE;
-            case INVERSE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.INVERSE;
-            case SET_VALUE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.SET_VALUE;
-            default: throw new IllegalArgumentException("Unknown action type: " + type);
+            case ACTIVATE:
+                log.debug("Converting ACTIVATE action");
+                return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.ACTIVATE;
+            case DEACTIVATE:
+                log.debug("Converting DEACTIVATE action");
+                return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.DEACTIVATE;
+            case INVERSE:
+                log.debug("Converting INVERSE action");
+                return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.INVERSE;
+            case SET_VALUE:
+                log.debug("Converting SET_VALUE action");
+                return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.SET_VALUE;
+            default:
+                log.error("Unknown action type: {}", type);
+                throw new IllegalArgumentException("Unknown action type: " + type);
         }
     }
 }
