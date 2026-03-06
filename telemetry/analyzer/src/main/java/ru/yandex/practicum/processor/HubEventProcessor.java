@@ -33,18 +33,28 @@ public class HubEventProcessor implements Runnable {
 
     @Override
     public void run() {
+        log.info("=== HUB EVENT PROCESSOR STARTING ===");
+        log.info("Subscribing to topic: {}", hubsTopic);
+
         consumer.subscribe(List.of(hubsTopic));
-        log.info("HubEventProcessor subscribed to topic: {}", hubsTopic);
+        log.info("Subscribed to topic: {}", hubsTopic);
 
         try {
             while (true) {
                 ConsumerRecords<String, HubEventAvro> records = consumer.poll(Duration.ofMillis(1000));
 
+                if (!records.isEmpty()) {
+                    log.info("Received {} hub event records", records.count());
+                }
+
                 for (ConsumerRecord<String, HubEventAvro> record : records) {
+                    log.info("Processing hub event from partition {}, offset {}",
+                            record.partition(), record.offset());
                     processHubEvent(record.value());
                 }
 
                 consumer.commitSync();
+                log.debug("Committed offsets");
             }
         } catch (WakeupException e) {
             log.info("HubEventProcessor received shutdown signal");
@@ -61,6 +71,8 @@ public class HubEventProcessor implements Runnable {
         String hubId = event.getHubId().toString();
         Object payload = event.getPayload();
 
+        log.info("Processing hub event for hub: {}, payload type: {}", hubId, payload.getClass().getSimpleName());
+
         if (payload instanceof DeviceAddedEventAvro) {
             processDeviceAdded(hubId, (DeviceAddedEventAvro) payload);
         } else if (payload instanceof DeviceRemovedEventAvro) {
@@ -69,11 +81,14 @@ public class HubEventProcessor implements Runnable {
             processScenarioAdded(hubId, (ScenarioAddedEventAvro) payload);
         } else if (payload instanceof ScenarioRemovedEventAvro) {
             processScenarioRemoved(hubId, (ScenarioRemovedEventAvro) payload);
+        } else {
+            log.warn("Unknown payload type: {}", payload.getClass().getSimpleName());
         }
     }
 
     private void processDeviceAdded(String hubId, DeviceAddedEventAvro event) {
         String sensorId = event.getId().toString();
+        log.info("Processing device added: sensor={}, hub={}", sensorId, hubId);
 
         if (!sensorRepository.existsById(sensorId)) {
             Sensor sensor = new Sensor();
@@ -81,11 +96,14 @@ public class HubEventProcessor implements Runnable {
             sensor.setHubId(hubId);
             sensorRepository.save(sensor);
             log.info("Added sensor {} for hub {}", sensorId, hubId);
+        } else {
+            log.info("Sensor {} already exists", sensorId);
         }
     }
 
     private void processDeviceRemoved(String hubId, DeviceRemovedEventAvro event) {
         String sensorId = event.getId().toString();
+        log.info("Processing device removed: sensor={}, hub={}", sensorId, hubId);
 
         sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
             sensorRepository.delete(sensor);
@@ -95,20 +113,25 @@ public class HubEventProcessor implements Runnable {
 
     private void processScenarioAdded(String hubId, ScenarioAddedEventAvro event) {
         String scenarioName = event.getName().toString();
+        log.info("Processing scenario added: name={}, hub={}", scenarioName, hubId);
 
         if (scenarioRepository.findByHubIdAndName(hubId, scenarioName).isEmpty()) {
             createNewScenario(hubId, event);
             log.info("Added scenario {} for hub {}", scenarioName, hubId);
+        } else {
+            log.info("Scenario {} already exists for hub {}", scenarioName, hubId);
         }
     }
 
     @Transactional
     protected void createNewScenario(String hubId, ScenarioAddedEventAvro event) {
+        log.info("Creating new scenario: {}", event.getName());
+
         Scenario scenario = new Scenario();
         scenario.setHubId(hubId);
         scenario.setName(event.getName().toString());
         final Scenario savedScenario = scenarioRepository.save(scenario);
-        log.info("Created scenario: {} with id: {}", savedScenario.getName(), savedScenario.getId());
+        log.info("Created scenario with id: {}", savedScenario.getId());
 
         AtomicInteger conditionCount = new AtomicInteger(0);
         for (ScenarioConditionAvro conditionAvro : event.getConditions()) {
@@ -122,9 +145,7 @@ public class HubEventProcessor implements Runnable {
                 condition.setOperation(mapOperation(currentConditionAvro.getOperation()));
                 condition.setValue(extractValue(currentConditionAvro.getValue()));
                 Condition savedCondition = conditionRepository.save(condition);
-                log.info("Created condition with id: {}", savedCondition.getId());
-                log.info("Linking condition {} to scenario {} for sensor {}",
-                        savedCondition.getId(), savedScenario.getId(), currentSensorId);
+                log.info("Created condition {} for sensor {}", savedCondition.getId(), currentSensorId);
                 conditionCount.incrementAndGet();
             }, () -> {
                 log.warn("Sensor {} not found for hub {}, condition skipped", currentSensorId, hubId);
@@ -143,19 +164,20 @@ public class HubEventProcessor implements Runnable {
                 action.setType(mapActionType(currentActionAvro.getType()));
                 action.setValue((Integer) currentActionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
-                log.info("Created action with id: {}", savedAction.getId());
-                log.info("Linking action {} to scenario {} for sensor {}",
-                        savedAction.getId(), savedScenario.getId(), currentSensorId);
+                log.info("Created action {} for sensor {}", savedAction.getId(), currentSensorId);
                 actionCount.incrementAndGet();
             }, () -> {
                 log.warn("Sensor {} not found for hub {}, action skipped", currentSensorId, hubId);
             });
         }
         log.info("Processed {} actions for scenario {}", actionCount.get(), savedScenario.getName());
+
+        log.info("Scenario creation completed for: {}", event.getName());
     }
 
     private void processScenarioRemoved(String hubId, ScenarioRemovedEventAvro event) {
         String scenarioName = event.getName().toString();
+        log.info("Processing scenario removed: name={}, hub={}", scenarioName, hubId);
 
         scenarioRepository.findByHubIdAndName(hubId, scenarioName).ifPresent(scenario -> {
             scenarioRepository.delete(scenario);
@@ -164,37 +186,41 @@ public class HubEventProcessor implements Runnable {
     }
 
     private ConditionType mapConditionType(ConditionTypeAvro type) {
-        return switch (type) {
-            case MOTION -> ConditionType.MOTION;
-            case LUMINOSITY -> ConditionType.LUMINOSITY;
-            case SWITCH -> ConditionType.SWITCH;
-            case TEMPERATURE -> ConditionType.TEMPERATURE;
-            case CO2LEVEL -> ConditionType.CO2LEVEL;
-            case HUMIDITY -> ConditionType.HUMIDITY;
-        };
+        switch (type) {
+            case MOTION: return ConditionType.MOTION;
+            case LUMINOSITY: return ConditionType.LUMINOSITY;
+            case SWITCH: return ConditionType.SWITCH;
+            case TEMPERATURE: return ConditionType.TEMPERATURE;
+            case CO2LEVEL: return ConditionType.CO2LEVEL;
+            case HUMIDITY: return ConditionType.HUMIDITY;
+            default: throw new IllegalArgumentException("Unknown condition type: " + type);
+        }
     }
 
     private ConditionOperation mapOperation(ConditionOperationAvro op) {
-        return switch (op) {
-            case EQUALS -> ConditionOperation.EQUALS;
-            case GREATER_THAN -> ConditionOperation.GREATER_THAN;
-            case LOWER_THAN -> ConditionOperation.LOWER_THAN;
-        };
+        switch (op) {
+            case EQUALS: return ConditionOperation.EQUALS;
+            case GREATER_THAN: return ConditionOperation.GREATER_THAN;
+            case LOWER_THAN: return ConditionOperation.LOWER_THAN;
+            default: throw new IllegalArgumentException("Unknown operation: " + op);
+        }
     }
 
     private ActionType mapActionType(ActionTypeAvro type) {
-        return switch (type) {
-            case ACTIVATE -> ActionType.ACTIVATE;
-            case DEACTIVATE -> ActionType.DEACTIVATE;
-            case INVERSE -> ActionType.INVERSE;
-            case SET_VALUE -> ActionType.SET_VALUE;
-        };
+        switch (type) {
+            case ACTIVATE: return ActionType.ACTIVATE;
+            case DEACTIVATE: return ActionType.DEACTIVATE;
+            case INVERSE: return ActionType.INVERSE;
+            case SET_VALUE: return ActionType.SET_VALUE;
+            default: throw new IllegalArgumentException("Unknown action type: " + type);
+        }
     }
 
     private Integer extractValue(Object value) {
         if (value == null) return null;
         if (value instanceof Integer) return (Integer) value;
         if (value instanceof Boolean) return ((Boolean) value) ? 1 : 0;
+        log.warn("Unknown value type: {}", value.getClass().getSimpleName());
         return null;
     }
 }
