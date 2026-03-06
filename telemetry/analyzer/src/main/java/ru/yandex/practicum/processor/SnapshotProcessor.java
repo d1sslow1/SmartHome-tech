@@ -1,5 +1,6 @@
 package ru.yandex.practicum.processor;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -39,6 +40,14 @@ public class SnapshotProcessor {
     private String snapshotsTopic;
 
     private final Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
+
+    @PostConstruct
+    public void init() {
+        log.info("🔥🔥🔥 SnapshotProcessor bean created!");
+        log.info("Kafka consumer: {}", consumer);
+        log.info("Topic: {}", snapshotsTopic);
+        log.info("HubRouterClient: {}", hubRouterClient);
+    }
 
     public void start() {
         log.info("=== SNAPSHOT PROCESSOR STARTING ===");

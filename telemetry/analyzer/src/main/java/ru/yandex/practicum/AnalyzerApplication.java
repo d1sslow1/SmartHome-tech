@@ -11,15 +11,34 @@ import ru.yandex.practicum.processor.SnapshotProcessor;
 @ConfigurationPropertiesScan
 public class AnalyzerApplication {
     public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(AnalyzerApplication.class, args);
+        System.out.println("🚀🚀🚀 ANALYZER STARTING...");
+        System.out.println("Current directory: " + System.getProperty("user.dir"));
+        System.out.println("Java version: " + System.getProperty("java.version"));
 
-        HubEventProcessor hubEventProcessor = context.getBean(HubEventProcessor.class);
-        SnapshotProcessor snapshotProcessor = context.getBean(SnapshotProcessor.class);
+        try {
+            ConfigurableApplicationContext context = SpringApplication.run(AnalyzerApplication.class, args);
+            System.out.println("✅✅✅ ANALYZER CONTEXT LOADED");
+            System.out.println("Active beans count: " + context.getBeanDefinitionCount());
 
-        Thread hubEventsThread = new Thread(hubEventProcessor);
-        hubEventsThread.setName("HubEventHandlerThread");
-        hubEventsThread.start();
+            HubEventProcessor hubEventProcessor = context.getBean(HubEventProcessor.class);
+            System.out.println("🏠🏠🏠 HubEventProcessor bean: " + hubEventProcessor);
 
-        snapshotProcessor.start();
+            SnapshotProcessor snapshotProcessor = context.getBean(SnapshotProcessor.class);
+            System.out.println("📸📸📸 SnapshotProcessor bean: " + snapshotProcessor);
+
+            System.out.println("Starting HubEventProcessor thread...");
+            Thread hubEventsThread = new Thread(hubEventProcessor);
+            hubEventsThread.setName("HubEventHandlerThread");
+            hubEventsThread.start();
+            System.out.println("✅ HubEventProcessor thread started");
+
+            System.out.println("Starting SnapshotProcessor...");
+            snapshotProcessor.start();
+
+        } catch (Exception e) {
+            System.err.println("ANALYZER FAILED TO START");
+            e.printStackTrace();
+            throw e;
+        }
     }
 }
