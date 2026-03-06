@@ -1,11 +1,14 @@
 spring:
   application:
     name: collector
-  jackson:
-    default-property-inclusion: non_null
 
 server:
-  port: 59091
+  port: 8080
+
+grpc:
+  server:
+    port: 59091
+    in-process-name: collector-server
 
 kafka:
   bootstrap-servers: localhost:9092
@@ -16,5 +19,5 @@ kafka:
 logging:
   level:
     ru.yandex.practicum: DEBUG
-    org.apache.kafka: INFO
-    org.springframework.web: DEBUG
+    io.grpc: DEBUG
+    net.devh: DEBUG
