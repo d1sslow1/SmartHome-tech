@@ -34,39 +34,27 @@ public class HubEventProcessor implements Runnable {
 
     @PostConstruct
     public void init() {
-        System.out.println("=== HUB EVENT PROCESSOR INIT START ===");
-        System.out.println("HubEventProcessor bean created");
-        System.out.println("Kafka consumer: " + consumer);
-        System.out.println("Topic: " + hubsTopic);
-        System.out.println("SensorRepository: " + sensorRepository);
-        System.out.println("ScenarioRepository: " + scenarioRepository);
-        System.out.println("=== HUB EVENT PROCESSOR INIT END ===");
-        System.out.flush();
+        System.out.println("=== HubEventProcessor init() ===");
+        System.out.println("hubsTopic: " + hubsTopic);
+        System.out.println("consumer: " + consumer);
     }
 
     @Override
     public void run() {
-        System.out.println("=== HUB EVENT PROCESSOR RUN START ===");
-        System.out.println("Subscribing to topic: " + hubsTopic);
+        System.out.println("=== HubEventProcessor run() ===");
+        System.out.println("Subscribing to: " + hubsTopic);
 
         consumer.subscribe(List.of(hubsTopic));
-        System.out.println("Subscribed to topic: " + hubsTopic);
-        System.out.flush();
+        System.out.println("Subscribed to: " + hubsTopic);
 
         try {
             while (true) {
-                System.out.println("Polling Kafka for hub events...");
                 ConsumerRecords<String, HubEventAvro> records = consumer.poll(Duration.ofMillis(1000));
-                System.out.println("Poll returned " + records.count() + " hub event records");
-
-                if (!records.isEmpty()) {
-                    System.out.println("Received " + records.count() + " hub event records");
-                }
+                System.out.println("Polled " + records.count() + " records");
 
                 for (ConsumerRecord<String, HubEventAvro> record : records) {
-                    System.out.println("Processing hub event from partition " + record.partition() +
-                            ", offset " + record.offset() +
-                            ", key: " + record.key());
+                    System.out.println("Processing record: offset=" + record.offset() +
+                            ", partition=" + record.partition());
                     processHubEvent(record.value());
                 }
 
@@ -74,7 +62,7 @@ public class HubEventProcessor implements Runnable {
                 System.out.println("Committed offsets");
             }
         } catch (WakeupException e) {
-            System.out.println("HubEventProcessor received shutdown signal");
+            System.out.println("WakeupException received");
         } catch (Exception e) {
             System.err.println("Error in HubEventProcessor: " + e.getMessage());
             e.printStackTrace();
@@ -89,10 +77,8 @@ public class HubEventProcessor implements Runnable {
         String hubId = event.getHubId().toString();
         Object payload = event.getPayload();
 
-        System.out.println("=== PROCESSING HUB EVENT ===");
-        System.out.println("Hub ID: " + hubId);
+        System.out.println("Processing hub event for hub: " + hubId);
         System.out.println("Payload type: " + payload.getClass().getSimpleName());
-        System.out.flush();
 
         if (payload instanceof DeviceAddedEventAvro) {
             processDeviceAdded(hubId, (DeviceAddedEventAvro) payload);
@@ -102,49 +88,44 @@ public class HubEventProcessor implements Runnable {
             processScenarioAdded(hubId, (ScenarioAddedEventAvro) payload);
         } else if (payload instanceof ScenarioRemovedEventAvro) {
             processScenarioRemoved(hubId, (ScenarioRemovedEventAvro) payload);
-        } else {
-            System.out.println("Unknown payload type: " + payload.getClass().getSimpleName());
         }
     }
 
     private void processDeviceAdded(String hubId, DeviceAddedEventAvro event) {
         String sensorId = event.getId().toString();
-        System.out.println("Processing device added: sensor=" + sensorId + ", hub=" + hubId);
+        System.out.println("Device added: sensor=" + sensorId + ", hub=" + hubId);
 
         if (!sensorRepository.existsById(sensorId)) {
             Sensor sensor = new Sensor();
             sensor.setId(sensorId);
             sensor.setHubId(hubId);
             sensorRepository.save(sensor);
-            System.out.println("Added sensor " + sensorId + " for hub " + hubId);
+            System.out.println("Sensor saved: " + sensorId);
         } else {
-            System.out.println("Sensor " + sensorId + " already exists");
+            System.out.println("Sensor already exists: " + sensorId);
         }
-        System.out.flush();
     }
 
     private void processDeviceRemoved(String hubId, DeviceRemovedEventAvro event) {
         String sensorId = event.getId().toString();
-        System.out.println("Processing device removed: sensor=" + sensorId + ", hub=" + hubId);
+        System.out.println("Device removed: sensor=" + sensorId + ", hub=" + hubId);
 
         sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
             sensorRepository.delete(sensor);
-            System.out.println("Removed sensor " + sensorId + " from hub " + hubId);
+            System.out.println("Sensor deleted: " + sensorId);
         });
-        System.out.flush();
     }
 
     private void processScenarioAdded(String hubId, ScenarioAddedEventAvro event) {
         String scenarioName = event.getName().toString();
-        System.out.println("Processing scenario added: name=" + scenarioName + ", hub=" + hubId);
+        System.out.println("Scenario added: name=" + scenarioName + ", hub=" + hubId);
 
         if (scenarioRepository.findByHubIdAndName(hubId, scenarioName).isEmpty()) {
             createNewScenario(hubId, event);
-            System.out.println("Added scenario " + scenarioName + " for hub " + hubId);
+            System.out.println("Scenario created: " + scenarioName);
         } else {
-            System.out.println("Scenario " + scenarioName + " already exists for hub " + hubId);
+            System.out.println("Scenario already exists: " + scenarioName);
         }
-        System.out.flush();
     }
 
     @Transactional
@@ -155,7 +136,7 @@ public class HubEventProcessor implements Runnable {
         scenario.setHubId(hubId);
         scenario.setName(event.getName().toString());
         final Scenario savedScenario = scenarioRepository.save(scenario);
-        System.out.println("Created scenario with id: " + savedScenario.getId());
+        System.out.println("Scenario saved with id: " + savedScenario.getId());
 
         AtomicInteger conditionCount = new AtomicInteger(0);
         for (ScenarioConditionAvro conditionAvro : event.getConditions()) {
@@ -169,13 +150,14 @@ public class HubEventProcessor implements Runnable {
                 condition.setOperation(mapOperation(currentConditionAvro.getOperation()));
                 condition.setValue(extractValue(currentConditionAvro.getValue()));
                 Condition savedCondition = conditionRepository.save(condition);
-                System.out.println("Created condition " + savedCondition.getId() + " for sensor " + currentSensorId);
+                System.out.println("Condition created: id=" + savedCondition.getId() +
+                        ", sensor=" + currentSensorId);
                 conditionCount.incrementAndGet();
             }, () -> {
-                System.out.println("Sensor " + currentSensorId + " not found for hub " + hubId + ", condition skipped");
+                System.out.println("Sensor not found: " + currentSensorId + ", condition skipped");
             });
         }
-        System.out.println("Processed " + conditionCount.get() + " conditions for scenario " + savedScenario.getName());
+        System.out.println("Total conditions created: " + conditionCount.get());
 
         AtomicInteger actionCount = new AtomicInteger(0);
         for (DeviceActionAvro actionAvro : event.getActions()) {
@@ -188,27 +170,24 @@ public class HubEventProcessor implements Runnable {
                 action.setType(mapActionType(currentActionAvro.getType()));
                 action.setValue((Integer) currentActionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
-                System.out.println("Created action " + savedAction.getId() + " for sensor " + currentSensorId);
+                System.out.println("Action created: id=" + savedAction.getId() +
+                        ", sensor=" + currentSensorId);
                 actionCount.incrementAndGet();
             }, () -> {
-                System.out.println("Sensor " + currentSensorId + " not found for hub " + hubId + ", action skipped");
+                System.out.println("Sensor not found: " + currentSensorId + ", action skipped");
             });
         }
-        System.out.println("Processed " + actionCount.get() + " actions for scenario " + savedScenario.getName());
-
-        System.out.println("Scenario creation completed for: " + event.getName());
-        System.out.flush();
+        System.out.println("Total actions created: " + actionCount.get());
     }
 
     private void processScenarioRemoved(String hubId, ScenarioRemovedEventAvro event) {
         String scenarioName = event.getName().toString();
-        System.out.println("Processing scenario removed: name=" + scenarioName + ", hub=" + hubId);
+        System.out.println("Scenario removed: name=" + scenarioName + ", hub=" + hubId);
 
         scenarioRepository.findByHubIdAndName(hubId, scenarioName).ifPresent(scenario -> {
             scenarioRepository.delete(scenario);
-            System.out.println("Removed scenario " + scenarioName + " from hub " + hubId);
+            System.out.println("Scenario deleted: " + scenarioName);
         });
-        System.out.flush();
     }
 
     private ConditionType mapConditionType(ConditionTypeAvro type) {
