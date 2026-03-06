@@ -15,6 +15,7 @@ import ru.yandex.practicum.repository.*;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Component
@@ -101,46 +102,56 @@ public class HubEventProcessor implements Runnable {
         }
     }
 
-    private void createNewScenario(String hubId, ScenarioAddedEventAvro event) {
-        // Создаем сценарий
+    @Transactional
+    protected void createNewScenario(String hubId, ScenarioAddedEventAvro event) {
         Scenario scenario = new Scenario();
         scenario.setHubId(hubId);
         scenario.setName(event.getName().toString());
-        final Scenario savedScenario = scenarioRepository.save(scenario); // final переменная
+        final Scenario savedScenario = scenarioRepository.save(scenario);
+        log.info("Created scenario: {} with id: {}", savedScenario.getName(), savedScenario.getId());
 
-        // Сохраняем условия
+        AtomicInteger conditionCount = new AtomicInteger(0);
         for (ScenarioConditionAvro conditionAvro : event.getConditions()) {
             String sensorId = conditionAvro.getSensorId().toString();
-            final String currentSensorId = sensorId; // final переменная для лямбды
+            final String currentSensorId = sensorId;
+            final ScenarioConditionAvro currentConditionAvro = conditionAvro;
 
-            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresent(sensor -> {
+            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresentOrElse(sensor -> {
                 Condition condition = new Condition();
-                condition.setType(mapConditionType(conditionAvro.getType()));
-                condition.setOperation(mapOperation(conditionAvro.getOperation()));
-                condition.setValue(extractValue(conditionAvro.getValue()));
+                condition.setType(mapConditionType(currentConditionAvro.getType()));
+                condition.setOperation(mapOperation(currentConditionAvro.getOperation()));
+                condition.setValue(extractValue(currentConditionAvro.getValue()));
                 Condition savedCondition = conditionRepository.save(condition);
-
-                // Здесь можно создать связь, если нужен репозиторий для ScenarioCondition
-                log.info("Added condition for sensor {} in scenario {}",
-                        currentSensorId, savedScenario.getName());
+                log.info("Created condition with id: {}", savedCondition.getId());
+                log.info("Linking condition {} to scenario {} for sensor {}",
+                        savedCondition.getId(), savedScenario.getId(), currentSensorId);
+                conditionCount.incrementAndGet();
+            }, () -> {
+                log.warn("Sensor {} not found for hub {}, condition skipped", currentSensorId, hubId);
             });
         }
+        log.info("Processed {} conditions for scenario {}", conditionCount.get(), savedScenario.getName());
 
-        // Сохраняем действия
+        AtomicInteger actionCount = new AtomicInteger(0);
         for (DeviceActionAvro actionAvro : event.getActions()) {
             String sensorId = actionAvro.getSensorId().toString();
-            final String currentSensorId = sensorId; // final переменная для лямбды
+            final String currentSensorId = sensorId;
+            final DeviceActionAvro currentActionAvro = actionAvro;
 
-            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresent(sensor -> {
+            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresentOrElse(sensor -> {
                 Action action = new Action();
-                action.setType(mapActionType(actionAvro.getType()));
-                action.setValue((Integer) actionAvro.getValue());
+                action.setType(mapActionType(currentActionAvro.getType()));
+                action.setValue((Integer) currentActionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
-
-                log.info("Added action for sensor {} in scenario {}",
-                        currentSensorId, savedScenario.getName());
+                log.info("Created action with id: {}", savedAction.getId());
+                log.info("Linking action {} to scenario {} for sensor {}",
+                        savedAction.getId(), savedScenario.getId(), currentSensorId);
+                actionCount.incrementAndGet();
+            }, () -> {
+                log.warn("Sensor {} not found for hub {}, action skipped", currentSensorId, hubId);
             });
         }
+        log.info("Processed {} actions for scenario {}", actionCount.get(), savedScenario.getName());
     }
 
     private void processScenarioRemoved(String hubId, ScenarioRemovedEventAvro event) {
