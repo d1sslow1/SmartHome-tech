@@ -84,7 +84,7 @@ public class SnapshotProcessor {
         log.info("=== PROCESSING SNAPSHOT FOR HUB: {} ===", hubId);
         log.info("Snapshot timestamp: {}, sensors count: {}",
                 snapshot.getTimestamp(), snapshot.getSensorsState().size());
-
+        
         snapshot.getSensorsState().forEach((sensorId, state) -> {
             log.debug("Sensor: {}, data: {}", sensorId, state.getData());
         });
@@ -103,7 +103,6 @@ public class SnapshotProcessor {
                     scenario.getConditions().size(),
                     scenario.getActions().size());
 
-            // Логируем условия сценария
             scenario.getConditions().forEach(cond -> {
                 log.debug("Condition: sensor={}, type={}, op={}, value={}",
                         cond.getSensor().getId(),
@@ -124,17 +123,40 @@ public class SnapshotProcessor {
     private void executeActions(String hubId, String scenarioName, List<ScenarioAction> actions, SensorsSnapshotAvro snapshot) {
         log.info("Executing {} actions for scenario '{}' on hub {}", actions.size(), scenarioName, hubId);
 
+        if (actions.isEmpty()) {
+            log.warn("No actions to execute for scenario '{}'", scenarioName);
+            return;
+        }
+
         for (ScenarioAction scenarioAction : actions) {
+            if (scenarioAction.getAction() == null) {
+                log.error("Action is null for scenario '{}'", scenarioName);
+                continue;
+            }
+
             Action action = scenarioAction.getAction();
+            if (scenarioAction.getSensor() == null) {
+                log.error("Sensor is null for action in scenario '{}'", scenarioName);
+                continue;
+            }
+
             String sensorId = scenarioAction.getSensor().getId();
 
             log.info("Sending command: sensor={}, action={}, value={}",
                     sensorId, action.getType(), action.getValue());
 
+            ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto actionType;
+            try {
+                actionType = convertActionType(action.getType());
+            } catch (Exception e) {
+                log.error("Failed to convert action type: {}", action.getType(), e);
+                continue;
+            }
+
             ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto protoAction =
                     ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto.newBuilder()
                             .setSensorId(sensorId)
-                            .setType(convertActionType(action.getType()))
+                            .setType(actionType)
                             .setValue(action.getValue() != null ? action.getValue() : 0)
                             .build();
 
@@ -158,11 +180,12 @@ public class SnapshotProcessor {
     }
 
     private ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto convertActionType(ActionType type) {
-        return switch (type) {
-            case ACTIVATE -> ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.ACTIVATE;
-            case DEACTIVATE -> ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.DEACTIVATE;
-            case INVERSE -> ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.INVERSE;
-            case SET_VALUE -> ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.SET_VALUE;
-        };
+        switch (type) {
+            case ACTIVATE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.ACTIVATE;
+            case DEACTIVATE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.DEACTIVATE;
+            case INVERSE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.INVERSE;
+            case SET_VALUE: return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.SET_VALUE;
+            default: throw new IllegalArgumentException("Unknown action type: " + type);
+        }
     }
 }
