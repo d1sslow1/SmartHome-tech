@@ -61,13 +61,13 @@ if [ -f "$HUB_ROUTER_JAR" ]; then
     echo "✅ Сервис hub-router успешно запущен (PID: $HUB_ROUTER_PID)"
 
     # Ждем запуска Hub Router - ЭТО ГЛАВНОЕ ИЗМЕНЕНИЕ
-    echo "Ожидание запуска Hub Router на порту 59091..."
+    echo "Ожидание запуска Hub Router на порту 59090..."
 
     # Ждем 30 секунд вместо 10
     for i in {1..30}; do
         sleep 1
-        if nc -z localhost 59091 2>/dev/null; then
-            echo "✅ Hub Router доступен на порту 59091"
+        if nc -z localhost 59090 2>/dev/null; then
+            echo "✅ Hub Router доступен на порту 59090"
             break
         fi
         if [ $i -eq 30 ]; then
