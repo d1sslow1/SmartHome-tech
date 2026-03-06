@@ -15,6 +15,7 @@ import ru.yandex.practicum.repository.*;
 
 import java.time.Duration;
 import java.util.List;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -101,31 +102,43 @@ public class HubEventProcessor implements Runnable {
     }
 
     private void createNewScenario(String hubId, ScenarioAddedEventAvro event) {
+        // Создаем сценарий
         Scenario scenario = new Scenario();
         scenario.setHubId(hubId);
         scenario.setName(event.getName().toString());
-        scenario = scenarioRepository.save(scenario);
+        final Scenario savedScenario = scenarioRepository.save(scenario); // final переменная
 
+        // Сохраняем условия
         for (ScenarioConditionAvro conditionAvro : event.getConditions()) {
             String sensorId = conditionAvro.getSensorId().toString();
+            final String currentSensorId = sensorId; // final переменная для лямбды
 
-            sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
+            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresent(sensor -> {
                 Condition condition = new Condition();
                 condition.setType(mapConditionType(conditionAvro.getType()));
                 condition.setOperation(mapOperation(conditionAvro.getOperation()));
                 condition.setValue(extractValue(conditionAvro.getValue()));
-                conditionRepository.save(condition);
+                Condition savedCondition = conditionRepository.save(condition);
+
+                // Здесь можно создать связь, если нужен репозиторий для ScenarioCondition
+                log.info("Added condition for sensor {} in scenario {}",
+                        currentSensorId, savedScenario.getName());
             });
         }
 
+        // Сохраняем действия
         for (DeviceActionAvro actionAvro : event.getActions()) {
             String sensorId = actionAvro.getSensorId().toString();
+            final String currentSensorId = sensorId; // final переменная для лямбды
 
-            sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
+            sensorRepository.findByIdAndHubId(currentSensorId, hubId).ifPresent(sensor -> {
                 Action action = new Action();
                 action.setType(mapActionType(actionAvro.getType()));
                 action.setValue((Integer) actionAvro.getValue());
-                actionRepository.save(action);
+                Action savedAction = actionRepository.save(action);
+
+                log.info("Added action for sensor {} in scenario {}",
+                        currentSensorId, savedScenario.getName());
             });
         }
     }
