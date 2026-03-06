@@ -43,32 +43,35 @@ public class SnapshotProcessor {
 
     @PostConstruct
     public void init() {
-        log.info("SnapshotProcessor bean created");
-        log.info("Kafka consumer: {}", consumer);
-        log.info("Topic: {}", snapshotsTopic);
-        log.info("HubRouterClient: {}", hubRouterClient);
+        System.out.println("=== SnapshotProcessor.init() START ===");
+        System.out.println("SnapshotProcessor bean created");
+        System.out.println("Kafka consumer: " + consumer);
+        System.out.println("Topic: " + snapshotsTopic);
+        System.out.println("HubRouterClient: " + hubRouterClient);
+        System.out.println("=== SnapshotProcessor.init() END ===");
+        System.out.flush();
     }
 
     public void start() {
-        log.info("SnapshotProcessor starting");
-        log.info("Subscribing to topic: {}", snapshotsTopic);
+        System.out.println("=== SnapshotProcessor.start() START ===");
+        System.out.println("Subscribing to topic: " + snapshotsTopic);
 
         consumer.subscribe(List.of(snapshotsTopic));
-        log.info("Subscribed to topic: {}", snapshotsTopic);
+        System.out.println("Subscribed to topic: " + snapshotsTopic);
 
         try {
             while (true) {
-                log.debug("Polling Kafka...");
+                System.out.println("Polling Kafka...");
                 ConsumerRecords<String, SensorsSnapshotAvro> records = consumer.poll(Duration.ofMillis(1000));
-                log.debug("Poll returned {} records", records.count());
+                System.out.println("Poll returned " + records.count() + " records");
 
                 if (!records.isEmpty()) {
-                    log.info("Received {} snapshot records", records.count());
+                    System.out.println("Received " + records.count() + " snapshot records");
                 }
 
                 for (ConsumerRecord<String, SensorsSnapshotAvro> record : records) {
-                    log.info("Processing snapshot record from partition {}, offset {}",
-                            record.partition(), record.offset());
+                    System.out.println("Processing snapshot record from partition " + record.partition() +
+                            ", offset " + record.offset());
                     processSnapshot(record.value());
                     currentOffsets.put(
                             new TopicPartition(record.topic(), record.partition()),
@@ -79,76 +82,76 @@ public class SnapshotProcessor {
                 if (!currentOffsets.isEmpty()) {
                     consumer.commitSync(currentOffsets);
                     currentOffsets.clear();
-                    log.debug("Committed offsets");
+                    System.out.println("Committed offsets");
                 }
             }
         } catch (WakeupException e) {
-            log.info("SnapshotProcessor received shutdown signal");
+            System.out.println("SnapshotProcessor received shutdown signal");
         } catch (Exception e) {
-            log.error("Error in SnapshotProcessor", e);
+            System.err.println("Error in SnapshotProcessor: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             consumer.close();
-            log.info("SnapshotProcessor closed");
+            System.out.println("SnapshotProcessor closed");
         }
     }
 
     private void processSnapshot(SensorsSnapshotAvro snapshot) {
         String hubId = snapshot.getHubId().toString();
-        log.info("Processing snapshot for hub: {}", hubId);
-        log.info("Snapshot timestamp: {}, sensors count: {}",
-                snapshot.getTimestamp(), snapshot.getSensorsState().size());
+        System.out.println("=== PROCESSING SNAPSHOT FOR HUB: " + hubId + " ===");
+        System.out.println("Snapshot timestamp: " + snapshot.getTimestamp() +
+                ", sensors count: " + snapshot.getSensorsState().size());
 
         List<Scenario> scenarios = scenarioRepository.findByHubIdWithConditionsAndActions(hubId);
-        log.info("Found {} scenarios for hub {}", scenarios.size(), hubId);
+        System.out.println("Found " + scenarios.size() + " scenarios for hub " + hubId);
 
         if (scenarios.isEmpty()) {
-            log.warn("No scenarios found for hub {}", hubId);
+            System.out.println("No scenarios found for hub " + hubId);
             return;
         }
 
         for (Scenario scenario : scenarios) {
-            log.info("Checking scenario: {} with {} conditions and {} actions",
-                    scenario.getName(),
-                    scenario.getConditions().size(),
-                    scenario.getActions().size());
+            System.out.println("Checking scenario: " + scenario.getName() +
+                    " with " + scenario.getConditions().size() + " conditions");
 
             boolean scenarioResult = analyzerService.checkScenario(scenario, snapshot);
-            log.info("Scenario {} check result: {}", scenario.getName(), scenarioResult);
+            System.out.println("Scenario " + scenario.getName() + " check result: " + scenarioResult);
 
             if (scenarioResult) {
-                log.info("Scenario {} activated for hub {}", scenario.getName(), hubId);
+                System.out.println("Scenario " + scenario.getName() + " activated for hub " + hubId);
                 executeActions(hubId, scenario.getName(), scenario.getActions(), snapshot);
             } else {
-                log.info("Scenario {} not activated", scenario.getName());
+                System.out.println("Scenario " + scenario.getName() + " not activated");
             }
         }
     }
 
     private void executeActions(String hubId, String scenarioName, List<ScenarioAction> actions, SensorsSnapshotAvro snapshot) {
-        log.info("Executing {} actions for scenario {} on hub {}", actions.size(), scenarioName, hubId);
+        System.out.println("Executing " + actions.size() + " actions for scenario " + scenarioName + " on hub " + hubId);
 
         if (actions.isEmpty()) {
-            log.warn("No actions to execute for scenario {}", scenarioName);
+            System.out.println("No actions to execute for scenario " + scenarioName);
             return;
         }
 
         for (ScenarioAction scenarioAction : actions) {
             if (scenarioAction == null || scenarioAction.getAction() == null || scenarioAction.getSensor() == null) {
-                log.error("Invalid scenario action for scenario {}", scenarioName);
+                System.err.println("Invalid scenario action for scenario " + scenarioName);
                 continue;
             }
 
             Action action = scenarioAction.getAction();
             String sensorId = scenarioAction.getSensor().getId();
 
-            log.info("Sending command: sensor={}, action={}, value={}",
-                    sensorId, action.getType(), action.getValue());
+            System.out.println("Sending command: sensor=" + sensorId +
+                    ", action=" + action.getType() +
+                    ", value=" + action.getValue());
 
             ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto actionType;
             try {
                 actionType = convertActionType(action.getType());
             } catch (Exception e) {
-                log.error("Failed to convert action type: {}", action.getType(), e);
+                System.err.println("Failed to convert action type: " + action.getType());
                 continue;
             }
 
@@ -169,14 +172,13 @@ public class SnapshotProcessor {
                             .build())
                     .build();
 
-            log.info("Sending gRPC request to hub-router: hubId={}, scenario={}, sensor={}",
-                    hubId, scenarioName, sensorId);
+            System.out.println("Sending gRPC request to hub-router");
 
             try {
                 hubRouterClient.handleDeviceAction(request);
-                log.info("Successfully sent command to device {}", sensorId);
+                System.out.println("Successfully sent command to device " + sensorId);
             } catch (Exception e) {
-                log.error("Error sending command to Hub Router for device {}", sensorId, e);
+                System.err.println("Error sending command to Hub Router for device " + sensorId + ": " + e.getMessage());
             }
         }
     }
@@ -192,7 +194,7 @@ public class SnapshotProcessor {
             case SET_VALUE:
                 return ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto.SET_VALUE;
             default:
-                log.error("Unknown action type: {}", type);
+                System.err.println("Unknown action type: " + type);
                 throw new IllegalArgumentException("Unknown action type: " + type);
         }
     }
