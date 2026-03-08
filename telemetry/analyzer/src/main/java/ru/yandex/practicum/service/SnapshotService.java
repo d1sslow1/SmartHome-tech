@@ -3,6 +3,7 @@ package ru.yandex.practicum.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 import ru.yandex.practicum.processor.HubRouterProcessor;
 import ru.yandex.practicum.model.Scenario;
@@ -20,6 +21,7 @@ public class SnapshotService {
     private final HubRouterProcessor hubRouterProcessor;
     private final ScenarioAnalyzerService scenarioAnalyzer;
 
+    @Transactional
     public void analyze(SensorsSnapshotAvro snapshot) {
         String hubId = snapshot.getHubId().toString();
         log.info("=== Analyzing snapshot for hub: {} ===", hubId);
