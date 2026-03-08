@@ -11,7 +11,8 @@ import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
 import ru.yandex.practicum.grpc.telemetry.hubrouter.DeviceActionRequest;
 import ru.yandex.practicum.grpc.telemetry.hubrouter.HubRouterControllerGrpc;
-import ru.yandex.practicum.model.Action;
+import ru.yandex.practicum.model.Action;      // этот импорт
+import ru.yandex.practicum.model.Sensor;       // этот импорт
 
 @Slf4j
 @Service
@@ -27,8 +28,14 @@ public class HubRouterProcessor {
     }
 
     public Empty executeAction(Action action, String hubId, String scenarioName) {
+        Sensor sensor = action.getSensor();
+        if (sensor == null) {
+            log.error("Action has no associated sensor: {}", action.getId());
+            return null;
+        }
+
         DeviceActionProto deviceActionProto = DeviceActionProto.newBuilder()
-                .setSensorId(action.getSensor().getId())
+                .setSensorId(sensor.getId())
                 .setType(ActionTypeProto.valueOf(action.getType().name()))
                 .setValue(action.getValue() != null ? action.getValue() : 0)
                 .build();
@@ -42,7 +49,7 @@ public class HubRouterProcessor {
         try {
             Empty response = hubRouterClient.handleDeviceAction(request);
             log.info("Action executed successfully: sensor={}, type={}, value={}",
-                    action.getSensor().getId(), action.getType(), action.getValue());
+                    sensor.getId(), action.getType(), action.getValue());
             return response;
         } catch (StatusRuntimeException e) {
             log.error("Error sending DeviceActionRequest", e);
