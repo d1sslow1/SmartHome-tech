@@ -21,9 +21,11 @@ public class SnapshotProcessor implements Runnable {
     private final KafkaConfig kafkaConfig;
     private final SnapshotService snapshotService;
 
-    public SnapshotProcessor(KafkaConfig kafkaConfig, SnapshotService snapshotService) {
+    public SnapshotProcessor(KafkaConsumer<String, SensorsSnapshotAvro> snapshotConsumer,
+                             KafkaConfig kafkaConfig,
+                             SnapshotService snapshotService) {
+        this.snapshotConsumer = snapshotConsumer;
         this.kafkaConfig = kafkaConfig;
-        this.snapshotConsumer = new KafkaConsumer<>(kafkaConfig.snapshotConsumerProperties());
         this.snapshotService = snapshotService;
     }
 
@@ -35,7 +37,7 @@ public class SnapshotProcessor implements Runnable {
     public void run() {
         log.info("SnapshotProcessor started");
 
-        try (snapshotConsumer) {
+        try {
             Runtime.getRuntime().addShutdownHook(new Thread(snapshotConsumer::wakeup));
             snapshotConsumer.subscribe(List.of(kafkaConfig.getSnapshotsTopic()));
 
@@ -56,6 +58,7 @@ public class SnapshotProcessor implements Runnable {
         } catch (Exception e) {
             log.error("Error handling SnapshotEvents from kafka", e);
         } finally {
+            snapshotConsumer.close();
             log.info("SnapshotProcessor closed");
         }
     }
