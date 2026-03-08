@@ -1,48 +1,58 @@
 #!/bin/bash
+# run-tests.sh
 
-# Определяем текущую ветку
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+set -e
 
-echo "Текущая ветка: $BRANCH"
-echo "--------------------------"
+echo "=== Запуск тестов для 4-analyzer ==="
 
-# Базовый путь к скриптам
-SCRIPTS_PATH="scripts/macos_linux"
+# Путь к Hub Router JAR
+HUB_ROUTER_JAR="scripts/hub-router.jar"
 
-# Определяем, какой тестовый скрипт запустить
-case "$BRANCH" in
-  1-collector-json)
-    TEST_SCRIPT="$SCRIPTS_PATH/1-collector-json-tests.sh"
-    ;;
-  2-collector-grpc)
-    TEST_SCRIPT="$SCRIPTS_PATH/2-collector-grpc-tests.sh"
-    ;;
-  3-aggregator)
-    TEST_SCRIPT="$SCRIPTS_PATH/3-aggregatorr-tests.sh"
-    ;;
-  4-analyzer)
-    TEST_SCRIPT="$SCRIPTS_PATH/4-analyzer-tests.sh"
-    ;;
-  *)
-    echo "❌ Неизвестная ветка: '$BRANCH'"
-    echo "Этот скрипт поддерживает только ветки:"
-    echo "  - 1-collector-json"
-    echo "  - 2-collector-grpc"
-    echo "  - 3-aggregator"
-    echo "  - 4-analyzer"
+if [ ! -f "$HUB_ROUTER_JAR" ]; then
+    echo "❌ Hub Router JAR не найден: $HUB_ROUTER_JAR"
     exit 1
-    ;;
-esac
-
-# Проверяем, что нужный скрипт существует
-if [ ! -f "$TEST_SCRIPT" ]; then
-  echo "❌ Не найден скрипт: $TEST_SCRIPT"
-  exit 1
 fi
 
-echo "✅ Запускаем тесты для ветки: $BRANCH"
-echo "Используется скрипт: $TEST_SCRIPT"
-echo "--------------------------"
+# Запуск Docker контейнеров
+echo "Запуск Docker контейнеров (Kafka, PostgreSQL)..."
+docker-compose up -d
 
-# Запускаем соответствующий тестовый скрипт
-bash "$TEST_SCRIPT"
+# Ждем запуск Kafka и PostgreSQL
+echo "Ожидание запуска контейнеров (30 секунд)..."
+sleep 30
+
+# Запуск Hub Router
+echo "Запуск Hub Router на порту 59090..."
+java -jar "$HUB_ROUTER_JAR" \
+    --hub-router.execution.mode=ANALYZE \
+    --grpc.server.port=59090 \
+    --hub-router.execution.immediate-logging.enabled=false \
+    --hub-router.execution.output.info-enabled=true \
+    --hub-router.execution.output.trace-enabled=true \
+    --hub-router.execution.output.console=true &
+
+HUB_ROUTER_PID=$!
+echo "Hub Router PID: $HUB_ROUTER_PID"
+
+# Ждем запуск Hub Router
+echo "Ожидание запуска Hub Router (30 секунд)..."
+sleep 30
+
+# Проверка, что процесс жив
+if kill -0 $HUB_ROUTER_PID 2>/dev/null; then
+    echo "✅ Hub Router работает"
+else
+    echo "❌ Hub Router не запустился"
+    exit 1
+fi
+
+# Запуск тестов (ваши тесты здесь)
+echo "Запуск тестов..."
+# ...
+
+# Остановка Hub Router
+kill $HUB_ROUTER_PID
+echo "✅ Hub Router остановлен"
+
+# Остановка Docker контейнеров (опционально)
+# docker-compose down

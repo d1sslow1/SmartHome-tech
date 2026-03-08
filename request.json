@@ -1,0 +1,12 @@
+{
+  "id": "sensor-1",
+  "hubId": "hub-123",
+  "timestamp": {"seconds": 1700000000, "nanos": 0},
+  "payload": {
+    "motion_sensor": {
+      "link_quality": 85,
+      "motion": true,
+      "voltage": 5
+    }
+  }
+}

@@ -19,4 +19,16 @@ public class Action {
     private ActionType type;
 
     private Integer value;
+
+    @OneToOne(mappedBy = "action")
+    private ScenarioAction scenarioAction;
+
+    public Sensor getSensor() {
+        return scenarioAction != null ? scenarioAction.getSensor() : null;
+    }
+
+    public String getSensorId() {
+        Sensor sensor = getSensor();
+        return sensor != null ? sensor.getId() : null;
+    }
 }

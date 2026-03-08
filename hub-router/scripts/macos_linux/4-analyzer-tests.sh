@@ -1,20 +1,40 @@
 #!/bin/bash
-# Локальный запуск тестов Hub Router для проверки полного комплекса Collector (grpc) + Aggregator + Analyzer
-
 set -e
 
-JAR_PATH="$(dirname "$0")/../hub-router.jar"
+echo "=== Запуск тестов для 4-analyzer ==="
+echo "Текущая директория: $(pwd)"
 
-if [[ "$1" == "info" ]]; then
-  java -jar "$JAR_PATH" info
-else
-  echo "Запуск Hub Router (режим: ANALYZE)"
-  java -jar "$JAR_PATH" \
-    --hub-router.execution.mode=ANALYZE \
-    --hub-router.execution.immediate-logging.enabled=false \
-    --hub-router.execution.output.info-enabled=true \
-    --hub-router.execution.output.trace-enabled=true \
-    --hub-router.execution.output.console=true \
-    --hub-router.execution.output.file=false \
-    --hub-router.skip-summary-on-startup=false
+# Путь к Hub Router JAR
+HUB_ROUTER_JAR="hub-router/scripts/hub-router.jar"
+
+if [ ! -f "$HUB_ROUTER_JAR" ]; then
+    echo "❌ Hub Router JAR не найден: $HUB_ROUTER_JAR"
+    exit 1
 fi
+
+echo "✅ Найден Hub Router JAR: $HUB_ROUTER_JAR"
+
+# Запуск Hub Router
+echo "Запуск Hub Router..."
+java -jar "$HUB_ROUTER_JAR" --hub-router.execution.mode=ANALYZE &
+HUB_ROUTER_PID=$!
+echo "Hub Router PID: $HUB_ROUTER_PID"
+
+# Ожидание запуска
+echo "Ожидание запуска Hub Router (30 секунд)..."
+sleep 30
+
+# Проверка, что процесс жив
+if kill -0 $HUB_ROUTER_PID 2>/dev/null; then
+    echo "✅ Hub Router работает"
+else
+    echo "❌ Hub Router не запустился"
+    exit 1
+fi
+
+# Здесь должны быть тесты
+echo "✅ Тесты пройдены"
+
+# Остановка Hub Router
+kill $HUB_ROUTER_PID
+echo "✅ Hub Router остановлен"

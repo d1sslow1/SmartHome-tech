@@ -18,7 +18,7 @@ if "%BRANCH%"=="1-collector-json" (
     set TEST_SCRIPT=%SCRIPTS_PATH%\4-analyzer-tests.bat
 ) else (
     echo ❌ Неизвестная ветка: "%BRANCH%"
-    echo Этот скрипт поддерживает только ветки:
+    echo Этот скрипт только ветки:
     echo   - 1-collector-json
     echo   - 2-collector-grpc
     echo   - 3-aggregator
