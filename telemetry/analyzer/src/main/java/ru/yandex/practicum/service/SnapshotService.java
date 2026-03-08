@@ -22,18 +22,28 @@ public class SnapshotService {
 
     public void analyze(SensorsSnapshotAvro snapshot) {
         String hubId = snapshot.getHubId().toString();
-        log.info("Analyzing snapshot for hub: {}", hubId);
+        log.info("=== Analyzing snapshot for hub: {} ===", hubId);
+        log.info("Snapshot timestamp: {}, sensors count: {}",
+                snapshot.getTimestamp(), snapshot.getSensorsState().size());
 
         List<Scenario> scenarios = scenarioRepository.findByHubIdWithConditionsAndActions(hubId);
         log.info("Found {} scenarios for hub {}", scenarios.size(), hubId);
 
+        if (scenarios.isEmpty()) {
+            log.warn("No scenarios found for hub {}", hubId);
+            return;
+        }
+
         for (Scenario scenario : scenarios) {
-            log.debug("Checking scenario '{}' with {} conditions and {} actions",
+            log.info("Checking scenario: '{}' with {} conditions and {} actions",
                     scenario.getName(),
                     scenario.getConditions().size(),
                     scenario.getActions().size());
 
-            if (scenarioAnalyzer.checkScenario(scenario, snapshot)) {
+            boolean activated = scenarioAnalyzer.checkScenario(scenario, snapshot);
+            log.info("Scenario '{}' activated: {}", scenario.getName(), activated);
+
+            if (activated) {
                 log.info("✅ Scenario '{}' ACTIVATED for hub {}", scenario.getName(), hubId);
 
                 for (ScenarioAction scenarioAction : scenario.getActions()) {

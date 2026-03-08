@@ -1,5 +1,6 @@
 package ru.yandex.practicum.processor;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -29,13 +30,20 @@ public class SnapshotProcessor implements Runnable {
         this.snapshotService = snapshotService;
     }
 
+    @PostConstruct
+    public void init() {
+        log.info("=== SnapshotProcessor INIT ===");
+        log.info("Topic: {}", kafkaConfig.getSnapshotsTopic());
+    }
+
     public void start() {
         run();
     }
 
     @Override
     public void run() {
-        log.info("SnapshotProcessor started");
+        log.info("=== SnapshotProcessor START ===");
+        log.info("Subscribing to: {}", kafkaConfig.getSnapshotsTopic());
 
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(snapshotConsumer::wakeup));
@@ -43,10 +51,18 @@ public class SnapshotProcessor implements Runnable {
 
             while (true) {
                 ConsumerRecords<String, SensorsSnapshotAvro> records = snapshotConsumer.poll(Duration.ofSeconds(5));
+
+                if (!records.isEmpty()) {
+                    log.info("Received {} snapshot records", records.count());
+                }
+
                 for (ConsumerRecord<String, SensorsSnapshotAvro> record : records) {
+                    log.info("Processing snapshot from partition {}, offset {}",
+                            record.partition(), record.offset());
                     SensorsSnapshotAvro sensorsSnapshotAvro = record.value();
                     snapshotService.analyze(sensorsSnapshotAvro);
                 }
+
                 snapshotConsumer.commitAsync((offsets, exception) -> {
                     if (exception != null) {
                         log.warn("Commit snapshot processing error. Offsets: {}", offsets, exception);

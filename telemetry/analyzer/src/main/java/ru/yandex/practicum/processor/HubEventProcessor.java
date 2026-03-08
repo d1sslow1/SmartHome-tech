@@ -1,5 +1,6 @@
 package ru.yandex.practicum.processor;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -35,9 +36,16 @@ public class HubEventProcessor implements Runnable {
         this.scenarioRepository = scenarioRepository;
     }
 
+    @PostConstruct
+    public void init() {
+        log.info("=== HubEventProcessor INIT ===");
+        log.info("Topic: {}", kafkaConfig.getHubsTopic());
+    }
+
     @Override
     public void run() {
-        log.info("HubEventProcessor started");
+        log.info("=== HubEventProcessor START ===");
+        log.info("Subscribing to: {}", kafkaConfig.getHubsTopic());
 
         try {
             Runtime.getRuntime().addShutdownHook(new Thread(hubConsumer::wakeup));
@@ -45,7 +53,14 @@ public class HubEventProcessor implements Runnable {
 
             while (true) {
                 ConsumerRecords<String, HubEventAvro> records = hubConsumer.poll(Duration.ofSeconds(5));
+
+                if (!records.isEmpty()) {
+                    log.info("Received {} hub event records", records.count());
+                }
+
                 for (ConsumerRecord<String, HubEventAvro> record : records) {
+                    log.info("Processing hub event from partition {}, offset {}",
+                            record.partition(), record.offset());
                     HubEventAvro hubEventAvro = record.value();
                     processHubEvent(hubEventAvro);
                 }
@@ -69,6 +84,9 @@ public class HubEventProcessor implements Runnable {
     private void processHubEvent(HubEventAvro event) {
         String hubId = event.getHubId().toString();
         Object payload = event.getPayload();
+
+        log.info("Processing hub event for hub: {}, payload type: {}",
+                hubId, payload.getClass().getSimpleName());
 
         if (payload instanceof DeviceAddedEventAvro deviceAddedEventAvro) {
             Sensor sensor = new Sensor();

@@ -4,6 +4,7 @@ import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,8 +30,14 @@ public class HubRouterProcessor {
         log.info("HubRouterProcessor created successfully");
     }
 
+    @PostConstruct
+    public void init() {
+        log.info("=== HubRouterProcessor INIT ===");
+    }
+
     public Empty executeAction(Action action, String hubId, String scenarioName) {
-        log.info("executeAction called: hubId={}, scenario={}, actionId={}", hubId, scenarioName, action.getId());
+        log.info("=== executeAction called ===");
+        log.info("hubId={}, scenario={}, actionId={}", hubId, scenarioName, action.getId());
 
         Sensor sensor = action.getSensor();
         if (sensor == null) {
