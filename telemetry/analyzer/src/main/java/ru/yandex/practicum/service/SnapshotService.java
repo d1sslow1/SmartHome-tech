@@ -28,9 +28,20 @@ public class SnapshotService {
         log.info("Found {} scenarios for hub {}", scenarios.size(), hubId);
 
         for (Scenario scenario : scenarios) {
+            log.debug("Checking scenario '{}' with {} conditions and {} actions",
+                    scenario.getName(),
+                    scenario.getConditions().size(),
+                    scenario.getActions().size());
+
             if (scenarioAnalyzer.checkScenario(scenario, snapshot)) {
-                log.info("Scenario '{}' activated for hub {}", scenario.getName(), hubId);
+                log.info("✅ Scenario '{}' ACTIVATED for hub {}", scenario.getName(), hubId);
+
                 for (ScenarioAction scenarioAction : scenario.getActions()) {
+                    log.info("Executing action: sensor={}, type={}, value={}",
+                            scenarioAction.getSensor().getId(),
+                            scenarioAction.getAction().getType(),
+                            scenarioAction.getAction().getValue());
+
                     hubRouterProcessor.executeAction(
                             scenarioAction.getAction(),
                             hubId,
@@ -38,7 +49,7 @@ public class SnapshotService {
                     );
                 }
             } else {
-                log.debug("Scenario '{}' not activated", scenario.getName());
+                log.debug("❌ Scenario '{}' not activated", scenario.getName());
             }
         }
     }
