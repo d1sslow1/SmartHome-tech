@@ -49,23 +49,27 @@ public class HubEventProcessor implements Runnable {
     @Override
     public void run() {
         log.info("HubEventProcessor started");
+        log.info("Subscribing to topic: {}", kafkaConfig.getHubsTopic());
 
         try (hubConsumer) {
             Runtime.getRuntime().addShutdownHook(new Thread(hubConsumer::wakeup));
             hubConsumer.subscribe(List.of(kafkaConfig.getHubsTopic()));
+            log.info("Successfully subscribed to topic: {}", kafkaConfig.getHubsTopic());
 
             while (true) {
                 ConsumerRecords<String, HubEventAvro> records = hubConsumer.poll(Duration.ofSeconds(5));
 
-                if (!records.isEmpty()) {
+                if (records.isEmpty()) {
+                    log.debug("No hub event records received");
+                } else {
                     log.info("Received {} hub event records", records.count());
-                }
 
-                for (ConsumerRecord<String, HubEventAvro> record : records) {
-                    log.info("Processing hub event from partition {}, offset {}",
-                            record.partition(), record.offset());
-                    HubEventAvro hubEventAvro = record.value();
-                    processHubEvent(hubEventAvro);
+                    for (ConsumerRecord<String, HubEventAvro> record : records) {
+                        log.info("Processing hub event from partition {}, offset {}",
+                                record.partition(), record.offset());
+                        HubEventAvro hubEventAvro = record.value();
+                        processHubEvent(hubEventAvro);
+                    }
                 }
 
                 hubConsumer.commitAsync((offsets, exception) -> {
@@ -132,7 +136,6 @@ public class HubEventProcessor implements Runnable {
             String sensorId = conditionAvro.getSensorId().toString();
 
             sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
-
                 Condition condition = new Condition();
                 condition.setType(mapConditionType(conditionAvro.getType()));
                 condition.setOperation(mapOperation(conditionAvro.getOperation()));
@@ -164,13 +167,11 @@ public class HubEventProcessor implements Runnable {
             String sensorId = actionAvro.getSensorId().toString();
 
             sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
-                // Создаем действие
                 Action action = new Action();
                 action.setType(mapActionType(actionAvro.getType()));
                 action.setValue((Integer) actionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
 
-                // Создаем связь
                 ScenarioActionId id = new ScenarioActionId();
                 id.setScenarioId(savedScenario.getId());
                 id.setSensorId(sensorId);
