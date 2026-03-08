@@ -1,0 +1,52 @@
+package ru.yandex.practicum.processor;
+
+import com.google.protobuf.Empty;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.grpc.telemetry.event.ActionTypeProto;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
+import ru.yandex.practicum.grpc.telemetry.hubrouter.DeviceActionRequest;
+import ru.yandex.practicum.grpc.telemetry.hubrouter.HubRouterControllerGrpc;
+import ru.yandex.practicum.model.Action;
+
+@Slf4j
+@Service
+public class HubRouterProcessor {
+
+    private final HubRouterControllerGrpc.HubRouterControllerBlockingStub hubRouterClient;
+
+    public HubRouterProcessor(@Value("${grpc.client.hub-router.address}") String address) {
+        ManagedChannel channel = ManagedChannelBuilder.forTarget(address)
+                .usePlaintext()
+                .build();
+        this.hubRouterClient = HubRouterControllerGrpc.newBlockingStub(channel);
+    }
+
+    public Empty executeAction(Action action, String hubId, String scenarioName) {
+        DeviceActionProto deviceActionProto = DeviceActionProto.newBuilder()
+                .setSensorId(action.getSensor().getId())
+                .setType(ActionTypeProto.valueOf(action.getType().name()))
+                .setValue(action.getValue() != null ? action.getValue() : 0)
+                .build();
+
+        DeviceActionRequest request = DeviceActionRequest.newBuilder()
+                .setHubId(hubId)
+                .setScenarioName(scenarioName)
+                .setAction(deviceActionProto)
+                .build();
+
+        try {
+            Empty response = hubRouterClient.handleDeviceAction(request);
+            log.info("Action executed successfully: sensor={}, type={}, value={}",
+                    action.getSensor().getId(), action.getType(), action.getValue());
+            return response;
+        } catch (StatusRuntimeException e) {
+            log.error("Error sending DeviceActionRequest", e);
+            return null;
+        }
+    }
+}
