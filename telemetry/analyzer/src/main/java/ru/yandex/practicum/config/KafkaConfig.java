@@ -25,8 +25,7 @@ public class KafkaConfig {
     @Value("${kafka.topics.snapshots}")
     private String snapshotsTopic;
 
-    @Bean
-    public KafkaConsumer<String, HubEventAvro> hubEventConsumer() {
+    public Properties hubConsumerProperties() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "analyzer-hub-group");
@@ -34,11 +33,10 @@ public class KafkaConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, HubEventDeserializer.class);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return new KafkaConsumer<>(props);
+        return props;
     }
 
-    @Bean
-    public KafkaConsumer<String, SensorsSnapshotAvro> snapshotConsumer() {
+    public Properties snapshotConsumerProperties() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "analyzer-snapshot-group");
@@ -46,7 +44,17 @@ public class KafkaConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, SensorsSnapshotDeserializer.class);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return new KafkaConsumer<>(props);
+        return props;
+    }
+
+    @Bean
+    public KafkaConsumer<String, HubEventAvro> hubEventConsumer() {
+        return new KafkaConsumer<>(hubConsumerProperties());
+    }
+
+    @Bean
+    public KafkaConsumer<String, SensorsSnapshotAvro> snapshotConsumer() {
+        return new KafkaConsumer<>(snapshotConsumerProperties());
     }
 
     public String getHubsTopic() {
