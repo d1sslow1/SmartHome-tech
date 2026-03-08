@@ -26,12 +26,19 @@ public class SnapshotService {
         log.info("Snapshot timestamp: {}, sensors count: {}",
                 snapshot.getTimestamp(), snapshot.getSensorsState().size());
 
-        List<Scenario> scenarios = scenarioRepository.findByHubIdWithConditionsAndActions(hubId);
+        List<Scenario> scenarios = scenarioRepository.findByHubId(hubId);
         log.info("Found {} scenarios for hub {}", scenarios.size(), hubId);
 
         if (scenarios.isEmpty()) {
             log.warn("No scenarios found for hub {}", hubId);
             return;
+        }
+
+        for (Scenario scenario : scenarios) {
+            int conditionsCount = scenario.getConditions().size();
+            int actionsCount = scenario.getActions().size();
+            log.debug("Scenario '{}': loaded {} conditions and {} actions",
+                    scenario.getName(), conditionsCount, actionsCount);
         }
 
         for (Scenario scenario : scenarios) {
