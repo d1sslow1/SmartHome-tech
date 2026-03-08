@@ -14,13 +14,8 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 
     Optional<Scenario> findByHubIdAndName(String hubId, String name);
 
-    @Query("SELECT DISTINCT s FROM Scenario s " +
-            "LEFT JOIN FETCH s.conditions sc " +
-            "LEFT JOIN FETCH sc.condition " +
-            "LEFT JOIN FETCH sc.sensor " +
-            "LEFT JOIN FETCH s.actions sa " +
-            "LEFT JOIN FETCH sa.action " +
-            "LEFT JOIN FETCH sa.sensor " +
-            "WHERE s.hubId = :hubId")
+    void deleteByName(String name);
+
+    @Query("SELECT s FROM Scenario s WHERE s.hubId = :hubId")
     List<Scenario> findByHubIdWithConditionsAndActions(@Param("hubId") String hubId);
 }
