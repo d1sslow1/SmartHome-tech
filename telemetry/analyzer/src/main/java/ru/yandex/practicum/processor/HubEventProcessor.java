@@ -26,18 +26,24 @@ public class HubEventProcessor implements Runnable {
     private final ScenarioRepository scenarioRepository;
     private final ConditionRepository conditionRepository;
     private final ActionRepository actionRepository;
+    private final ScenarioConditionRepository scenarioConditionRepository;
+    private final ScenarioActionRepository scenarioActionRepository;
 
     public HubEventProcessor(KafkaConfig kafkaConfig,
                              SensorRepository sensorRepository,
                              ScenarioRepository scenarioRepository,
                              ConditionRepository conditionRepository,
-                             ActionRepository actionRepository) {
+                             ActionRepository actionRepository,
+                             ScenarioConditionRepository scenarioConditionRepository,
+                             ScenarioActionRepository scenarioActionRepository) {
         this.kafkaConfig = kafkaConfig;
         this.hubConsumer = new KafkaConsumer<>(kafkaConfig.hubConsumerProperties());
         this.sensorRepository = sensorRepository;
         this.scenarioRepository = scenarioRepository;
         this.conditionRepository = conditionRepository;
         this.actionRepository = actionRepository;
+        this.scenarioConditionRepository = scenarioConditionRepository;
+        this.scenarioActionRepository = scenarioActionRepository;
     }
 
     @Override
@@ -126,6 +132,7 @@ public class HubEventProcessor implements Runnable {
             String sensorId = conditionAvro.getSensorId().toString();
 
             sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
+
                 Condition condition = new Condition();
                 condition.setType(mapConditionType(conditionAvro.getType()));
                 condition.setOperation(mapOperation(conditionAvro.getOperation()));
@@ -143,24 +150,27 @@ public class HubEventProcessor implements Runnable {
                 scenarioCondition.setSensor(sensor);
                 scenarioCondition.setCondition(savedCondition);
 
-                log.info("Created condition {} for sensor {}", savedCondition.getId(), sensorId);
+                scenarioConditionRepository.save(scenarioCondition);
+
+                log.info("Created condition {} for sensor {} and linked to scenario {}",
+                        savedCondition.getId(), sensorId, savedScenario.getId());
                 conditionCount.incrementAndGet();
             });
         }
         log.info("Processed {} conditions for scenario {}", conditionCount.get(), savedScenario.getName());
 
-        // Сохраняем действия
         AtomicInteger actionCount = new AtomicInteger(0);
         for (DeviceActionAvro actionAvro : event.getActions()) {
             String sensorId = actionAvro.getSensorId().toString();
 
             sensorRepository.findByIdAndHubId(sensorId, hubId).ifPresent(sensor -> {
+                // Создаем действие
                 Action action = new Action();
                 action.setType(mapActionType(actionAvro.getType()));
                 action.setValue((Integer) actionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
 
-                // Создаем связь между сценарием, сенсором и действием
+                // Создаем связь
                 ScenarioActionId id = new ScenarioActionId();
                 id.setScenarioId(savedScenario.getId());
                 id.setSensorId(sensorId);
@@ -172,7 +182,10 @@ public class HubEventProcessor implements Runnable {
                 scenarioAction.setSensor(sensor);
                 scenarioAction.setAction(savedAction);
 
-                log.info("Created action {} for sensor {}", savedAction.getId(), sensorId);
+                scenarioActionRepository.save(scenarioAction);
+
+                log.info("Created action {} for sensor {} and linked to scenario {}",
+                        savedAction.getId(), sensorId, savedScenario.getId());
                 actionCount.incrementAndGet();
             });
         }
