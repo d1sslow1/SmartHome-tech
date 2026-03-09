@@ -51,7 +51,7 @@ public class HubEventProcessor implements Runnable {
         log.info("HubEventProcessor started");
         log.info("Subscribing to topic: {}", kafkaConfig.getHubsTopic());
 
-        try (hubConsumer) {
+        try {
             Runtime.getRuntime().addShutdownHook(new Thread(hubConsumer::wakeup));
             hubConsumer.subscribe(List.of(kafkaConfig.getHubsTopic()));
             log.info("Successfully subscribed to topic: {}", kafkaConfig.getHubsTopic());
@@ -142,13 +142,13 @@ public class HubEventProcessor implements Runnable {
                 condition.setValue(extractValue(conditionAvro.getValue()));
                 Condition savedCondition = conditionRepository.save(condition);
 
-                ScenarioConditionId id = new ScenarioConditionId();
-                id.setScenarioId(savedScenario.getId());
-                id.setSensorId(sensorId);
-                id.setConditionId(savedCondition.getId());
+                ScenarioConditionId scenarioConditionId = new ScenarioConditionId();
+                scenarioConditionId.setScenarioId(savedScenario.getId());
+                scenarioConditionId.setSensorId(sensorId);
+                scenarioConditionId.setConditionId(savedCondition.getId());
 
                 ScenarioCondition scenarioCondition = new ScenarioCondition();
-                scenarioCondition.setId(id);
+                scenarioCondition.setId(scenarioConditionId);
                 scenarioCondition.setScenario(savedScenario);
                 scenarioCondition.setSensor(sensor);
                 scenarioCondition.setCondition(savedCondition);
@@ -172,13 +172,13 @@ public class HubEventProcessor implements Runnable {
                 action.setValue((Integer) actionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
 
-                ScenarioActionId id = new ScenarioActionId();
-                id.setScenarioId(savedScenario.getId());
-                id.setSensorId(sensorId);
-                id.setActionId(savedAction.getId());
+                ScenarioActionId scenarioActionId = new ScenarioActionId();
+                scenarioActionId.setScenarioId(savedScenario.getId());
+                scenarioActionId.setSensorId(sensorId);
+                scenarioActionId.setActionId(savedAction.getId());
 
                 ScenarioAction scenarioAction = new ScenarioAction();
-                scenarioAction.setId(id);
+                scenarioAction.setId(scenarioActionId);
                 scenarioAction.setScenario(savedScenario);
                 scenarioAction.setSensor(sensor);
                 scenarioAction.setAction(savedAction);
