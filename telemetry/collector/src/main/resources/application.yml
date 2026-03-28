@@ -2,7 +2,7 @@ spring:
   application:
     name: collector
   config:
-    import: "configserver:"  # Убираем явный адрес
+    import: "configserver:"
   cloud:
     config:
       discovery:

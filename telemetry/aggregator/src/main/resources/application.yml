@@ -2,7 +2,7 @@ spring:
   application:
     name: aggregator
   config:
-    import: "configserver:"  # Убираем явный адрес
+    import: "configserver:"
   cloud:
     config:
       discovery:
@@ -19,4 +19,3 @@ logging:
     ru.yandex.practicum: DEBUG
     org.springframework.cloud: DEBUG
     com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
