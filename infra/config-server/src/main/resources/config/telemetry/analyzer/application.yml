@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: analyzer
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/analyzer
+    username: analyzer
+    password: analyzer
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+kafka:
+  bootstrap-servers: localhost:9092
+  topics:
+    snapshots: telemetry.snapshots.v1
+    hubs: telemetry.hubs.v1
+
+grpc:
+  client:
+    hub-router:
+      address: 'discovery:///hub-router'
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+    org.apache.kafka: INFO
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
