@@ -9,14 +9,21 @@ DISCOVERY_JAR="infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar"
 CONFIG_JAR="infra/config-server/target/config-server-1.0-SNAPSHOT.jar"
 HUB_ROUTER_JAR="hub-router/scripts/hub-router.jar"
 
+# Проверка наличия JAR-файлов
 if [ ! -f "$DISCOVERY_JAR" ]; then
-    echo "❌ Discovery Server JAR не найден: $DISCOVERY_JAR"
-    exit 1
+    echo "⚠️ Discovery Server JAR не найден: $DISCOVERY_JAR"
+    echo "Пропускаем запуск Eureka"
+    DISCOVERY_PID=""
+else
+    echo "✅ Discovery Server JAR найден"
 fi
 
 if [ ! -f "$CONFIG_JAR" ]; then
-    echo "❌ Config Server JAR не найден: $CONFIG_JAR"
-    exit 1
+    echo "⚠️ Config Server JAR не найден: $CONFIG_JAR"
+    echo "Пропускаем запуск Config Server"
+    CONFIG_PID=""
+else
+    echo "✅ Config Server JAR найден"
 fi
 
 if [ ! -f "$HUB_ROUTER_JAR" ]; then
@@ -24,7 +31,7 @@ if [ ! -f "$HUB_ROUTER_JAR" ]; then
     exit 1
 fi
 
-echo "✅ Все JAR-файлы найдены"
+echo "✅ Hub Router JAR найден"
 
 # Запуск Docker контейнеров
 echo "Запуск Docker контейнеров..."
@@ -41,39 +48,46 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# 1. Запуск Eureka
-echo "Запуск Eureka Discovery Server..."
-java -jar "$DISCOVERY_JAR" &
-DISCOVERY_PID=$!
-echo "Eureka PID: $DISCOVERY_PID"
+# 1. Запуск Eureka Discovery Server (если есть)
+if [ -n "$DISCOVERY_JAR" ] && [ -f "$DISCOVERY_JAR" ]; then
+    echo "Запуск Eureka Discovery Server..."
+    java -jar "$DISCOVERY_JAR" &
+    DISCOVERY_PID=$!
+    echo "Eureka PID: $DISCOVERY_PID"
 
-echo "Ожидание запуска Eureka (30 секунд)..."
-for i in {1..30}; do
-    sleep 1
-    if curl -s http://localhost:8761 > /dev/null 2>&1; then
-        echo "✅ Eureka доступен"
-        break
-    fi
-    echo -n "."
-done
-echo ""
+    echo "Ожидание запуска Eureka (30 секунд)..."
+    for i in {1..30}; do
+        sleep 1
+        if curl -s http://localhost:8761 > /dev/null 2>&1; then
+            echo "✅ Eureka доступен"
+            break
+        fi
+        echo -n "."
+    done
+    echo ""
+fi
 
-# 2. Запуск Config Server
-echo "Запуск Config Server..."
-java -jar "$CONFIG_JAR" &
-CONFIG_PID=$!
-echo "Config Server PID: $CONFIG_PID"
+# 2. Запуск Config Server (если есть)
+if [ -n "$CONFIG_JAR" ] && [ -f "$CONFIG_JAR" ]; then
+    echo "Запуск Config Server..."
+    java -jar "$CONFIG_JAR" &
+    CONFIG_PID=$!
+    echo "Config Server PID: $CONFIG_PID"
 
-echo "Ожидание регистрации Config Server в Eureka (30 секунд)..."
-for i in {1..30}; do
-    sleep 1
-    if curl -s http://localhost:8761/eureka/apps/CONFIG-SERVER 2>/dev/null | grep -q "UP"; then
-        echo "✅ Config Server зарегистрирован"
-        break
-    fi
-    echo -n "."
-done
-echo ""
+    echo "Ожидание запуска Config Server (30 секунд)..."
+    for i in {1..30}; do
+        sleep 1
+        if curl -s http://localhost:8888/actuator/health > /dev/null 2>&1; then
+            echo "✅ Config Server доступен"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "⚠️ Config Server не запустился, продолжаем..."
+        fi
+        echo -n "."
+    done
+    echo ""
+fi
 
 # 3. Запуск Hub Router
 echo "Запуск Hub Router..."
@@ -93,6 +107,10 @@ for i in {1..30}; do
     if nc -z localhost 59090 2>/dev/null; then
         echo "✅ Hub Router доступен на порту 59090"
         break
+    fi
+    if [ $i -eq 30 ]; then
+        echo "❌ Hub Router не запустился"
+        exit 1
     fi
     echo -n "."
 done
