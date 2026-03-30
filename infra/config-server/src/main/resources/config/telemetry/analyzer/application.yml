@@ -3,9 +3,9 @@ spring:
     name: analyzer
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/analyzer
-    username: analyzer
-    password: analyzer
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -26,7 +26,10 @@ kafka:
 grpc:
   client:
     hub-router:
-      address: 'discovery:///hub-router'
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
 
 logging:
   level:
@@ -35,4 +38,3 @@ logging:
     org.hibernate: INFO
     org.apache.kafka: INFO
     com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
