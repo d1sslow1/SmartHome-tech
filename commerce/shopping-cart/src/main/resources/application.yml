@@ -1,6 +1,6 @@
 spring:
   application:
-    name: analyzer
+    name: shopping-cart
   config:
     import: "configserver:"
   cloud:
@@ -18,5 +18,3 @@ logging:
   level:
     ru.yandex.practicum: DEBUG
     org.springframework.cloud: DEBUG
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
