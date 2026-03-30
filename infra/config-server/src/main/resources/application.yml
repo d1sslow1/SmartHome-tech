@@ -29,4 +29,4 @@ logging:
   level:
     ru.yandex.practicum: DEBUG
     org.springframework.cloud: DEBUG
-    org.springframework.boot: DEBUG
+    com.netflix.eureka: DEBUG
