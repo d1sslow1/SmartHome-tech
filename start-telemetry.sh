@@ -1,4 +1,6 @@
 #!/bin/bash
+# start-telemetry.sh - исправленная версия для CI
+
 set -e
 
 echo "===================================="
@@ -11,6 +13,16 @@ mkdir -p logs
 
 # Проверка JAR-файлов
 echo "Проверка JAR-файлов..."
+
+if [ ! -f "./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Discovery Server JAR не найден"
+    exit 1
+fi
+
+if [ ! -f "./infra/config-server/target/config-server-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Config Server JAR не найден"
+    exit 1
+fi
 
 if [ ! -f "./telemetry/collector/target/collector-1.0-SNAPSHOT.jar" ]; then
     echo "❌ Collector JAR не найден"
@@ -33,7 +45,7 @@ echo ""
 # Запуск Docker контейнеров
 echo "Запуск Docker контейнеров (Kafka, PostgreSQL)..."
 docker-compose up -d
-sleep 10
+sleep 15
 
 # Функция для остановки
 cleanup() {
@@ -53,13 +65,9 @@ echo "===================================="
 
 # 1. Eureka Discovery Server
 echo "[1/5] Запуск Eureka Discovery Server..."
-if [ -f "./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar" ]; then
-    java -jar infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar > logs/discovery-server.log 2>&1 &
-    DISCOVERY_PID=$!
-    echo "✅ Eureka запущен (PID: $DISCOVERY_PID)"
-else
-    echo "⚠️ Eureka JAR не найден, пропускаем"
-fi
+java -jar infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar > logs/discovery-server.log 2>&1 &
+DISCOVERY_PID=$!
+echo "✅ Eureka запущен (PID: $DISCOVERY_PID)"
 
 echo "Ожидание запуска Eureka (30 секунд)..."
 for i in {1..30}; do
@@ -74,24 +82,20 @@ echo ""
 
 # 2. Config Server
 echo "[2/5] Запуск Config Server..."
-if [ -f "./infra/config-server/target/config-server-1.0-SNAPSHOT.jar" ]; then
-    java -jar infra/config-server/target/config-server-1.0-SNAPSHOT.jar > logs/config-server.log 2>&1 &
-    CONFIG_PID=$!
-    echo "✅ Config Server запущен (PID: $CONFIG_PID)"
-    
-    echo "Ожидание регистрации Config Server в Eureka (30 секунд)..."
-    for i in {1..30}; do
-        sleep 1
-        if curl -s http://localhost:8761/eureka/apps/CONFIG-SERVER 2>/dev/null | grep -q "UP"; then
-            echo "✅ Config Server зарегистрирован в Eureka"
-            break
-        fi
-        echo -n "."
-    done
-    echo ""
-else
-    echo "⚠️ Config Server JAR не найден, пропускаем"
-fi
+java -jar infra/config-server/target/config-server-1.0-SNAPSHOT.jar > logs/config-server.log 2>&1 &
+CONFIG_PID=$!
+echo "✅ Config Server запущен (PID: $CONFIG_PID)"
+
+echo "Ожидание регистрации Config Server в Eureka (30 секунд)..."
+for i in {1..30}; do
+    sleep 1
+    if curl -s http://localhost:8761/eureka/apps/CONFIG-SERVER 2>/dev/null | grep -q "UP"; then
+        echo "✅ Config Server зарегистрирован в Eureka"
+        break
+    fi
+    echo -n "."
+done
+echo ""
 
 echo "===================================="
 echo "Запуск сервисов телеметрии..."
@@ -129,11 +133,7 @@ sleep 10
 # Проверка что все сервисы зарегистрировались
 echo ""
 echo "Проверка регистрации в Eureka..."
-if curl -s http://localhost:8761/eureka/apps 2>/dev/null | grep -q "<application>"; then
-    echo "✅ Сервисы зарегистрированы в Eureka"
-else
-    echo "⚠️ Нет зарегистрированных сервисов"
-fi
+curl -s http://localhost:8761/eureka/apps | grep -E "<name>" || echo "⚠️ Нет зарегистрированных сервисов"
 
 echo ""
 echo "Для остановки нажмите Ctrl+C"

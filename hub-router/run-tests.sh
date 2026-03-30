@@ -1,124 +1,142 @@
 #!/bin/bash
+# start-telemetry.sh - исправленная версия для CI
+
 set -e
 
-echo "=== Запуск тестов для 7-spring-cloud-microservices ==="
-echo "Текущая директория: $(pwd)"
+echo "===================================="
+echo "🚀 Запуск сервисов телеметрии SmartHome-tech"
+echo "===================================="
+echo ""
 
-# Путь к JAR-файлам
-DISCOVERY_JAR="infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar"
-CONFIG_JAR="infra/config-server/target/config-server-1.0-SNAPSHOT.jar"
-HUB_ROUTER_JAR="hub-router/scripts/hub-router.jar"
+# Создание папки для логов
+mkdir -p logs
 
-# Проверка наличия JAR-файлов
-if [ ! -f "$DISCOVERY_JAR" ]; then
-    echo "⚠️ Discovery Server JAR не найден: $DISCOVERY_JAR"
-    echo "Пропускаем запуск Eureka"
-    DISCOVERY_PID=""
-else
-    echo "✅ Discovery Server JAR найден"
-fi
+# Проверка JAR-файлов
+echo "Проверка JAR-файлов..."
 
-if [ ! -f "$CONFIG_JAR" ]; then
-    echo "⚠️ Config Server JAR не найден: $CONFIG_JAR"
-    echo "Пропускаем запуск Config Server"
-    CONFIG_PID=""
-else
-    echo "✅ Config Server JAR найден"
-fi
-
-if [ ! -f "$HUB_ROUTER_JAR" ]; then
-    echo "❌ Hub Router JAR не найден: $HUB_ROUTER_JAR"
+if [ ! -f "./infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Discovery Server JAR не найден"
     exit 1
 fi
 
-echo "✅ Hub Router JAR найден"
+if [ ! -f "./infra/config-server/target/config-server-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Config Server JAR не найден"
+    exit 1
+fi
+
+if [ ! -f "./telemetry/collector/target/collector-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Collector JAR не найден"
+    exit 1
+fi
+
+if [ ! -f "./telemetry/aggregator/target/aggregator-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Aggregator JAR не найден"
+    exit 1
+fi
+
+if [ ! -f "./telemetry/analyzer/target/analyzer-1.0-SNAPSHOT.jar" ]; then
+    echo "❌ Analyzer JAR не найден"
+    exit 1
+fi
+
+echo "✅ Все JAR-файлы найдены"
+echo ""
 
 # Запуск Docker контейнеров
-echo "Запуск Docker контейнеров..."
+echo "Запуск Docker контейнеров (Kafka, PostgreSQL)..."
 docker-compose up -d
-sleep 10
+sleep 15
 
 # Функция для остановки
 cleanup() {
     echo ""
     echo "Останавливаю все сервисы..."
-    kill $DISCOVERY_PID $CONFIG_PID $HUB_ROUTER_PID 2>/dev/null || true
+    kill $DISCOVERY_PID $CONFIG_PID $COLLECTOR_PID $AGGREGATOR_PID $ANALYZER_PID 2>/dev/null || true
     docker-compose down
     echo "Все сервисы остановлены"
+    exit 0
 }
+
 trap cleanup EXIT INT TERM
 
-# 1. Запуск Eureka Discovery Server (если есть)
-if [ -n "$DISCOVERY_JAR" ] && [ -f "$DISCOVERY_JAR" ]; then
-    echo "Запуск Eureka Discovery Server..."
-    java -jar "$DISCOVERY_JAR" &
-    DISCOVERY_PID=$!
-    echo "Eureka PID: $DISCOVERY_PID"
+echo "===================================="
+echo "Запуск инфраструктурных сервисов..."
+echo "===================================="
 
-    echo "Ожидание запуска Eureka (30 секунд)..."
-    for i in {1..30}; do
-        sleep 1
-        if curl -s http://localhost:8761 > /dev/null 2>&1; then
-            echo "✅ Eureka доступен"
-            break
-        fi
-        echo -n "."
-    done
-    echo ""
-fi
+# 1. Eureka Discovery Server
+echo "[1/5] Запуск Eureka Discovery Server..."
+java -jar infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar > logs/discovery-server.log 2>&1 &
+DISCOVERY_PID=$!
+echo "✅ Eureka запущен (PID: $DISCOVERY_PID)"
 
-# 2. Запуск Config Server (если есть)
-if [ -n "$CONFIG_JAR" ] && [ -f "$CONFIG_JAR" ]; then
-    echo "Запуск Config Server..."
-    java -jar "$CONFIG_JAR" &
-    CONFIG_PID=$!
-    echo "Config Server PID: $CONFIG_PID"
-
-    echo "Ожидание запуска Config Server (30 секунд)..."
-    for i in {1..30}; do
-        sleep 1
-        if curl -s http://localhost:8888/actuator/health > /dev/null 2>&1; then
-            echo "✅ Config Server доступен"
-            break
-        fi
-        if [ $i -eq 30 ]; then
-            echo "⚠️ Config Server не запустился, продолжаем..."
-        fi
-        echo -n "."
-    done
-    echo ""
-fi
-
-# 3. Запуск Hub Router
-echo "Запуск Hub Router..."
-java -jar "$HUB_ROUTER_JAR" \
-    --hub-router.execution.mode=ANALYZE \
-    --grpc.server.port=59090 \
-    --hub-router.execution.immediate-logging.enabled=false \
-    --hub-router.execution.output.info-enabled=true \
-    --hub-router.execution.output.trace-enabled=true \
-    --hub-router.execution.output.console=true &
-HUB_ROUTER_PID=$!
-echo "Hub Router PID: $HUB_ROUTER_PID"
-
-echo "Ожидание запуска Hub Router (30 секунд)..."
+echo "Ожидание запуска Eureka (30 секунд)..."
 for i in {1..30}; do
     sleep 1
-    if nc -z localhost 59090 2>/dev/null; then
-        echo "✅ Hub Router доступен на порту 59090"
+    if curl -s http://localhost:8761 > /dev/null 2>&1; then
+        echo "✅ Eureka доступен на порту 8761"
         break
-    fi
-    if [ $i -eq 30 ]; then
-        echo "❌ Hub Router не запустился"
-        exit 1
     fi
     echo -n "."
 done
 echo ""
 
-# Здесь должны быть тесты
-echo "✅ Тесты пройдены"
+# 2. Config Server
+echo "[2/5] Запуск Config Server..."
+java -jar infra/config-server/target/config-server-1.0-SNAPSHOT.jar > logs/config-server.log 2>&1 &
+CONFIG_PID=$!
+echo "✅ Config Server запущен (PID: $CONFIG_PID)"
 
-# Остановка
-kill $DISCOVERY_PID $CONFIG_PID $HUB_ROUTER_PID 2>/dev/null || true
-echo "✅ Все сервисы остановлены"
+echo "Ожидание регистрации Config Server в Eureka (30 секунд)..."
+for i in {1..30}; do
+    sleep 1
+    if curl -s http://localhost:8761/eureka/apps/CONFIG-SERVER 2>/dev/null | grep -q "UP"; then
+        echo "✅ Config Server зарегистрирован в Eureka"
+        break
+    fi
+    echo -n "."
+done
+echo ""
+
+echo "===================================="
+echo "Запуск сервисов телеметрии..."
+echo "===================================="
+
+# 3. Collector
+echo "[3/5] Запуск Collector..."
+java -jar telemetry/collector/target/collector-1.0-SNAPSHOT.jar > logs/collector.log 2>&1 &
+COLLECTOR_PID=$!
+echo "✅ Collector запущен (PID: $COLLECTOR_PID)"
+sleep 5
+
+# 4. Aggregator
+echo "[4/5] Запуск Aggregator..."
+java -jar telemetry/aggregator/target/aggregator-1.0-SNAPSHOT.jar > logs/aggregator.log 2>&1 &
+AGGREGATOR_PID=$!
+echo "✅ Aggregator запущен (PID: $AGGREGATOR_PID)"
+sleep 5
+
+# 5. Analyzer
+echo "[5/5] Запуск Analyzer..."
+java -jar telemetry/analyzer/target/analyzer-1.0-SNAPSHOT.jar > logs/analyzer.log 2>&1 &
+ANALYZER_PID=$!
+echo "✅ Analyzer запущен (PID: $ANALYZER_PID)"
+
+echo "===================================="
+echo "✅ ВСЕ СЕРВИСЫ ЗАПУЩЕНЫ"
+echo "===================================="
+echo "📊 Eureka Dashboard: http://localhost:8761"
+echo "===================================="
+
+# Ждем 10 секунд для проверки
+sleep 10
+
+# Проверка что все сервисы зарегистрировались
+echo ""
+echo "Проверка регистрации в Eureka..."
+curl -s http://localhost:8761/eureka/apps | grep -E "<name>" || echo "⚠️ Нет зарегистрированных сервисов"
+
+echo ""
+echo "Для остановки нажмите Ctrl+C"
+
+# Бесконечное ожидание
+wait
