@@ -37,4 +37,3 @@ logging:
     org.springframework: INFO
     org.hibernate: INFO
     org.apache.kafka: INFO
-    com.netflix.eureka: DEBUG
