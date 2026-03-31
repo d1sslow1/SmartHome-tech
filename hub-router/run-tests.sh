@@ -2,14 +2,13 @@
 set -e
 
 echo "===================================="
-echo "🚀 Запуск всех сервисов SmartHome-tech"
+echo "🚀 Запуск всех сервисов для тестирования"
 echo "===================================="
-echo ""
 
-# Создание папки для логов
+# Создаем папку для логов
 mkdir -p logs
 
-# Функция для остановки
+# Функция для остановки всех процессов
 cleanup() {
     echo ""
     echo "Останавливаю все сервисы..."
@@ -20,109 +19,106 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
+echo ""
 echo "===================================="
-echo "Запуск инфраструктурных сервисов..."
+echo "1. Запуск инфраструктуры"
 echo "===================================="
 
-# 1. Eureka Discovery Server
-echo "[1/8] Запуск Eureka Discovery Server..."
+# Запуск Discovery Server (Eureka)
+echo "Starting Discovery Server..."
 java -jar infra/discovery-server/target/discovery-server-1.0-SNAPSHOT.jar > logs/discovery-server.log 2>&1 &
 DISCOVERY_PID=$!
-echo "✅ Eureka запущен (PID: $DISCOVERY_PID)"
+echo "Discovery Server PID: $DISCOVERY_PID"
 
-echo "Ожидание запуска Eureka (30 секунд)..."
+# Ждем Eureka
+echo "Waiting for Eureka (port 8761)..."
 for i in {1..30}; do
-    sleep 1
     if curl -s http://localhost:8761 > /dev/null 2>&1; then
-        echo "✅ Eureka доступен на порту 8761"
+        echo "✅ Eureka is up!"
         break
     fi
+    sleep 1
     echo -n "."
 done
 echo ""
 
-# 2. Config Server
-echo "[2/8] Запуск Config Server..."
+# Запуск Config Server
+echo "Starting Config Server..."
 java -jar infra/config-server/target/config-server-1.0-SNAPSHOT.jar > logs/config-server.log 2>&1 &
 CONFIG_PID=$!
-echo "✅ Config Server запущен (PID: $CONFIG_PID)"
+echo "Config Server PID: $CONFIG_PID"
 
-echo "Ожидание регистрации Config Server в Eureka (30 секунд)..."
-for i in {1..30}; do
-    sleep 1
-    if curl -s http://localhost:8761/eureka/apps/CONFIG-SERVER 2>/dev/null | grep -q "UP"; then
-        echo "✅ Config Server зарегистрирован в Eureka"
-        break
-    fi
-    echo -n "."
-done
+# Ждем Config Server
+echo "Waiting for Config Server..."
+sleep 15
+
 echo ""
-
 echo "===================================="
-echo "Запуск сервисов телеметрии..."
+echo "2. Запуск сервисов телеметрии"
 echo "===================================="
 
-# 3. Collector
-echo "[3/8] Запуск Collector..."
+# Collector
+echo "Starting Collector..."
 java -jar telemetry/collector/target/collector-1.0-SNAPSHOT.jar > logs/collector.log 2>&1 &
 COLLECTOR_PID=$!
-echo "✅ Collector запущен (PID: $COLLECTOR_PID)"
+echo "Collector PID: $COLLECTOR_PID"
 sleep 5
 
-# 4. Aggregator
-echo "[4/8] Запуск Aggregator..."
+# Aggregator
+echo "Starting Aggregator..."
 java -jar telemetry/aggregator/target/aggregator-1.0-SNAPSHOT.jar > logs/aggregator.log 2>&1 &
 AGGREGATOR_PID=$!
-echo "✅ Aggregator запущен (PID: $AGGREGATOR_PID)"
+echo "Aggregator PID: $AGGREGATOR_PID"
 sleep 5
 
-# 5. Analyzer
-echo "[5/8] Запуск Analyzer..."
+# Analyzer
+echo "Starting Analyzer..."
 java -jar telemetry/analyzer/target/analyzer-1.0-SNAPSHOT.jar > logs/analyzer.log 2>&1 &
 ANALYZER_PID=$!
-echo "✅ Analyzer запущен (PID: $ANALYZER_PID)"
+echo "Analyzer PID: $ANALYZER_PID"
 sleep 5
 
+echo ""
 echo "===================================="
-echo "Запуск сервисов коммерции..."
+echo "3. Запуск сервисов коммерции"
 echo "===================================="
 
-# 6. Shopping Store
-echo "[6/8] Запуск Shopping Store..."
+# Shopping Store
+echo "Starting Shopping Store..."
 java -jar commerce/shopping-store/target/shopping-store-1.0-SNAPSHOT.jar > logs/shopping-store.log 2>&1 &
 STORE_PID=$!
-echo "✅ Shopping Store запущен (PID: $STORE_PID)"
+echo "Shopping Store PID: $STORE_PID"
 sleep 5
 
-# 7. Warehouse
-echo "[7/8] Запуск Warehouse..."
+# Warehouse
+echo "Starting Warehouse..."
 java -jar commerce/warehouse/target/warehouse-1.0-SNAPSHOT.jar > logs/warehouse.log 2>&1 &
 WAREHOUSE_PID=$!
-echo "✅ Warehouse запущен (PID: $WAREHOUSE_PID)"
+echo "Warehouse PID: $WAREHOUSE_PID"
 sleep 5
 
-# 8. Shopping Cart
-echo "[8/8] Запуск Shopping Cart..."
+# Shopping Cart
+echo "Starting Shopping Cart..."
 java -jar commerce/shopping-cart/target/shopping-cart-1.0-SNAPSHOT.jar > logs/shopping-cart.log 2>&1 &
 CART_PID=$!
-echo "✅ Shopping Cart запущен (PID: $CART_PID)"
+echo "Shopping Cart PID: $CART_PID"
 
+echo ""
 echo "===================================="
 echo "✅ ВСЕ СЕРВИСЫ ЗАПУЩЕНЫ"
 echo "===================================="
-echo "📊 Eureka Dashboard: http://localhost:8761"
-echo "===================================="
-
-# Ждем 10 секунд для проверки
-sleep 10
-
-# Проверка что все сервисы зарегистрировались
+echo "Eureka: http://localhost:8761"
 echo ""
-echo "Проверка регистрации в Eureka..."
-curl -s http://localhost:8761/eureka/apps | grep -E "<name>" || echo "⚠️ Нет зарегистрированных сервисов"
+
+# Ждем для стабилизации
+sleep 20
+
+# Проверка регистрации в Eureka
+echo "Проверка зарегистрированных сервисов:"
+curl -s http://localhost:8761/eureka/apps | grep -E "<name>" | sort -u || echo "Нет зарегистрированных сервисов"
 
 echo ""
-echo "Для остановки нажмите Ctrl+C"
+echo "Все сервисы работают. Ждем завершения тестов..."
 
 # Бесконечное ожидание
 wait
