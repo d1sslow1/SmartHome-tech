@@ -1,0 +1,62 @@
+package ru.yandex.practicum.controller;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.client.WarehouseClient;
+import ru.yandex.practicum.dto.AddressDto;
+import ru.yandex.practicum.dto.CartItemDto;
+import ru.yandex.practicum.dto.ShippingDto;
+import ru.yandex.practicum.service.WarehouseService;
+
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1/warehouse")
+@RequiredArgsConstructor
+public class WarehouseController implements WarehouseClient {
+
+    private final WarehouseService warehouseService;
+
+    @Override
+    @PostMapping("/check")
+    public Map<UUID, Boolean> checkAvailability(@RequestBody List<CartItemDto> items) {
+        log.info("POST /check - checking availability for {} items", items.size());
+        return warehouseService.checkAvailability(items);
+    }
+
+    @Override
+    @GetMapping("/address")
+    public AddressDto getWarehouseAddress() {
+        log.info("GET /address - getting warehouse address");
+        return warehouseService.getWarehouseAddress();
+    }
+
+    @Override
+    @PostMapping("/shipping")
+    public ShippingDto getShippingCost(@RequestBody List<CartItemDto> items) {
+        log.info("POST /shipping - calculating shipping cost for {} items", items.size());
+        return warehouseService.getShippingCost(items);
+    }
+
+    // Административные методы (не входят в Feign-интерфейс)
+    @PostMapping("/products")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ru.yandex.practicum.model.WarehouseProduct addProduct(
+            @RequestBody ru.yandex.practicum.model.WarehouseProduct product) {
+        log.info("POST /products - adding product to warehouse");
+        return warehouseService.addProductToWarehouse(product);
+    }
+
+    @PutMapping("/products/{productId}/quantity")
+    public ru.yandex.practicum.model.WarehouseProduct updateQuantity(
+            @PathVariable UUID productId,
+            @RequestParam Integer quantity) {
+        log.info("PUT /products/{}/quantity - updating quantity to {}", productId, quantity);
+        return warehouseService.updateProductQuantity(productId, quantity);
+    }
+}
