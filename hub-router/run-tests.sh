@@ -111,9 +111,6 @@ echo "===================================="
 echo "✅ ВСЕ СЕРВИСЫ ЗАПУЩЕНЫ"
 echo "===================================="
 echo "📊 Eureka Dashboard: http://localhost:8761"
-echo "🛒 Shopping Store API: http://localhost:8081/api/v1/shopping-store"
-echo "📦 Warehouse API: http://localhost:8082/api/v1/warehouse"
-echo "🛍️ Shopping Cart API: http://localhost:8083/api/v1/shopping-cart"
 echo "===================================="
 
 # Ждем 10 секунд для проверки
