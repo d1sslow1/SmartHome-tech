@@ -6,6 +6,8 @@ kafka:
   bootstrap-servers: localhost:9092
   consumer:
     group-id: aggregator-group
+    auto-offset-reset: earliest
+    enable-auto-commit: false
   topics:
     sensors: telemetry.sensors.v1
     snapshots: telemetry.snapshots.v1
@@ -14,13 +16,10 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
-  instance:
-    instance-id: ${spring.application.name}:${random.value}
-    hostname: localhost
-    prefer-ip-address: true
+    register-with-eureka: true
+    fetch-registry: true
 
 logging:
   level:
     ru.yandex.practicum: DEBUG
     org.apache.kafka: INFO
-    com.netflix.eureka: DEBUG
