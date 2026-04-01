@@ -44,6 +44,22 @@ public class WarehouseController implements WarehouseClient {
         return warehouseService.getShippingCost(items);
     }
 
+    // Добавленный метод для PUT /api/v1/warehouse (добавление товара)
+    @PutMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public WarehouseProduct addProductViaPut(@RequestBody WarehouseProduct product) {
+        log.info("PUT /api/v1/warehouse - adding product");
+        return warehouseService.addProductToWarehouse(product);
+    }
+
+    // Добавленный метод для POST /api/v1/warehouse/add
+    @PostMapping("/add")
+    @ResponseStatus(HttpStatus.CREATED)
+    public WarehouseProduct addProductViaPost(@RequestBody WarehouseProduct product) {
+        log.info("POST /api/v1/warehouse/add - adding product");
+        return warehouseService.addProductToWarehouse(product);
+    }
+
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseProduct addProduct(@RequestBody WarehouseProduct product) {
