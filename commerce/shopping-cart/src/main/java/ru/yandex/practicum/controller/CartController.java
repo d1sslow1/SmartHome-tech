@@ -27,6 +27,12 @@ public class CartController implements ShoppingCartClient {
         return cartService.getCart(username);
     }
 
+    @GetMapping
+    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
+        log.info("GET /api/v1/shopping-cart?username={}", username);
+        return cartService.getCart(username);
+    }
+
     @Override
     @PostMapping("/{username}/add")
     @ResponseStatus(HttpStatus.OK)
@@ -62,19 +68,19 @@ public class CartController implements ShoppingCartClient {
         cartService.clearCart(username);
     }
 
+    @PostMapping("/{username}/clear")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCartPost(@PathVariable("username") String username) {
+        log.info("POST /{}/clear", username);
+        cartService.clearCart(username);
+    }
+
     @Override
     @PostMapping("/{username}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     public void deactivateCart(@PathVariable("username") String username) {
         log.info("POST /{}/deactivate", username);
         cartService.deactivateCart(username);
-    }
-
-    @PostMapping("/{username}/clear")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clearCartPost(@PathVariable("username") String username) {
-        log.info("POST /{}/clear", username);
-        cartService.clearCart(username);
     }
 
     @PutMapping

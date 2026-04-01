@@ -65,11 +65,24 @@ public class ProductController implements ShoppingStoreClient {
         return productService.getProductById(productId);
     }
 
+    @GetMapping("/{productId}")
+    public ProductDto getProductByIdPath(@PathVariable("productId") UUID productId) {
+        log.info("GET /{}", productId);
+        return productService.getProductById(productId);
+    }
+
     @Override
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
         log.info("POST /products");
+        return productService.createProduct(productDto);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto createProductDirect(@RequestBody ProductDto productDto) {
+        log.info("POST /api/v1/shopping-store - creating product");
         return productService.createProduct(productDto);
     }
 
@@ -83,11 +96,11 @@ public class ProductController implements ShoppingStoreClient {
 
     @PutMapping
     public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
-        log.info("PUT /api/v1/shopping-store - updating product");
-        if (productDto.getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required");
+        log.info("PUT /api/v1/shopping-store - updating/creating product");
+        if (productDto.getProductId() != null) {
+            return productService.updateProduct(productDto.getProductId(), productDto);
         }
-        return productService.updateProduct(productDto.getProductId(), productDto);
+        return productService.createProduct(productDto);
     }
 
     @Override
@@ -118,6 +131,7 @@ public class ProductController implements ShoppingStoreClient {
         log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
     }
+
     @GetMapping
     public Map<String, Object> getProductsByCategoryParam(
             @RequestParam(required = false) String category,
@@ -146,12 +160,12 @@ public class ProductController implements ShoppingStoreClient {
 
     @PostMapping("/removeProductFromStore")
     @ResponseStatus(HttpStatus.OK)
-    public void removeProductFromStore(@RequestBody ProductDto productDto) {
-        log.info("POST /removeProductFromStore - removing product");
-        if (productDto.getProductId() != null) {
-            productService.deleteProduct(productDto.getProductId());
-        }
+    public void removeProductFromStore(@RequestBody String productId) {
+        log.info("POST /removeProductFromStore - removing product: {}", productId);
+        productId = productId.replace("\"", "");
+        productService.deleteProduct(UUID.fromString(productId));
     }
+
     @PostMapping("/quantityState")
     @ResponseStatus(HttpStatus.OK)
     public void updateQuantityState(@RequestParam UUID productId,
