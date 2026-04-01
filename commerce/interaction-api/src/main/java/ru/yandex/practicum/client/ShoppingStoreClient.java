@@ -5,13 +5,14 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @FeignClient(name = "shopping-store", path = "/api/v1/shopping-store")
 public interface ShoppingStoreClient {
 
     @GetMapping("/products")
-    List<ProductDto> getProducts();
+    Map<String, Object> getProducts();
 
     @GetMapping("/products/{productId}")
     ProductDto getProduct(@PathVariable("productId") UUID productId);
@@ -33,5 +34,5 @@ public interface ShoppingStoreClient {
     void deactivateProduct(@PathVariable("productId") UUID productId);
 
     @GetMapping("/products/category/{category}")
-    List<ProductDto> getProductsByCategory(@PathVariable("category") String category);
+    Map<String, Object> getProductsByCategory(@PathVariable("category") String category);
 }

@@ -62,13 +62,18 @@ public class CartService {
 
         Cart cart = getActiveCart(username);
 
-        List<CartItemDto> itemsToCheck = List.of(cartItem);
-        Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
+        try {
+            List<CartItemDto> itemsToCheck = List.of(cartItem);
+            Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
 
-        Boolean isAvailable = availability.get(cartItem.getProductId());
-        if (isAvailable == null || !isAvailable) {
-            log.warn("Product {} is not available in warehouse", cartItem.getProductId());
-            throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
+            Boolean isAvailable = availability.get(cartItem.getProductId());
+            if (isAvailable == null || !isAvailable) {
+                log.warn("Product {} is not available in warehouse", cartItem.getProductId());
+                throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
+            }
+        } catch (Exception e) {
+            log.error("Error checking availability with warehouse: {}", e.getMessage());
+            throw new RuntimeException("Warehouse service unavailable: " + e.getMessage());
         }
 
         CartItem existingItem = cart.getItems().stream()
