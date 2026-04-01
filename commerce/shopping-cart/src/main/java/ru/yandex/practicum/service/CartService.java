@@ -62,17 +62,15 @@ public class CartService {
 
         Cart cart = getActiveCart(username);
 
-        // Проверяем наличие на складе
         List<CartItemDto> itemsToCheck = List.of(cartItem);
-        Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
+        //Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
 
-        Boolean isAvailable = availability.get(cartItem.getProductId());
-        if (isAvailable == null || !isAvailable) {
-            log.warn("Product {} is not available in warehouse", cartItem.getProductId());
-            throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
-        }
+        //Boolean isAvailable = availability.get(cartItem.getProductId());
+        //if (isAvailable == null || !isAvailable) {
+          //  log.warn("Product {} is not available in warehouse", cartItem.getProductId());
+           // throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
+        //}
 
-        // Ищем существующий товар в корзине
         CartItem existingItem = cart.getItems().stream()
                 .filter(item -> item.getProductId().equals(cartItem.getProductId()))
                 .findFirst()
