@@ -52,10 +52,10 @@ public class ProductController implements ShoppingStoreClient {
     @PutMapping
     public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
         log.info("PUT /api/v1/shopping-store - updating product");
-        if (productDto.getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required");
+        if (productDto.getProductId() != null) {
+            return productService.updateProduct(productDto.getProductId(), productDto);
         }
-        return productService.updateProduct(productDto.getProductId(), productDto);
+        return productService.createProduct(productDto);
     }
 
     @Override
@@ -85,5 +85,23 @@ public class ProductController implements ShoppingStoreClient {
     public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
         log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
+    }
+
+    @GetMapping
+    public List<ProductDto> getProductsByCategoryParam(@RequestParam(required = false) String category) {
+        log.info("GET /api/v1/shopping-store?category={}", category);
+        if (category != null && !category.isEmpty()) {
+            return productService.getProductsByCategory(category);
+        }
+        return productService.getAllActiveProducts();
+    }
+
+    @PostMapping("/removeProductFromStore")
+    @ResponseStatus(HttpStatus.OK)
+    public void removeProductFromStore(@RequestBody ProductDto productDto) {
+        log.info("POST /removeProductFromStore - removing product");
+        if (productDto.getProductId() != null) {
+            productService.deleteProduct(productDto.getProductId());
+        }
     }
 }
