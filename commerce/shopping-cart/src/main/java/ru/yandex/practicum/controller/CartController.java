@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/shopping-cart")
 @RequiredArgsConstructor
 public class CartController implements ShoppingCartClient {
 

@@ -8,6 +8,7 @@ import ru.yandex.practicum.client.WarehouseClient;
 import ru.yandex.practicum.dto.AddressDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ShippingDto;
+import ru.yandex.practicum.model.WarehouseProduct;
 import ru.yandex.practicum.service.WarehouseService;
 
 import java.util.List;
@@ -16,7 +17,6 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/warehouse")
 @RequiredArgsConstructor
 public class WarehouseController implements WarehouseClient {
 
@@ -43,19 +43,16 @@ public class WarehouseController implements WarehouseClient {
         return warehouseService.getShippingCost(items);
     }
 
-    // Административные методы (не входят в Feign-интерфейс)
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
-    public ru.yandex.practicum.model.WarehouseProduct addProduct(
-            @RequestBody ru.yandex.practicum.model.WarehouseProduct product) {
+    public WarehouseProduct addProduct(@RequestBody WarehouseProduct product) {
         log.info("POST /products - adding product to warehouse");
         return warehouseService.addProductToWarehouse(product);
     }
 
     @PutMapping("/products/{productId}/quantity")
-    public ru.yandex.practicum.model.WarehouseProduct updateQuantity(
-            @PathVariable UUID productId,
-            @RequestParam Integer quantity) {
+    public WarehouseProduct updateQuantity(@PathVariable UUID productId,
+                                           @RequestParam Integer quantity) {
         log.info("PUT /products/{}/quantity - updating quantity to {}", productId, quantity);
         return warehouseService.updateProductQuantity(productId, quantity);
     }
