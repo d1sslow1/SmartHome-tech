@@ -13,3 +13,7 @@ eureka:
 spring:
   application:
     name: discovery-server
+
+logging:
+  level:
+    com.netflix.eureka: DEBUG
