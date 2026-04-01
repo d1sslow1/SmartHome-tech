@@ -1,5 +1,6 @@
 package ru.yandex.practicum.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,11 @@ public class WarehouseService {
 
     private final WarehouseProductRepository warehouseProductRepository;
     private final WarehouseAddressConfig addressConfig;
+
+    @PostConstruct
+    public void init() {
+        log.info("WarehouseService initialized");
+    }
 
     public Map<UUID, Boolean> checkAvailability(List<CartItemDto> items) {
         log.info("Checking availability for {} items", items.size());
@@ -92,6 +98,29 @@ public class WarehouseService {
 
     public WarehouseProduct addProductToWarehouse(WarehouseProduct product) {
         log.info("Adding product to warehouse: {}", product.getProductId());
+
+        if (product.getProductId() == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
+        if (product.getQuantity() == null) {
+            product.setQuantity(0);
+        }
+        if (product.getWidth() == null) {
+            product.setWidth(0.0);
+        }
+        if (product.getHeight() == null) {
+            product.setHeight(0.0);
+        }
+        if (product.getDepth() == null) {
+            product.setDepth(0.0);
+        }
+        if (product.getWeight() == null) {
+            product.setWeight(0.0);
+        }
+        if (product.getFragile() == null) {
+            product.setFragile(false);
+        }
+
         return warehouseProductRepository.save(product);
     }
 

@@ -40,6 +40,15 @@ warehouse:
     - ADDRESS_1
     - ADDRESS_2
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
 logging:
   level:
     ru.yandex.practicum: DEBUG

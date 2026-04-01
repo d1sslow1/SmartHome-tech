@@ -49,7 +49,6 @@ public class ProductController implements ShoppingStoreClient {
         return productService.updateProduct(productId, productDto);
     }
 
-    // Добавленный метод для PUT /api/v1/shopping-store (без ID в пути)
     @PutMapping
     public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
         log.info("PUT /api/v1/shopping-store - updating product");

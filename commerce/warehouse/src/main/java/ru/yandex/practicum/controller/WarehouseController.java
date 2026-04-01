@@ -44,7 +44,6 @@ public class WarehouseController implements WarehouseClient {
         return warehouseService.getShippingCost(items);
     }
 
-    // Добавленный метод для PUT /api/v1/warehouse (добавление товара)
     @PutMapping
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseProduct addProductViaPut(@RequestBody WarehouseProduct product) {
@@ -52,7 +51,6 @@ public class WarehouseController implements WarehouseClient {
         return warehouseService.addProductToWarehouse(product);
     }
 
-    // Добавленный метод для POST /api/v1/warehouse/add
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
     public WarehouseProduct addProductViaPost(@RequestBody WarehouseProduct product) {
