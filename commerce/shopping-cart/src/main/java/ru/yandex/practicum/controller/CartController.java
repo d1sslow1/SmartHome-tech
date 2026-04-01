@@ -9,6 +9,7 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -78,16 +79,36 @@ public class CartController implements ShoppingCartClient {
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.OK)
-    public void addProductToCartByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        String productIdStr = (String) request.get("productId");
-        Integer quantity = (Integer) request.get("quantity");
+    public void addProductToCartByBody(@RequestBody Object requestBody) {
+        if (requestBody instanceof List) {
+            List<?> items = (List<?>) requestBody;
+            for (Object item : items) {
+                if (item instanceof Map) {
+                    Map<String, Object> request = (Map<String, Object>) item;
+                    String username = (String) request.get("username");
+                    String productIdStr = (String) request.get("productId");
+                    Integer quantity = (Integer) request.get("quantity");
 
-        if (username != null && productIdStr != null && quantity != null) {
-            CartItemDto cartItem = new CartItemDto();
-            cartItem.setProductId(UUID.fromString(productIdStr));
-            cartItem.setQuantity(quantity);
-            cartService.addProductToCart(username, cartItem);
+                    if (username != null && productIdStr != null && quantity != null) {
+                        CartItemDto cartItem = new CartItemDto();
+                        cartItem.setProductId(UUID.fromString(productIdStr));
+                        cartItem.setQuantity(quantity);
+                        cartService.addProductToCart(username, cartItem);
+                    }
+                }
+            }
+        } else if (requestBody instanceof Map) {
+            Map<String, Object> request = (Map<String, Object>) requestBody;
+            String username = (String) request.get("username");
+            String productIdStr = (String) request.get("productId");
+            Integer quantity = (Integer) request.get("quantity");
+
+            if (username != null && productIdStr != null && quantity != null) {
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(UUID.fromString(productIdStr));
+                cartItem.setQuantity(quantity);
+                cartService.addProductToCart(username, cartItem);
+            }
         }
     }
 

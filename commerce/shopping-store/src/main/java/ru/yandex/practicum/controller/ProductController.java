@@ -37,7 +37,7 @@ public class ProductController implements ShoppingStoreClient {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "name") String sort) {
-        log.info("GET /products with pagination - page={}, size={}, sort={}", page, size, sort);
+        log.info("GET /products with pagination");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort).descending());
         Page<ProductDto> productPage = productService.getProductsPage(pageable);
@@ -136,29 +136,12 @@ public class ProductController implements ShoppingStoreClient {
     }
 
     @GetMapping
-    public Map<String, Object> getProductsByCategoryParam(
-            @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/v1/shopping-store?category={}, page={}, size={}", category, page, size);
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductDto> productPage;
-
+    public List<ProductDto> getProductsByCategoryParam(@RequestParam(required = false) String category) {
+        log.info("GET /api/v1/shopping-store?category={}", category);
         if (category != null && !category.isEmpty()) {
-            productPage = productService.getProductsByCategoryPage(category, pageable);
-        } else {
-            productPage = productService.getProductsPage(pageable);
+            return productService.getProductsByCategory(category);
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", productPage.getContent());
-        response.put("totalElements", productPage.getTotalElements());
-        response.put("totalPages", productPage.getTotalPages());
-        response.put("page", productPage.getNumber());
-        response.put("size", productPage.getSize());
-
-        return response;
+        return productService.getAllActiveProducts();
     }
 
     @PostMapping("/removeProductFromStore")
