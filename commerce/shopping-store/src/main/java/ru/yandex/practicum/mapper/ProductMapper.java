@@ -20,7 +20,7 @@ public class ProductMapper {
                 .quantityState(product.getQuantityState())
                 .productState(product.getState())
                 .productCategory(product.getCategory())
-                .imageUrl(product.getImageUrl())
+                .imageSrc(product.getImageUrl())
                 .build();
     }
 
@@ -37,8 +37,7 @@ public class ProductMapper {
         product.setQuantityState(dto.getQuantityState());
         product.setState(dto.getProductState());
         product.setCategory(dto.getProductCategory());
-        product.setImageUrl(dto.getImageUrl());
-
+        product.setImageUrl(dto.getImageSrc());
         return product;
     }
 
@@ -58,9 +57,8 @@ public class ProductMapper {
         if (dto.getProductCategory() != null) {
             product.setCategory(dto.getProductCategory());
         }
-        if (dto.getImageUrl() != null) {
-            product.setImageUrl(dto.getImageUrl());
+        if (dto.getImageSrc() != null) {  // <-- imageSrc
+            product.setImageUrl(dto.getImageSrc());
         }
-        // state не обновляем через update, только через специальные методы
     }
 }

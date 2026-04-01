@@ -70,6 +70,13 @@ public class CartController implements ShoppingCartClient {
         cartService.deactivateCart(username);
     }
 
+    @PostMapping("/{username}/clear")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCartPost(@PathVariable("username") String username) {
+        log.info("POST /{}/clear", username);
+        cartService.clearCart(username);
+    }
+
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public void updateCart(@RequestParam String username,

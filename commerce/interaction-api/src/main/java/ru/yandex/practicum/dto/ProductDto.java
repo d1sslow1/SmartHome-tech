@@ -20,5 +20,5 @@ public class ProductDto {
     private ProductQuantityState quantityState;
     private ProductState productState;
     private ProductCategory productCategory;
-    private String imageUrl;
+    private String imageSrc;
 }

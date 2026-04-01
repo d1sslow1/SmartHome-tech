@@ -2,13 +2,19 @@ package ru.yandex.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.ShoppingStoreClient;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.service.ProductService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -24,6 +30,32 @@ public class ProductController implements ShoppingStoreClient {
     public List<ProductDto> getProducts() {
         log.info("GET /products");
         return productService.getAllActiveProducts();
+    }
+
+    @GetMapping(value = "/products", params = {"page", "size"})
+    public Map<String, Object> getProductsWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String sort) {
+        log.info("GET /products with pagination - page={}, size={}, sort={}", page, size, sort);
+
+        Pageable pageable;
+        if (sort != null && !sort.isEmpty()) {
+            pageable = PageRequest.of(page, size, Sort.by("name").descending());
+        } else {
+            pageable = PageRequest.of(page, size);
+        }
+
+        Page<ProductDto> productPage = productService.getProductsPage(pageable);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", productPage.getContent());
+        response.put("totalElements", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+        response.put("page", productPage.getNumber());
+        response.put("size", productPage.getSize());
+
+        return response;
     }
 
     @Override
@@ -52,10 +84,10 @@ public class ProductController implements ShoppingStoreClient {
     @PutMapping
     public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
         log.info("PUT /api/v1/shopping-store - updating product");
-        if (productDto.getProductId() != null) {
-            return productService.updateProduct(productDto.getProductId(), productDto);
+        if (productDto.getProductId() == null) {
+            throw new IllegalArgumentException("Product ID is required");
         }
-        return productService.createProduct(productDto);
+        return productService.updateProduct(productDto.getProductId(), productDto);
     }
 
     @Override
@@ -86,14 +118,30 @@ public class ProductController implements ShoppingStoreClient {
         log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
     }
-
     @GetMapping
-    public List<ProductDto> getProductsByCategoryParam(@RequestParam(required = false) String category) {
-        log.info("GET /api/v1/shopping-store?category={}", category);
+    public Map<String, Object> getProductsByCategoryParam(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("GET /api/v1/shopping-store?category={}, page={}, size={}", category, page, size);
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProductDto> productPage;
+
         if (category != null && !category.isEmpty()) {
-            return productService.getProductsByCategory(category);
+            productPage = productService.getProductsByCategoryPage(category, pageable);
+        } else {
+            productPage = productService.getProductsPage(pageable);
         }
-        return productService.getAllActiveProducts();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", productPage.getContent());
+        response.put("totalElements", productPage.getTotalElements());
+        response.put("totalPages", productPage.getTotalPages());
+        response.put("page", productPage.getNumber());
+        response.put("size", productPage.getSize());
+
+        return response;
     }
 
     @PostMapping("/removeProductFromStore")
@@ -103,5 +151,12 @@ public class ProductController implements ShoppingStoreClient {
         if (productDto.getProductId() != null) {
             productService.deleteProduct(productDto.getProductId());
         }
+    }
+    @PostMapping("/quantityState")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateQuantityState(@RequestParam UUID productId,
+                                    @RequestParam String quantityState) {
+        log.info("POST /quantityState - productId={}, quantityState={}", productId, quantityState);
+        productService.updateQuantityState(productId, quantityState);
     }
 }
