@@ -9,6 +9,7 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,22 +42,47 @@ public class CartController implements ShoppingCartClient {
         log.info("POST /{}/add", username);
         cartService.addProductToCart(username, cartItem);
     }
+
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.OK)
-    public void addProductToCartByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        String productIdStr = (String) request.get("productId");
-        Integer quantity = (Integer) request.get("quantity");
+    public void addProductToCartByBody(@RequestBody Object requestBody) {
+        if (requestBody instanceof List) {
+            List<?> items = (List<?>) requestBody;
+            for (Object item : items) {
+                if (item instanceof Map) {
+                    Map<String, Object> request = (Map<String, Object>) item;
+                    String username = (String) request.get("username");
+                    String productIdStr = (String) request.get("productId");
+                    Integer quantity = (Integer) request.get("quantity");
 
-        log.info("POST /add - username={}, productId={}, quantity={}", username, productIdStr, quantity);
+                    log.info("POST /add (array) - username={}, productId={}, quantity={}", username, productIdStr, quantity);
 
-        UUID productId = UUID.fromString(productIdStr);
+                    if (username != null && productIdStr != null && quantity != null) {
+                        UUID productId = UUID.fromString(productIdStr);
+                        CartItemDto cartItem = new CartItemDto();
+                        cartItem.setProductId(productId);
+                        cartItem.setQuantity(quantity);
+                        cartService.addProductToCart(username, cartItem);
+                    }
+                }
+            }
+        }
+        else if (requestBody instanceof Map) {
+            Map<String, Object> request = (Map<String, Object>) requestBody;
+            String username = (String) request.get("username");
+            String productIdStr = (String) request.get("productId");
+            Integer quantity = (Integer) request.get("quantity");
 
-        CartItemDto cartItem = new CartItemDto();
-        cartItem.setProductId(productId);
-        cartItem.setQuantity(quantity);
+            log.info("POST /add (object) - username={}, productId={}, quantity={}", username, productIdStr, quantity);
 
-        cartService.addProductToCart(username, cartItem);
+            if (username != null && productIdStr != null && quantity != null) {
+                UUID productId = UUID.fromString(productIdStr);
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(productId);
+                cartItem.setQuantity(quantity);
+                cartService.addProductToCart(username, cartItem);
+            }
+        }
     }
 
     @Override
@@ -76,9 +102,10 @@ public class CartController implements ShoppingCartClient {
 
         log.info("POST /remove - username={}, productId={}", username, productIdStr);
 
-        UUID productId = UUID.fromString(productIdStr);
-
-        cartService.removeProductFromCart(username, productId);
+        if (username != null && productIdStr != null) {
+            UUID productId = UUID.fromString(productIdStr);
+            cartService.removeProductFromCart(username, productId);
+        }
     }
 
     @Override
@@ -95,17 +122,23 @@ public class CartController implements ShoppingCartClient {
     public void changeQuantityByBody(@RequestBody Map<String, Object> request) {
         String username = (String) request.get("username");
         String productIdStr = (String) request.get("productId");
-        Integer newQuantity = (Integer) request.get("quantity");
+
+        Integer newQuantity = null;
+        if (request.containsKey("quantity")) {
+            newQuantity = (Integer) request.get("quantity");
+        } else if (request.containsKey("newQuantity")) {
+            newQuantity = (Integer) request.get("newQuantity");
+        }
 
         log.info("POST /change-quantity - username={}, productId={}, newQuantity={}", username, productIdStr, newQuantity);
 
-        UUID productId = UUID.fromString(productIdStr);
-
-        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-        changeRequest.setProductId(productId);
-        changeRequest.setNewQuantity(newQuantity);
-
-        cartService.changeProductQuantity(username, changeRequest);
+        if (username != null && productIdStr != null && newQuantity != null) {
+            UUID productId = UUID.fromString(productIdStr);
+            ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+            changeRequest.setProductId(productId);
+            changeRequest.setNewQuantity(newQuantity);
+            cartService.changeProductQuantity(username, changeRequest);
+        }
     }
 
     @Override
@@ -136,7 +169,9 @@ public class CartController implements ShoppingCartClient {
     public void deactivateCartByBody(@RequestBody Map<String, Object> request) {
         String username = (String) request.get("username");
         log.info("POST /deactivate - username={}", username);
-        cartService.deactivateCart(username);
+        if (username != null) {
+            cartService.deactivateCart(username);
+        }
     }
 
     @PutMapping
