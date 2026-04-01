@@ -42,12 +42,31 @@ public class CartController implements ShoppingCartClient {
         cartService.addProductToCart(username, cartItem);
     }
 
+    @PostMapping("/add")
+    @ResponseStatus(HttpStatus.OK)
+    public void addProductToCartByParams(@RequestParam String username,
+                                         @RequestParam UUID productId,
+                                         @RequestParam Integer quantity) {
+        log.info("POST /add?username={}&productId={}&quantity={}", username, productId, quantity);
+        CartItemDto cartItem = new CartItemDto();
+        cartItem.setProductId(productId);
+        cartItem.setQuantity(quantity);
+        cartService.addProductToCart(username, cartItem);
+    }
+
     @Override
     @DeleteMapping("/{username}/remove/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeProductFromCart(@PathVariable("username") String username,
                                       @PathVariable("productId") UUID productId) {
         log.info("DELETE /{}/remove/{}", username, productId);
+        cartService.removeProductFromCart(username, productId);
+    }
+    @PostMapping("/remove")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeProductFromCartByParams(@RequestParam String username,
+                                              @RequestParam UUID productId) {
+        log.info("POST /remove?username={}&productId={}", username, productId);
         cartService.removeProductFromCart(username, productId);
     }
 
@@ -57,6 +76,17 @@ public class CartController implements ShoppingCartClient {
     public void changeProductQuantity(@PathVariable("username") String username,
                                       @RequestBody ChangeProductQuantityRequest request) {
         log.info("PUT /{}/change-quantity", username);
+        cartService.changeProductQuantity(username, request);
+    }
+    @PostMapping("/change-quantity")
+    @ResponseStatus(HttpStatus.OK)
+    public void changeQuantityByParams(@RequestParam String username,
+                                       @RequestParam UUID productId,
+                                       @RequestParam Integer quantity) {
+        log.info("POST /change-quantity?username={}&productId={}&quantity={}", username, productId, quantity);
+        ChangeProductQuantityRequest request = new ChangeProductQuantityRequest();
+        request.setProductId(productId);
+        request.setNewQuantity(quantity);
         cartService.changeProductQuantity(username, request);
     }
 
@@ -82,6 +112,12 @@ public class CartController implements ShoppingCartClient {
         log.info("POST /{}/deactivate", username);
         cartService.deactivateCart(username);
     }
+    @PostMapping("/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    public void deactivateCartByParams(@RequestParam String username) {
+        log.info("POST /deactivate?username={}", username);
+        cartService.deactivateCart(username);
+    }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
@@ -96,20 +132,17 @@ public class CartController implements ShoppingCartClient {
             cartService.addProductToCart(username, cartItem);
         }
     }
-
-    @PostMapping("/change-quantity")
+    @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    public void changeQuantityViaPost(@RequestParam String username,
-                                      @RequestBody ChangeProductQuantityRequest request) {
-        log.info("POST /api/v1/shopping-cart/change-quantity?username={}", username);
-        cartService.changeProductQuantity(username, request);
-    }
-
-    @PostMapping("/remove")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeViaPost(@RequestParam String username,
-                              @RequestBody UUID productId) {
-        log.info("POST /api/v1/shopping-cart/remove?username={}", username);
-        cartService.removeProductFromCart(username, productId);
+    public void updateCartPost(@RequestParam String username,
+                               @RequestBody Map<UUID, Integer> items) {
+        log.info("POST /api/v1/shopping-cart?username={}", username);
+        cartService.clearCart(username);
+        for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
+            CartItemDto cartItem = new CartItemDto();
+            cartItem.setProductId(entry.getKey());
+            cartItem.setQuantity(entry.getValue());
+            cartService.addProductToCart(username, cartItem);
+        }
     }
 }
