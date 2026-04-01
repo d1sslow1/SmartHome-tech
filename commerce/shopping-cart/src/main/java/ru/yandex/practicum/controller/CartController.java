@@ -55,7 +55,8 @@ public class CartController implements ShoppingCartClient {
                     String productIdStr = (String) request.get("productId");
                     Integer quantity = (Integer) request.get("quantity");
 
-                    log.info("POST /add (array) - username={}, productId={}, quantity={}", username, productIdStr, quantity);
+                    log.info("POST /add (array) - username={}, productId={}, quantity={}",
+                            username, productIdStr, quantity);
 
                     if (username != null && productIdStr != null && quantity != null) {
                         UUID productId = UUID.fromString(productIdStr);
@@ -73,7 +74,8 @@ public class CartController implements ShoppingCartClient {
             String productIdStr = (String) request.get("productId");
             Integer quantity = (Integer) request.get("quantity");
 
-            log.info("POST /add (object) - username={}, productId={}, quantity={}", username, productIdStr, quantity);
+            log.info("POST /add (object) - username={}, productId={}, quantity={}",
+                    username, productIdStr, quantity);
 
             if (username != null && productIdStr != null && quantity != null) {
                 UUID productId = UUID.fromString(productIdStr);
@@ -108,6 +110,14 @@ public class CartController implements ShoppingCartClient {
         }
     }
 
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeProductByParams(@RequestParam String username,
+                                      @RequestParam UUID productId) {
+        log.info("DELETE /api/v1/shopping-cart?username={}&productId={}", username, productId);
+        cartService.removeProductFromCart(username, productId);
+    }
+
     @Override
     @PutMapping("/{username}/change-quantity")
     @ResponseStatus(HttpStatus.OK)
@@ -121,6 +131,10 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.OK)
     public void changeQuantityByBody(@RequestBody Map<String, Object> request) {
         String username = (String) request.get("username");
+        if (username == null) {
+            username = (String) request.get("user");
+        }
+
         String productIdStr = (String) request.get("productId");
 
         Integer newQuantity = null;
@@ -130,15 +144,34 @@ public class CartController implements ShoppingCartClient {
             newQuantity = (Integer) request.get("newQuantity");
         }
 
-        log.info("POST /change-quantity - username={}, productId={}, newQuantity={}", username, productIdStr, newQuantity);
+        log.info("POST /change-quantity - username={}, productId={}, newQuantity={}",
+                username, productIdStr, newQuantity);
 
-        if (username != null && productIdStr != null && newQuantity != null) {
-            UUID productId = UUID.fromString(productIdStr);
-            ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-            changeRequest.setProductId(productId);
-            changeRequest.setNewQuantity(newQuantity);
-            cartService.changeProductQuantity(username, changeRequest);
+        if (username == null || productIdStr == null || newQuantity == null) {
+            throw new IllegalArgumentException("Missing required fields: username, productId, quantity");
         }
+
+        UUID productId = UUID.fromString(productIdStr);
+        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+        changeRequest.setProductId(productId);
+        changeRequest.setNewQuantity(newQuantity);
+
+        cartService.changeProductQuantity(username, changeRequest);
+    }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public void changeQuantityByParams(@RequestParam String username,
+                                       @RequestParam UUID productId,
+                                       @RequestParam Integer quantity) {
+        log.info("PUT /api/v1/shopping-cart?username={}&productId={}&quantity={}",
+                username, productId, quantity);
+
+        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+        changeRequest.setProductId(productId);
+        changeRequest.setNewQuantity(quantity);
+
+        cartService.changeProductQuantity(username, changeRequest);
     }
 
     @Override
@@ -153,6 +186,13 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void clearCartPost(@PathVariable("username") String username) {
         log.info("POST /{}/clear", username);
+        cartService.clearCart(username);
+    }
+
+    @DeleteMapping("/clear")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCartByParams(@RequestParam String username) {
+        log.info("DELETE /clear?username={}", username);
         cartService.clearCart(username);
     }
 
@@ -172,6 +212,13 @@ public class CartController implements ShoppingCartClient {
         if (username != null) {
             cartService.deactivateCart(username);
         }
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.OK)
+    public void deactivateCartByParams(@RequestParam String username) {
+        log.info("POST /api/v1/shopping-cart?username={}", username);
+        cartService.deactivateCart(username);
     }
 
     @PutMapping
