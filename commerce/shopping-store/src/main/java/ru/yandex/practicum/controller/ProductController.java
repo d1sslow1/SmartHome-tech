@@ -36,16 +36,10 @@ public class ProductController implements ShoppingStoreClient {
     public Map<String, Object> getProductsWithPagination(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(defaultValue = "name") String sort) {
         log.info("GET /products with pagination - page={}, size={}, sort={}", page, size, sort);
 
-        Pageable pageable;
-        if (sort != null && !sort.isEmpty()) {
-            pageable = PageRequest.of(page, size, Sort.by("name").descending());
-        } else {
-            pageable = PageRequest.of(page, size);
-        }
-
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).descending());
         Page<ProductDto> productPage = productService.getProductsPage(pageable);
 
         Map<String, Object> response = new HashMap<>();
@@ -76,13 +70,19 @@ public class ProductController implements ShoppingStoreClient {
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
         log.info("POST /products");
+        if (productDto.getProductState() == null) {
+            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
+        }
         return productService.createProduct(productDto);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProductDirect(@RequestBody ProductDto productDto) {
-        log.info("POST /api/v1/shopping-store - creating product");
+        log.info("POST /api/v1/shopping-store");
+        if (productDto.getProductState() == null) {
+            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
+        }
         return productService.createProduct(productDto);
     }
 
@@ -96,9 +96,12 @@ public class ProductController implements ShoppingStoreClient {
 
     @PutMapping
     public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
-        log.info("PUT /api/v1/shopping-store - updating/creating product");
+        log.info("PUT /api/v1/shopping-store");
         if (productDto.getProductId() != null) {
             return productService.updateProduct(productDto.getProductId(), productDto);
+        }
+        if (productDto.getProductState() == null) {
+            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
         }
         return productService.createProduct(productDto);
     }
@@ -161,7 +164,7 @@ public class ProductController implements ShoppingStoreClient {
     @PostMapping("/removeProductFromStore")
     @ResponseStatus(HttpStatus.OK)
     public void removeProductFromStore(@RequestBody String productId) {
-        log.info("POST /removeProductFromStore - removing product: {}", productId);
+        log.info("POST /removeProductFromStore - productId={}", productId);
         productId = productId.replace("\"", "");
         productService.deleteProduct(UUID.fromString(productId));
     }

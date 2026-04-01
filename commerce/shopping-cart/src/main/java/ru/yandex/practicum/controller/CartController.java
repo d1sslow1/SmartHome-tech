@@ -9,7 +9,6 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -71,6 +70,12 @@ public class CartController implements ShoppingCartClient {
         cartService.deactivateCart(username);
     }
 
+    @GetMapping
+    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
+        log.info("GET /api/v1/shopping-cart?username={}", username);
+        return cartService.getCart(username);
+    }
+
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.OK)
     public void addProductToCartByBody(@RequestBody Map<String, Object> request) {
@@ -78,12 +83,9 @@ public class CartController implements ShoppingCartClient {
         String productIdStr = (String) request.get("productId");
         Integer quantity = (Integer) request.get("quantity");
 
-        log.info("POST /add - username={}, productId={}, quantity={}", username, productIdStr, quantity);
-
         if (username != null && productIdStr != null && quantity != null) {
-            UUID productId = UUID.fromString(productIdStr);
             CartItemDto cartItem = new CartItemDto();
-            cartItem.setProductId(productId);
+            cartItem.setProductId(UUID.fromString(productIdStr));
             cartItem.setQuantity(quantity);
             cartService.addProductToCart(username, cartItem);
         }
@@ -95,11 +97,8 @@ public class CartController implements ShoppingCartClient {
         String username = (String) request.get("username");
         String productIdStr = (String) request.get("productId");
 
-        log.info("POST /remove - username={}, productId={}", username, productIdStr);
-
         if (username != null && productIdStr != null) {
-            UUID productId = UUID.fromString(productIdStr);
-            cartService.removeProductFromCart(username, productId);
+            cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
         }
     }
 
@@ -110,25 +109,18 @@ public class CartController implements ShoppingCartClient {
         String productIdStr = (String) request.get("productId");
         Integer newQuantity = (Integer) request.get("quantity");
 
-        log.info("POST /change-quantity - username={}, productId={}, newQuantity={}", username, productIdStr, newQuantity);
-
-        if (username == null || productIdStr == null || newQuantity == null) {
-            throw new IllegalArgumentException("Missing required fields");
+        if (username != null && productIdStr != null && newQuantity != null) {
+            ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+            changeRequest.setProductId(UUID.fromString(productIdStr));
+            changeRequest.setNewQuantity(newQuantity);
+            cartService.changeProductQuantity(username, changeRequest);
         }
-
-        UUID productId = UUID.fromString(productIdStr);
-        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-        changeRequest.setProductId(productId);
-        changeRequest.setNewQuantity(newQuantity);
-
-        cartService.changeProductQuantity(username, changeRequest);
     }
 
     @PostMapping("/clear")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void clearCartByBody(@RequestBody Map<String, Object> request) {
         String username = (String) request.get("username");
-        log.info("POST /clear - username={}", username);
         if (username != null) {
             cartService.clearCart(username);
         }
@@ -138,7 +130,6 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.OK)
     public void deactivateCartByBody(@RequestBody Map<String, Object> request) {
         String username = (String) request.get("username");
-        log.info("POST /deactivate - username={}", username);
         if (username != null) {
             cartService.deactivateCart(username);
         }
@@ -148,7 +139,6 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.OK)
     public void updateCart(@RequestParam String username,
                            @RequestBody Map<UUID, Integer> items) {
-        log.info("PUT /api/v1/shopping-cart?username={}", username);
         cartService.clearCart(username);
         for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
             CartItemDto cartItem = new CartItemDto();
@@ -156,19 +146,5 @@ public class CartController implements ShoppingCartClient {
             cartItem.setQuantity(entry.getValue());
             cartService.addProductToCart(username, cartItem);
         }
-    }
-
-    @GetMapping
-    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
-        log.info("GET /api/v1/shopping-cart?username={}", username);
-        return cartService.getCart(username);
-    }
-
-    @DeleteMapping
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeProductByParams(@RequestParam String username,
-                                      @RequestParam UUID productId) {
-        log.info("DELETE /api/v1/shopping-cart?username={}&productId={}", username, productId);
-        cartService.removeProductFromCart(username, productId);
     }
 }

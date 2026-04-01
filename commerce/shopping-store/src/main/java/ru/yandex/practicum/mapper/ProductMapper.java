@@ -8,9 +8,7 @@ import ru.yandex.practicum.model.Product;
 public class ProductMapper {
 
     public ProductDto toDto(Product product) {
-        if (product == null) {
-            return null;
-        }
+        if (product == null) return null;
 
         return ProductDto.builder()
                 .productId(product.getId())
@@ -25,9 +23,7 @@ public class ProductMapper {
     }
 
     public Product toEntity(ProductDto dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
 
         Product product = new Product();
         product.setId(dto.getProductId());
@@ -42,23 +38,11 @@ public class ProductMapper {
     }
 
     public void updateEntity(ProductDto dto, Product product) {
-        if (dto.getProductName() != null) {
-            product.setName(dto.getProductName());
-        }
-        if (dto.getDescription() != null) {
-            product.setDescription(dto.getDescription());
-        }
-        if (dto.getPrice() != null) {
-            product.setPrice(dto.getPrice());
-        }
-        if (dto.getQuantityState() != null) {
-            product.setQuantityState(dto.getQuantityState());
-        }
-        if (dto.getProductCategory() != null) {
-            product.setCategory(dto.getProductCategory());
-        }
-        if (dto.getImageSrc() != null) {  // <-- imageSrc
-            product.setImageUrl(dto.getImageSrc());
-        }
+        if (dto.getProductName() != null) product.setName(dto.getProductName());
+        if (dto.getDescription() != null) product.setDescription(dto.getDescription());
+        if (dto.getPrice() != null) product.setPrice(dto.getPrice());
+        if (dto.getQuantityState() != null) product.setQuantityState(dto.getQuantityState());
+        if (dto.getProductCategory() != null) product.setCategory(dto.getProductCategory());
+        if (dto.getImageSrc() != null) product.setImageUrl(dto.getImageSrc());
     }
 }
