@@ -69,4 +69,34 @@ public class CartController implements ShoppingCartClient {
         log.info("POST /{}/deactivate", username);
         cartService.deactivateCart(username);
     }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public void updateCart(@RequestParam String username,
+                           @RequestBody Map<UUID, Integer> items) {
+        log.info("PUT /api/v1/shopping-cart?username={}", username);
+        cartService.clearCart(username);
+        for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
+            CartItemDto cartItem = new CartItemDto();
+            cartItem.setProductId(entry.getKey());
+            cartItem.setQuantity(entry.getValue());
+            cartService.addProductToCart(username, cartItem);
+        }
+    }
+
+    @PostMapping("/change-quantity")
+    @ResponseStatus(HttpStatus.OK)
+    public void changeQuantityViaPost(@RequestParam String username,
+                                      @RequestBody ChangeProductQuantityRequest request) {
+        log.info("POST /api/v1/shopping-cart/change-quantity?username={}", username);
+        cartService.changeProductQuantity(username, request);
+    }
+
+    @PostMapping("/remove")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeViaPost(@RequestParam String username,
+                              @RequestBody UUID productId) {
+        log.info("POST /api/v1/shopping-cart/remove?username={}", username);
+        cartService.removeProductFromCart(username, productId);
+    }
 }
