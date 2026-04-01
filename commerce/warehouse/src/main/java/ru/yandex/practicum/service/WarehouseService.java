@@ -74,7 +74,6 @@ public class WarehouseService {
             }
         }
 
-        // Простая формула расчета стоимости доставки
         BigDecimal deliveryCost = BigDecimal.valueOf(totalWeight * 0.5 + totalVolume * 0.1);
         if (hasFragile) {
             deliveryCost = deliveryCost.add(BigDecimal.valueOf(100));
@@ -91,7 +90,6 @@ public class WarehouseService {
         return shippingDto;
     }
 
-    // Методы для администратора (добавление товаров на склад)
     public WarehouseProduct addProductToWarehouse(WarehouseProduct product) {
         log.info("Adding product to warehouse: {}", product.getProductId());
         return warehouseProductRepository.save(product);

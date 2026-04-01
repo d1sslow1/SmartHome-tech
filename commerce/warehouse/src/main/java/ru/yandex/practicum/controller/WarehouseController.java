@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/v1/warehouse")  // <-- ДОБАВЬ ЭТУ СТРОКУ
 @RequiredArgsConstructor
 public class WarehouseController implements WarehouseClient {
 

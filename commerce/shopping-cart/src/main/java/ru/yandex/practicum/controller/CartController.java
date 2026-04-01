@@ -22,7 +22,7 @@ public class CartController implements ShoppingCartClient {
     @Override
     @GetMapping("/{username}")
     public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
-        log.info("GET /{}/ - getting cart", username);
+        log.info("GET /{}", username);
         return cartService.getCart(username);
     }
 
@@ -31,7 +31,7 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.OK)
     public void addProductToCart(@PathVariable("username") String username,
                                  @RequestBody CartItemDto cartItem) {
-        log.info("POST /{}/add - adding product to cart", username);
+        log.info("POST /{}/add", username);
         cartService.addProductToCart(username, cartItem);
     }
 
@@ -40,7 +40,7 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeProductFromCart(@PathVariable("username") String username,
                                       @PathVariable("productId") UUID productId) {
-        log.info("DELETE /{}/remove/{} - removing product from cart", username, productId);
+        log.info("DELETE /{}/remove/{}", username, productId);
         cartService.removeProductFromCart(username, productId);
     }
 
@@ -49,7 +49,7 @@ public class CartController implements ShoppingCartClient {
     @ResponseStatus(HttpStatus.OK)
     public void changeProductQuantity(@PathVariable("username") String username,
                                       @RequestBody ChangeProductQuantityRequest request) {
-        log.info("PUT /{}/change-quantity - changing quantity", username);
+        log.info("PUT /{}/change-quantity", username);
         cartService.changeProductQuantity(username, request);
     }
 
@@ -57,7 +57,7 @@ public class CartController implements ShoppingCartClient {
     @DeleteMapping("/{username}/clear")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void clearCart(@PathVariable("username") String username) {
-        log.info("DELETE /{}/clear - clearing cart", username);
+        log.info("DELETE /{}/clear", username);
         cartService.clearCart(username);
     }
 
@@ -65,7 +65,7 @@ public class CartController implements ShoppingCartClient {
     @PostMapping("/{username}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     public void deactivateCart(@PathVariable("username") String username) {
-        log.info("POST /{}/deactivate - deactivating cart", username);
+        log.info("POST /{}/deactivate", username);
         cartService.deactivateCart(username);
     }
 }

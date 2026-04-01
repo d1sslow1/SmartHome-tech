@@ -58,7 +58,6 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @PostMapping("/products/{productId}/activate")
-    @ResponseStatus(HttpStatus.OK)
     public void activateProduct(@PathVariable("productId") UUID productId) {
         log.info("POST /products/{}/activate", productId);
         productService.activateProduct(productId);
@@ -66,7 +65,6 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @PostMapping("/products/{productId}/deactivate")
-    @ResponseStatus(HttpStatus.OK)
     public void deactivateProduct(@PathVariable("productId") UUID productId) {
         log.info("POST /products/{}/deactivate", productId);
         productService.deactivateProduct(productId);

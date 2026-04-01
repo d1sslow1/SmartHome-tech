@@ -29,22 +29,12 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
   instance:
-    instance-id: ${spring.application.name}:${random.value}
-    hostname: localhost
     prefer-ip-address: true
-
-resilience4j.circuitbreaker:
-  instances:
-    warehouse:
-      sliding-window-size: 5
-      failure-rate-threshold: 50
-      wait-duration-in-open-state: 10000ms
-      permitted-number-of-calls-in-half-open-state: 3
-      minimum-number-of-calls: 3
-      automatic-transition-from-open-to-half-open-enabled: true
+    instance-id: ${spring.application.name}:${random.value}
 
 logging:
   level:
     ru.yandex.practicum: DEBUG
-    org.springframework.cloud: DEBUG
