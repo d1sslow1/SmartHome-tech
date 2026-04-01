@@ -21,14 +21,14 @@ public class ProductController implements ShoppingStoreClient {
     @Override
     @GetMapping("/products")
     public List<ProductDto> getProducts() {
-        log.info("GET /products - getting all active products");
+        log.info("GET /products");
         return productService.getAllActiveProducts();
     }
 
     @Override
     @GetMapping("/products/{productId}")
     public ProductDto getProduct(@PathVariable("productId") UUID productId) {
-        log.info("GET /products/{} - getting product by id", productId);
+        log.info("GET /products/{}", productId);
         return productService.getProductById(productId);
     }
 
@@ -36,7 +36,7 @@ public class ProductController implements ShoppingStoreClient {
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
-        log.info("POST /products - creating product: {}", productDto.getProductName());
+        log.info("POST /products");
         return productService.createProduct(productDto);
     }
 
@@ -44,7 +44,7 @@ public class ProductController implements ShoppingStoreClient {
     @PutMapping("/products/{productId}")
     public ProductDto updateProduct(@PathVariable("productId") UUID productId,
                                     @RequestBody ProductDto productDto) {
-        log.info("PUT /products/{} - updating product", productId);
+        log.info("PUT /products/{}", productId);
         return productService.updateProduct(productId, productDto);
     }
 
@@ -52,7 +52,7 @@ public class ProductController implements ShoppingStoreClient {
     @DeleteMapping("/products/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable("productId") UUID productId) {
-        log.info("DELETE /products/{} - deleting product", productId);
+        log.info("DELETE /products/{}", productId);
         productService.deleteProduct(productId);
     }
 
@@ -60,7 +60,7 @@ public class ProductController implements ShoppingStoreClient {
     @PostMapping("/products/{productId}/activate")
     @ResponseStatus(HttpStatus.OK)
     public void activateProduct(@PathVariable("productId") UUID productId) {
-        log.info("POST /products/{}/activate - activating product", productId);
+        log.info("POST /products/{}/activate", productId);
         productService.activateProduct(productId);
     }
 
@@ -68,14 +68,14 @@ public class ProductController implements ShoppingStoreClient {
     @PostMapping("/products/{productId}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     public void deactivateProduct(@PathVariable("productId") UUID productId) {
-        log.info("POST /products/{}/deactivate - deactivating product", productId);
+        log.info("POST /products/{}/deactivate", productId);
         productService.deactivateProduct(productId);
     }
 
     @Override
     @GetMapping("/products/category/{category}")
     public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
-        log.info("GET /products/category/{} - getting products by category", category);
+        log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
     }
 }
