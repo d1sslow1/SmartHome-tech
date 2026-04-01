@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -22,11 +22,8 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
   instance:
-    instance-id: ${spring.application.name}:${random.value}
-    hostname: localhost
     prefer-ip-address: true
-
-logging:
-  level:
-    ru.yandex.practicum: DEBUG
+    instance-id: ${spring.application.name}:${random.value}
