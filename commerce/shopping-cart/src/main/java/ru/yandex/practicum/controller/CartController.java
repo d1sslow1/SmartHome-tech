@@ -28,6 +28,12 @@ public class CartController implements ShoppingCartClient {
         return cartService.getCart(username);
     }
 
+    @GetMapping
+    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
+        log.info("GET /api/v1/shopping-cart?username={}", username);
+        return cartService.getCart(username);
+    }
+
     @Override
     @PostMapping("/{username}/add")
     @ResponseStatus(HttpStatus.OK)
@@ -35,46 +41,6 @@ public class CartController implements ShoppingCartClient {
                                  @RequestBody CartItemDto cartItem) {
         log.info("POST /{}/add", username);
         cartService.addProductToCart(username, cartItem);
-    }
-
-    @Override
-    @DeleteMapping("/{username}/remove/{productId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeProductFromCart(@PathVariable("username") String username,
-                                      @PathVariable("productId") UUID productId) {
-        log.info("DELETE /{}/remove/{}", username, productId);
-        cartService.removeProductFromCart(username, productId);
-    }
-
-    @Override
-    @PutMapping("/{username}/change-quantity")
-    @ResponseStatus(HttpStatus.OK)
-    public void changeProductQuantity(@PathVariable("username") String username,
-                                      @RequestBody ChangeProductQuantityRequest request) {
-        log.info("PUT /{}/change-quantity", username);
-        cartService.changeProductQuantity(username, request);
-    }
-
-    @Override
-    @DeleteMapping("/{username}/clear")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clearCart(@PathVariable("username") String username) {
-        log.info("DELETE /{}/clear", username);
-        cartService.clearCart(username);
-    }
-
-    @Override
-    @PostMapping("/{username}/deactivate")
-    @ResponseStatus(HttpStatus.OK)
-    public void deactivateCart(@PathVariable("username") String username) {
-        log.info("POST /{}/deactivate", username);
-        cartService.deactivateCart(username);
-    }
-
-    @GetMapping
-    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
-        log.info("GET /api/v1/shopping-cart?username={}", username);
-        return cartService.getCart(username);
     }
 
     @PostMapping("/add")
@@ -112,6 +78,15 @@ public class CartController implements ShoppingCartClient {
         }
     }
 
+    @Override
+    @DeleteMapping("/{username}/remove/{productId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeProductFromCart(@PathVariable("username") String username,
+                                      @PathVariable("productId") UUID productId) {
+        log.info("DELETE /{}/remove/{}", username, productId);
+        cartService.removeProductFromCart(username, productId);
+    }
+
     @PostMapping("/remove")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeProductByBody(@RequestBody Map<String, Object> request) {
@@ -123,19 +98,56 @@ public class CartController implements ShoppingCartClient {
         }
     }
 
+    @Override
+    @PutMapping("/{username}/change-quantity")
+    @ResponseStatus(HttpStatus.OK)
+    public void changeProductQuantity(@PathVariable("username") String username,
+                                      @RequestBody ChangeProductQuantityRequest request) {
+        log.info("PUT /{}/change-quantity", username);
+        cartService.changeProductQuantity(username, request);
+    }
+
     @PostMapping("/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public void changeQuantityByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        String productIdStr = (String) request.get("productId");
-        Integer newQuantity = (Integer) request.get("quantity");
+    public void changeQuantityByBody(@RequestBody Object requestBody) {
+        if (requestBody instanceof List) {
+            List<?> items = (List<?>) requestBody;
+            for (Object item : items) {
+                if (item instanceof Map) {
+                    Map<String, Object> request = (Map<String, Object>) item;
+                    String username = (String) request.get("username");
+                    String productIdStr = (String) request.get("productId");
+                    Integer newQuantity = (Integer) request.get("quantity");
 
-        if (username != null && productIdStr != null && newQuantity != null) {
-            ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-            changeRequest.setProductId(UUID.fromString(productIdStr));
-            changeRequest.setNewQuantity(newQuantity);
-            cartService.changeProductQuantity(username, changeRequest);
+                    if (username != null && productIdStr != null && newQuantity != null) {
+                        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+                        changeRequest.setProductId(UUID.fromString(productIdStr));
+                        changeRequest.setNewQuantity(newQuantity);
+                        cartService.changeProductQuantity(username, changeRequest);
+                    }
+                }
+            }
+        } else if (requestBody instanceof Map) {
+            Map<String, Object> request = (Map<String, Object>) requestBody;
+            String username = (String) request.get("username");
+            String productIdStr = (String) request.get("productId");
+            Integer newQuantity = (Integer) request.get("quantity");
+
+            if (username != null && productIdStr != null && newQuantity != null) {
+                ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+                changeRequest.setProductId(UUID.fromString(productIdStr));
+                changeRequest.setNewQuantity(newQuantity);
+                cartService.changeProductQuantity(username, changeRequest);
+            }
         }
+    }
+
+    @Override
+    @DeleteMapping("/{username}/clear")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void clearCart(@PathVariable("username") String username) {
+        log.info("DELETE /{}/clear", username);
+        cartService.clearCart(username);
     }
 
     @PostMapping("/clear")
@@ -145,6 +157,14 @@ public class CartController implements ShoppingCartClient {
         if (username != null) {
             cartService.clearCart(username);
         }
+    }
+
+    @Override
+    @PostMapping("/{username}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    public void deactivateCart(@PathVariable("username") String username) {
+        log.info("POST /{}/deactivate", username);
+        cartService.deactivateCart(username);
     }
 
     @PostMapping("/deactivate")

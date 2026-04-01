@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface ShoppingStoreClient {
 
     @GetMapping("/products")
-    Map<String, Object> getProducts();
+    List<ProductDto> getProducts();
 
     @GetMapping("/products/{productId}")
     ProductDto getProduct(@PathVariable("productId") UUID productId);
@@ -34,5 +34,5 @@ public interface ShoppingStoreClient {
     void deactivateProduct(@PathVariable("productId") UUID productId);
 
     @GetMapping("/products/category/{category}")
-    Map<String, Object> getProductsByCategory(@PathVariable("category") String category);
+    List<ProductDto> getProductsByCategory(@PathVariable("category") String category);
 }

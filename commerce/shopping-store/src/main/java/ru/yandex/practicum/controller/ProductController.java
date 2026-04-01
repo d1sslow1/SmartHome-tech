@@ -2,17 +2,12 @@ package ru.yandex.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.ShoppingStoreClient;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.service.ProductService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,36 +22,9 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @GetMapping("/products")
-    public Map<String, Object> getProducts() {
+    public List<ProductDto> getProducts() {
         log.info("GET /products");
-        List<ProductDto> products = productService.getAllActiveProducts();
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", products);
-        response.put("totalElements", products.size());
-        response.put("totalPages", 1);
-        response.put("page", 0);
-        response.put("size", products.size());
-        return response;
-    }
-
-    @GetMapping(value = "/products", params = {"page", "size"})
-    public Map<String, Object> getProductsWithPagination(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "name") String sort) {
-        log.info("GET /products with pagination");
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort).descending());
-        Page<ProductDto> productPage = productService.getProductsPage(pageable);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", productPage.getContent());
-        response.put("totalElements", productPage.getTotalElements());
-        response.put("totalPages", productPage.getTotalPages());
-        response.put("page", productPage.getNumber());
-        response.put("size", productPage.getSize());
-
-        return response;
+        return productService.getAllActiveProducts();
     }
 
     @Override
@@ -137,42 +105,18 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @GetMapping("/products/category/{category}")
-    public Map<String, Object> getProductsByCategory(@PathVariable("category") String category) {
+    public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
         log.info("GET /products/category/{}", category);
-        List<ProductDto> products = productService.getProductsByCategory(category);
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", products);
-        response.put("totalElements", products.size());
-        response.put("totalPages", 1);
-        response.put("page", 0);
-        response.put("size", products.size());
-        return response;
+        return productService.getProductsByCategory(category);
     }
 
     @GetMapping
-    public Map<String, Object> getProductsByCategoryParam(
-            @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/v1/shopping-store?category={}, page={}, size={}", category, page, size);
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductDto> productPage;
-
+    public List<ProductDto> getProductsByCategoryParam(@RequestParam(required = false) String category) {
+        log.info("GET /api/v1/shopping-store?category={}", category);
         if (category != null && !category.isEmpty()) {
-            productPage = productService.getProductsByCategoryPage(category, pageable);
-        } else {
-            productPage = productService.getProductsPage(pageable);
+            return productService.getProductsByCategory(category);
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("content", productPage.getContent());
-        response.put("totalElements", productPage.getTotalElements());
-        response.put("totalPages", productPage.getTotalPages());
-        response.put("page", productPage.getNumber());
-        response.put("size", productPage.getSize());
-
-        return response;
+        return productService.getAllActiveProducts();
     }
 
     @PostMapping("/removeProductFromStore")
