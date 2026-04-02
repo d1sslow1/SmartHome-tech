@@ -29,7 +29,9 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /products - page={}, size={}", page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-        return productService.getProductsPage(pageable);
+        Page<ProductDto> result = productService.getProductsPage(pageable);
+        log.info("Returning page with {} elements, total: {}", result.getNumberOfElements(), result.getTotalElements());
+        return result;
     }
 
     @GetMapping("/products/{productId}")
@@ -147,6 +149,7 @@ public class ProductController {
         }
         return productService.getAllActiveProducts();
     }
+
     @PostMapping("/removeProductFromStore")
     @ResponseStatus(HttpStatus.OK)
     public ProductDto removeProductFromStore(@RequestBody String productId) {
@@ -154,5 +157,4 @@ public class ProductController {
         productId = productId.replace("\"", "");
         return productService.deleteProduct(UUID.fromString(productId));
     }
-
 }

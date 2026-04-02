@@ -22,13 +22,17 @@ public class CartController {
     @GetMapping("/{username}")
     public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
-        return cartService.getCart(username);
+        Map<UUID, Integer> result = cartService.getCart(username);
+        log.info("Cart content: {}", result);
+        return result;
     }
 
     @GetMapping
     public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
         log.info("GET /api/v1/shopping-cart?username={}", username);
-        return cartService.getCart(username);
+        Map<UUID, Integer> result = cartService.getCart(username);
+        log.info("Cart content: {}", result);
+        return result;
     }
 
     @PostMapping("/{username}/add")
@@ -123,7 +127,7 @@ public class CartController {
     @ResponseStatus(HttpStatus.OK)
     public Map<UUID, Integer> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
         log.info("PUT /api/v1/shopping-cart?username={}", username);
-        if (items != null) {
+        if (items != null && !items.isEmpty()) {
             cartService.clearCart(username);
             for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
                 if (entry.getValue() != null && entry.getValue() > 0) {
@@ -156,6 +160,13 @@ public class CartController {
     @ResponseStatus(HttpStatus.OK)
     public void deactivateCart(@PathVariable("username") String username) {
         log.info("POST /{}/deactivate", username);
+        cartService.deactivateCart(username);
+    }
+
+    @PostMapping("/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    public void deactivateCartDirect(@RequestParam String username) {
+        log.info("POST /deactivate?username={}", username);
         cartService.deactivateCart(username);
     }
 }

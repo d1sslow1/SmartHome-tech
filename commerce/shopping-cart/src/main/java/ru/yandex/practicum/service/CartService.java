@@ -39,6 +39,7 @@ public class CartService {
         for (CartItem item : cart.getItems()) {
             result.put(item.getProductId(), item.getQuantity());
         }
+        log.info("Cart for user {} has {} items", username, result.size());
         return result;
     }
 
