@@ -27,10 +27,19 @@ public class ProductController {
     public Page<ProductDto> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "DESC") String sort) {
+            @RequestParam(defaultValue = "productName,DESC") String sort) {
         log.info("GET /products - page={}, size={}, sort={}", page, size, sort);
-        Sort.Direction direction = parseSortDirection(sort);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "name"));
+
+        String direction = "DESC";
+        if (sort != null && sort.contains(",")) {
+            String[] parts = sort.split(",");
+            if (parts.length > 1) {
+                direction = parts[1].toUpperCase();
+            }
+        }
+
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "name"));
         return productService.getProductsPage(pageable);
     }
 
@@ -142,6 +151,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "productName,DESC") String sort) {
         log.info("GET /api/v1/shopping-store?category={}&page={}&size={}&sort={}", category, page, size, sort);
+
         String direction = "DESC";
         if (sort != null && sort.contains(",")) {
             String[] parts = sort.split(",");
@@ -157,17 +167,6 @@ public class ProductController {
             return productService.getProductsByCategoryPage(category, pageable);
         }
         return productService.getProductsPage(pageable);
-    }
-
-    private Sort.Direction parseSortDirection(String sortParam) {
-        if (sortParam == null || sortParam.isEmpty()) {
-            return Sort.Direction.DESC;
-        }
-        String lowerParam = sortParam.toLowerCase();
-        if (lowerParam.contains("desc")) {
-            return Sort.Direction.DESC;
-        }
-        return Sort.Direction.ASC;
     }
 
     @PostMapping("/removeProductFromStore")

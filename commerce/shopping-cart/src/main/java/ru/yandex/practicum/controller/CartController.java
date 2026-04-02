@@ -8,10 +8,7 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -22,36 +19,34 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping("/{username}")
-    public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
+    public List<Map<UUID, Integer>> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return result != null ? result : new HashMap<>();
+        return List.of(result != null ? result : new HashMap<>());
     }
 
     @GetMapping
-    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
+    public List<Map<UUID, Integer>> getCartByParam(@RequestParam String username) {
         log.info("GET /api/v1/shopping-cart?username={}", username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return result != null ? result : new HashMap<>();
+        return List.of(result != null ? result : new HashMap<>());
     }
 
     @PostMapping("/{username}/add")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> addProductToCart(@PathVariable("username") String username,
-                                               @RequestBody CartItemDto cartItem) {
+    public List<Map<UUID, Integer>> addProductToCart(@PathVariable("username") String username,
+                                                     @RequestBody CartItemDto cartItem) {
         log.info("POST /{}/add - cartItem: {}", username, cartItem);
         if (cartItem == null || cartItem.getProductId() == null) {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.addProductToCart(username, cartItem);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        log.info("Returning cart after add: {}", result);
-        return result;
+        return List.of(cartService.getCart(username));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> addProductToCartDirect(@RequestBody Map<String, Object> request) {
+    public List<Map<UUID, Integer>> addProductToCartDirect(@RequestBody Map<String, Object> request) {
         log.info("POST /api/v1/shopping-cart");
         String username = (String) request.get("username");
         String productIdStr = (String) request.get("productId");
@@ -65,7 +60,7 @@ public class CartController {
         cartItem.setProductId(UUID.fromString(productIdStr));
         cartItem.setQuantity(quantity);
         cartService.addProductToCart(username, cartItem);
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @DeleteMapping("/{username}/remove/{productId}")
@@ -85,7 +80,7 @@ public class CartController {
 
     @PostMapping("/remove")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> removeProductPost(@RequestParam String username, @RequestBody Object body) {
+    public List<Map<UUID, Integer>> removeProductPost(@RequestParam String username, @RequestBody Object body) {
         log.info("POST /remove?username={}", username);
 
         if (body instanceof List) {
@@ -99,42 +94,40 @@ public class CartController {
             cartService.removeProductFromCart(username, UUID.fromString((String) body));
         }
 
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @PutMapping("/{username}/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> changeProductQuantity(@PathVariable("username") String username,
-                                                    @RequestBody ChangeProductQuantityRequest request) {
+    public List<Map<UUID, Integer>> changeProductQuantity(@PathVariable("username") String username,
+                                                          @RequestBody ChangeProductQuantityRequest request) {
         log.info("PUT /{}/change-quantity - request: {}", username, request);
         if (request == null || request.getProductId() == null) {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.changeProductQuantity(username, request);
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @PostMapping("/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+    public List<Map<UUID, Integer>> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
         log.info("POST /change-quantity?username={}", username);
         String productIdStr = (String) request.get("productId");
         Integer newQuantity = (Integer) request.get("newQuantity");
 
-        if (productIdStr == null || newQuantity == null) {
-            return cartService.getCart(username);
+        if (productIdStr != null && newQuantity != null) {
+            ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+            changeRequest.setProductId(UUID.fromString(productIdStr));
+            changeRequest.setNewQuantity(newQuantity);
+            cartService.changeProductQuantity(username, changeRequest);
         }
-
-        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-        changeRequest.setProductId(UUID.fromString(productIdStr));
-        changeRequest.setNewQuantity(newQuantity);
-        cartService.changeProductQuantity(username, changeRequest);
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
+    public List<Map<UUID, Integer>> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
         log.info("PUT /api/v1/shopping-cart?username={}", username);
         if (items != null && !items.isEmpty()) {
             cartService.clearCart(username);
@@ -147,7 +140,7 @@ public class CartController {
                 }
             }
         }
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @DeleteMapping("/{username}/clear")
@@ -159,10 +152,10 @@ public class CartController {
 
     @PostMapping("/clear")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> clearCartPost(@RequestParam String username) {
+    public List<Map<UUID, Integer>> clearCartPost(@RequestParam String username) {
         log.info("POST /clear?username={}", username);
         cartService.clearCart(username);
-        return cartService.getCart(username);
+        return List.of(cartService.getCart(username));
     }
 
     @PostMapping("/{username}/deactivate")
