@@ -75,12 +75,13 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(UUID id) {
+    public ProductDto deleteProduct(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setState(ProductState.DEACTIVATE);
-        productRepository.save(product);
+        Product saved = productRepository.save(product);
         log.info("Deactivated product: {}", id);
+        return productMapper.toDto(saved);
     }
 
     @Transactional
@@ -102,11 +103,12 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateQuantityState(UUID id, String quantityState) {
+    public ProductDto updateQuantityState(UUID id, String quantityState) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setQuantityState(ProductQuantityState.valueOf(quantityState.toUpperCase()));
-        productRepository.save(product);
+        Product saved = productRepository.save(product);
         log.info("Updated quantity state for product {} to {}", id, quantityState);
+        return productMapper.toDto(saved);
     }
 }

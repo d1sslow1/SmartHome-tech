@@ -61,10 +61,9 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @DeleteMapping("/products/{productId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProduct(@PathVariable("productId") UUID productId) {
+    public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
-        productService.deleteProduct(productId);
+        return productService.deleteProduct(productId);
     }
 
     @Override
@@ -88,5 +87,16 @@ public class ProductController implements ShoppingStoreClient {
     public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
         log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
+    }
+
+    @PostMapping("/quantityState")
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDto updateQuantityState(@RequestParam UUID productId,
+                                          @RequestParam String quantityState) {
+        log.info("POST /quantityState - productId={}, quantityState={}", productId, quantityState);
+        if (quantityState == null || quantityState.trim().isEmpty()) {
+            throw new IllegalArgumentException("quantityState cannot be empty");
+        }
+        return productService.updateQuantityState(productId, quantityState);
     }
 }

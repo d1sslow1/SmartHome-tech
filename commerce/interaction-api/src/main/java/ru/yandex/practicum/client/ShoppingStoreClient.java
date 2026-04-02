@@ -26,7 +26,7 @@ public interface ShoppingStoreClient {
                              @RequestBody ProductDto productDto);
 
     @DeleteMapping("/products/{productId}")
-    void deleteProduct(@PathVariable("productId") UUID productId);
+    ProductDto deleteProduct(@PathVariable("productId") UUID productId);
 
     @PostMapping("/products/{productId}/activate")
     void activateProduct(@PathVariable("productId") UUID productId);
