@@ -25,7 +25,6 @@ public class CartController {
     public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        log.info("Returning cart: {}", result);
         return result != null ? result : new HashMap<>();
     }
 
