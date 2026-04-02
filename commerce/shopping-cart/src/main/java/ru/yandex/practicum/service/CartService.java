@@ -62,16 +62,14 @@ public class CartService {
 
         Cart cart = getActiveCart(username);
 
-        try {
-            List<CartItemDto> itemsToCheck = List.of(cartItem);
-            Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
-            Boolean isAvailable = availability.get(cartItem.getProductId());
-            if (isAvailable == null || !isAvailable) {
-                log.warn("Product {} is not available in warehouse", cartItem.getProductId());
-                throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
-            }
-        } catch (Exception e) {
-            log.error("Error checking availability with warehouse: {}", e.getMessage());
+        // Проверяем наличие на складе
+        List<CartItemDto> itemsToCheck = List.of(cartItem);
+        Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
+        Boolean isAvailable = availability.get(cartItem.getProductId());
+
+        if (isAvailable == null || !isAvailable) {
+            log.warn("Product {} is not available in warehouse", cartItem.getProductId());
+            throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
         }
 
         CartItem existingItem = cart.getItems().stream()
@@ -81,8 +79,7 @@ public class CartService {
 
         if (existingItem != null) {
             existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
-            log.debug("Updated quantity for product {} to {}",
-                    cartItem.getProductId(), existingItem.getQuantity());
+            log.debug("Updated quantity for product {} to {}", cartItem.getProductId(), existingItem.getQuantity());
         } else {
             CartItem newItem = new CartItem();
             newItem.setCart(cart);

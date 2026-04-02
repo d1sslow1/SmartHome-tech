@@ -96,6 +96,15 @@ public class WarehouseService {
         return shippingDto;
     }
 
+    public WarehouseProduct getProduct(UUID productId) {
+        return warehouseProductRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found: " + productId));
+    }
+
+    public List<WarehouseProduct> getAllProducts() {
+        return warehouseProductRepository.findAll();
+    }
+
     public WarehouseProduct addProductToWarehouse(WarehouseProduct product) {
         log.info("Adding product to warehouse: {}", product.getProductId());
 

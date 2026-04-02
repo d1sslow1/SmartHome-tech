@@ -2,6 +2,10 @@ package ru.yandex.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.ShoppingStoreClient;
@@ -9,7 +13,6 @@ import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.service.ProductService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -22,21 +25,18 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @GetMapping("/products")
-    public List<ProductDto> getProducts() {
-        log.info("GET /products");
-        return productService.getAllActiveProducts();
+    public Page<ProductDto> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /products - page={}, size={}", page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        return productService.getProductsPage(pageable);
     }
 
     @Override
     @GetMapping("/products/{productId}")
     public ProductDto getProduct(@PathVariable("productId") UUID productId) {
         log.info("GET /products/{}", productId);
-        return productService.getProductById(productId);
-    }
-
-    @GetMapping("/{productId}")
-    public ProductDto getProductByIdPath(@PathVariable("productId") UUID productId) {
-        log.info("GET /{}", productId);
         return productService.getProductById(productId);
     }
 
@@ -51,34 +51,12 @@ public class ProductController implements ShoppingStoreClient {
         return productService.createProduct(productDto);
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ProductDto createProductDirect(@RequestBody ProductDto productDto) {
-        log.info("POST /api/v1/shopping-store");
-        if (productDto.getProductState() == null) {
-            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
-        }
-        return productService.createProduct(productDto);
-    }
-
     @Override
     @PutMapping("/products/{productId}")
     public ProductDto updateProduct(@PathVariable("productId") UUID productId,
                                     @RequestBody ProductDto productDto) {
         log.info("PUT /products/{}", productId);
         return productService.updateProduct(productId, productDto);
-    }
-
-    @PutMapping
-    public ProductDto updateProductWithoutId(@RequestBody ProductDto productDto) {
-        log.info("PUT /api/v1/shopping-store");
-        if (productDto.getProductId() != null) {
-            return productService.updateProduct(productDto.getProductId(), productDto);
-        }
-        if (productDto.getProductState() == null) {
-            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
-        }
-        return productService.createProduct(productDto);
     }
 
     @Override
@@ -91,6 +69,7 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @PostMapping("/products/{productId}/activate")
+    @ResponseStatus(HttpStatus.OK)
     public void activateProduct(@PathVariable("productId") UUID productId) {
         log.info("POST /products/{}/activate", productId);
         productService.activateProduct(productId);
@@ -98,6 +77,7 @@ public class ProductController implements ShoppingStoreClient {
 
     @Override
     @PostMapping("/products/{productId}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
     public void deactivateProduct(@PathVariable("productId") UUID productId) {
         log.info("POST /products/{}/deactivate", productId);
         productService.deactivateProduct(productId);
@@ -108,30 +88,5 @@ public class ProductController implements ShoppingStoreClient {
     public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
         log.info("GET /products/category/{}", category);
         return productService.getProductsByCategory(category);
-    }
-
-    @GetMapping
-    public List<ProductDto> getProductsByCategoryParam(@RequestParam(required = false) String category) {
-        log.info("GET /api/v1/shopping-store?category={}", category);
-        if (category != null && !category.isEmpty()) {
-            return productService.getProductsByCategory(category);
-        }
-        return productService.getAllActiveProducts();
-    }
-
-    @PostMapping("/removeProductFromStore")
-    @ResponseStatus(HttpStatus.OK)
-    public void removeProductFromStore(@RequestBody String productId) {
-        log.info("POST /removeProductFromStore - productId={}", productId);
-        productId = productId.replace("\"", "");
-        productService.deleteProduct(UUID.fromString(productId));
-    }
-
-    @PostMapping("/quantityState")
-    @ResponseStatus(HttpStatus.OK)
-    public void updateQuantityState(@RequestParam UUID productId,
-                                    @RequestParam String quantityState) {
-        log.info("POST /quantityState - productId={}, quantityState={}", productId, quantityState);
-        productService.updateQuantityState(productId, quantityState);
     }
 }

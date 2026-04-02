@@ -9,7 +9,6 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,54 +27,17 @@ public class CartController implements ShoppingCartClient {
         return cartService.getCart(username);
     }
 
-    @GetMapping
-    public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
-        log.info("GET /api/v1/shopping-cart?username={}", username);
-        return cartService.getCart(username);
-    }
-
     @Override
     @PostMapping("/{username}/add")
     @ResponseStatus(HttpStatus.OK)
     public void addProductToCart(@PathVariable("username") String username,
-                                 @RequestBody CartItemDto cartItem) {
-        log.info("POST /{}/add", username);
-        cartService.addProductToCart(username, cartItem);
-    }
-
-    @PostMapping("/add")
-    @ResponseStatus(HttpStatus.OK)
-    public void addProductToCartByBody(@RequestBody Object requestBody) {
-        if (requestBody instanceof List) {
-            List<?> items = (List<?>) requestBody;
-            for (Object item : items) {
-                if (item instanceof Map) {
-                    Map<String, Object> request = (Map<String, Object>) item;
-                    String username = (String) request.get("username");
-                    String productIdStr = (String) request.get("productId");
-                    Integer quantity = (Integer) request.get("quantity");
-
-                    if (username != null && productIdStr != null && quantity != null) {
-                        CartItemDto cartItem = new CartItemDto();
-                        cartItem.setProductId(UUID.fromString(productIdStr));
-                        cartItem.setQuantity(quantity);
-                        cartService.addProductToCart(username, cartItem);
-                    }
-                }
-            }
-        } else if (requestBody instanceof Map) {
-            Map<String, Object> request = (Map<String, Object>) requestBody;
-            String username = (String) request.get("username");
-            String productIdStr = (String) request.get("productId");
-            Integer quantity = (Integer) request.get("quantity");
-
-            if (username != null && productIdStr != null && quantity != null) {
-                CartItemDto cartItem = new CartItemDto();
-                cartItem.setProductId(UUID.fromString(productIdStr));
-                cartItem.setQuantity(quantity);
-                cartService.addProductToCart(username, cartItem);
-            }
+                                 @RequestBody(required = false) CartItemDto cartItem) {
+        log.info("POST /{}/add - cartItem: {}", username, cartItem);
+        if (cartItem == null || cartItem.getProductId() == null) {
+            log.warn("CartItem is null or missing productId, ignoring");
+            return;
         }
+        cartService.addProductToCart(username, cartItem);
     }
 
     @Override
@@ -87,59 +49,17 @@ public class CartController implements ShoppingCartClient {
         cartService.removeProductFromCart(username, productId);
     }
 
-    @PostMapping("/remove")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeProductByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        String productIdStr = (String) request.get("productId");
-
-        if (username != null && productIdStr != null) {
-            cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
-        }
-    }
-
     @Override
     @PutMapping("/{username}/change-quantity")
     @ResponseStatus(HttpStatus.OK)
     public void changeProductQuantity(@PathVariable("username") String username,
-                                      @RequestBody ChangeProductQuantityRequest request) {
-        log.info("PUT /{}/change-quantity", username);
-        cartService.changeProductQuantity(username, request);
-    }
-
-    @PostMapping("/change-quantity")
-    @ResponseStatus(HttpStatus.OK)
-    public void changeQuantityByBody(@RequestBody Object requestBody) {
-        if (requestBody instanceof List) {
-            List<?> items = (List<?>) requestBody;
-            for (Object item : items) {
-                if (item instanceof Map) {
-                    Map<String, Object> request = (Map<String, Object>) item;
-                    String username = (String) request.get("username");
-                    String productIdStr = (String) request.get("productId");
-                    Integer newQuantity = (Integer) request.get("quantity");
-
-                    if (username != null && productIdStr != null && newQuantity != null) {
-                        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-                        changeRequest.setProductId(UUID.fromString(productIdStr));
-                        changeRequest.setNewQuantity(newQuantity);
-                        cartService.changeProductQuantity(username, changeRequest);
-                    }
-                }
-            }
-        } else if (requestBody instanceof Map) {
-            Map<String, Object> request = (Map<String, Object>) requestBody;
-            String username = (String) request.get("username");
-            String productIdStr = (String) request.get("productId");
-            Integer newQuantity = (Integer) request.get("quantity");
-
-            if (username != null && productIdStr != null && newQuantity != null) {
-                ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-                changeRequest.setProductId(UUID.fromString(productIdStr));
-                changeRequest.setNewQuantity(newQuantity);
-                cartService.changeProductQuantity(username, changeRequest);
-            }
+                                      @RequestBody(required = false) ChangeProductQuantityRequest request) {
+        log.info("PUT /{}/change-quantity - request: {}", username, request);
+        if (request == null || request.getProductId() == null) {
+            log.warn("Request is null or missing productId, ignoring");
+            return;
         }
+        cartService.changeProductQuantity(username, request);
     }
 
     @Override
@@ -150,15 +70,6 @@ public class CartController implements ShoppingCartClient {
         cartService.clearCart(username);
     }
 
-    @PostMapping("/clear")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clearCartByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        if (username != null) {
-            cartService.clearCart(username);
-        }
-    }
-
     @Override
     @PostMapping("/{username}/deactivate")
     @ResponseStatus(HttpStatus.OK)
@@ -167,25 +78,23 @@ public class CartController implements ShoppingCartClient {
         cartService.deactivateCart(username);
     }
 
-    @PostMapping("/deactivate")
+    @PutMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
-    public void deactivateCartByBody(@RequestBody Map<String, Object> request) {
-        String username = (String) request.get("username");
-        if (username != null) {
-            cartService.deactivateCart(username);
+    public void updateCart(@PathVariable("username") String username,
+                           @RequestBody(required = false) Map<UUID, Integer> items) {
+        log.info("PUT /{} - items: {}", username, items);
+        if (items == null) {
+            log.warn("Items is null, ignoring");
+            return;
         }
-    }
-
-    @PutMapping
-    @ResponseStatus(HttpStatus.OK)
-    public void updateCart(@RequestParam String username,
-                           @RequestBody Map<UUID, Integer> items) {
         cartService.clearCart(username);
         for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
-            CartItemDto cartItem = new CartItemDto();
-            cartItem.setProductId(entry.getKey());
-            cartItem.setQuantity(entry.getValue());
-            cartService.addProductToCart(username, cartItem);
+            if (entry.getValue() != null && entry.getValue() > 0) {
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(entry.getKey());
+                cartItem.setQuantity(entry.getValue());
+                cartService.addProductToCart(username, cartItem);
+            }
         }
     }
 }

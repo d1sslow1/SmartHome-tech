@@ -1,18 +1,19 @@
 package ru.yandex.practicum.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @FeignClient(name = "shopping-store", path = "/api/v1/shopping-store")
 public interface ShoppingStoreClient {
 
     @GetMapping("/products")
-    List<ProductDto> getProducts();
+    Page<ProductDto> getProducts(@RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size);
 
     @GetMapping("/products/{productId}")
     ProductDto getProduct(@PathVariable("productId") UUID productId);

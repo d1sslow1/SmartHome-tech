@@ -39,12 +39,6 @@ public class ProductService {
                 .map(productMapper::toDto);
     }
 
-    public Page<ProductDto> getProductsByCategoryPage(String category, Pageable pageable) {
-        ProductCategory productCategory = ProductCategory.valueOf(category.toUpperCase());
-        return productRepository.findByCategoryAndState(productCategory, ProductState.ACTIVE, pageable)
-                .map(productMapper::toDto);
-    }
-
     public ProductDto getProductById(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
@@ -66,6 +60,7 @@ public class ProductService {
             product.setState(ProductState.ACTIVE);
         }
         Product saved = productRepository.save(product);
+        log.info("Created product: {}", saved.getId());
         return productMapper.toDto(saved);
     }
 
@@ -74,7 +69,9 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         productMapper.updateEntity(productDto, product);
-        return productMapper.toDto(productRepository.save(product));
+        Product saved = productRepository.save(product);
+        log.info("Updated product: {}", id);
+        return productMapper.toDto(saved);
     }
 
     @Transactional
@@ -83,6 +80,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setState(ProductState.DEACTIVATE);
         productRepository.save(product);
+        log.info("Deactivated product: {}", id);
     }
 
     @Transactional
@@ -91,6 +89,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setState(ProductState.ACTIVE);
         productRepository.save(product);
+        log.info("Activated product: {}", id);
     }
 
     @Transactional
@@ -99,6 +98,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setState(ProductState.DEACTIVATE);
         productRepository.save(product);
+        log.info("Deactivated product: {}", id);
     }
 
     @Transactional
@@ -107,5 +107,6 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setQuantityState(ProductQuantityState.valueOf(quantityState.toUpperCase()));
         productRepository.save(product);
+        log.info("Updated quantity state for product {} to {}", id, quantityState);
     }
 }
