@@ -27,10 +27,10 @@ public class ProductController {
     public Page<ProductDto> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-        log.info("GET /products - page={}, size={}, sort={}", page, size, sortDirection);
-        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), "name");
-        Pageable pageable = PageRequest.of(page, size, sort);
+            @RequestParam(defaultValue = "DESC") String sort) {
+        log.info("GET /products - page={}, size={}, sort={}", page, size, sort);
+        Sort.Direction direction = parseSortDirection(sort);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "name"));
         return productService.getProductsPage(pageable);
     }
 
@@ -142,12 +142,25 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "DESC") String sort) {
         log.info("GET /api/v1/shopping-store?category={}&page={}&size={}&sort={}", category, page, size, sort);
-        Sort.Direction direction = Sort.Direction.fromString(sort.toUpperCase());
+
+        Sort.Direction direction = parseSortDirection(sort);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "name"));
+
         if (category != null && !category.isEmpty()) {
             return productService.getProductsByCategoryPage(category, pageable);
         }
         return productService.getProductsPage(pageable);
+    }
+
+    private Sort.Direction parseSortDirection(String sortParam) {
+        if (sortParam == null || sortParam.isEmpty()) {
+            return Sort.Direction.DESC;
+        }
+        String lowerParam = sortParam.toLowerCase();
+        if (lowerParam.contains("desc")) {
+            return Sort.Direction.DESC;
+        }
+        return Sort.Direction.ASC;
     }
 
     @PostMapping("/removeProductFromStore")
