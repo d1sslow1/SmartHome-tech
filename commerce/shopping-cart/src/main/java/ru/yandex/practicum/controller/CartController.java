@@ -171,4 +171,20 @@ public class CartController {
         log.info("POST /deactivate?username={}", username);
         cartService.deactivateCart(username);
     }
+    @GetMapping("/test-cart")
+    public Map<UUID, Integer> getCartForTest(@RequestParam String username) {
+        log.info("GET /test-cart?username={}", username);
+        return cartService.getCart(username);
+    }
+
+    @PostMapping("/test-add")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<UUID, Integer> testAddToCart(@RequestParam String username, @RequestParam UUID productId, @RequestParam Integer quantity) {
+        log.info("POST /test-add?username={}&productId={}&quantity={}", username, productId, quantity);
+        CartItemDto cartItem = new CartItemDto();
+        cartItem.setProductId(productId);
+        cartItem.setQuantity(quantity);
+        cartService.addProductToCart(username, cartItem);
+        return cartService.getCart(username);
+    }
 }

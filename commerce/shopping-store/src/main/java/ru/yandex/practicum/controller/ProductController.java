@@ -176,4 +176,9 @@ public class ProductController {
         productId = productId.replace("\"", "");
         return productService.deleteProduct(UUID.fromString(productId));
     }
+    @GetMapping("/test-products")
+    public List<ProductDto> getProductsForTest() {
+        log.info("GET /test-products");
+        return productService.getAllActiveProducts();
+    }
 }
