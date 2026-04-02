@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.client.ShoppingStoreClient;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.dto.ProductState;
 import ru.yandex.practicum.service.ProductService;
@@ -20,11 +19,10 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/shopping-store")
 @RequiredArgsConstructor
-public class ProductController implements ShoppingStoreClient {
+public class ProductController {
 
     private final ProductService productService;
 
-    @Override
     @GetMapping("/products")
     public Page<ProductDto> getProducts(
             @RequestParam(defaultValue = "0") int page,
@@ -34,14 +32,12 @@ public class ProductController implements ShoppingStoreClient {
         return productService.getProductsPage(pageable);
     }
 
-    @Override
     @GetMapping("/products/{productId}")
     public ProductDto getProduct(@PathVariable("productId") UUID productId) {
         log.info("GET /products/{}", productId);
         return productService.getProductById(productId);
     }
 
-    @Override
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
@@ -52,7 +48,6 @@ public class ProductController implements ShoppingStoreClient {
         return productService.createProduct(productDto);
     }
 
-    @Override
     @PutMapping("/products/{productId}")
     public ProductDto updateProduct(@PathVariable("productId") UUID productId,
                                     @RequestBody ProductDto productDto) {
@@ -60,14 +55,12 @@ public class ProductController implements ShoppingStoreClient {
         return productService.updateProduct(productId, productDto);
     }
 
-    @Override
     @DeleteMapping("/products/{productId}")
     public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
         return productService.deleteProduct(productId);
     }
 
-    @Override
     @PostMapping("/products/{productId}/activate")
     @ResponseStatus(HttpStatus.OK)
     public void activateProduct(@PathVariable("productId") UUID productId) {
@@ -75,7 +68,6 @@ public class ProductController implements ShoppingStoreClient {
         productService.activateProduct(productId);
     }
 
-    @Override
     @PostMapping("/products/{productId}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     public void deactivateProduct(@PathVariable("productId") UUID productId) {
@@ -83,7 +75,6 @@ public class ProductController implements ShoppingStoreClient {
         productService.deactivateProduct(productId);
     }
 
-    @Override
     @GetMapping("/products/category/{category}")
     public List<ProductDto> getProductsByCategory(@PathVariable("category") String category) {
         log.info("GET /products/category/{}", category);
@@ -103,7 +94,7 @@ public class ProductController implements ShoppingStoreClient {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProductDto createProductDirect(@RequestBody ProductDto productDto) {
+    public ProductDto createProductRoot(@RequestBody ProductDto productDto) {
         log.info("POST /api/v1/shopping-store");
         if (productDto.getProductState() == null) {
             productDto.setProductState(ProductState.ACTIVE);
@@ -112,17 +103,27 @@ public class ProductController implements ShoppingStoreClient {
     }
 
     @PutMapping
-    public ProductDto updateProductDirect(@RequestBody ProductDto productDto) {
+    public ProductDto updateProductRoot(@RequestBody ProductDto productDto) {
         log.info("PUT /api/v1/shopping-store");
-        if (productDto.getProductId() == null) {
-            throw new IllegalArgumentException("Product ID is required");
+        UUID productId = productDto.getProductId();
+        if (productId == null) {
+            return productService.createProduct(productDto);
         }
-        return productService.updateProduct(productDto.getProductId(), productDto);
+        return productService.updateProduct(productId, productDto);
     }
 
     @DeleteMapping
-    public ProductDto deleteProductDirect(@RequestParam UUID productId) {
+    public ProductDto deleteProductRoot(@RequestParam UUID productId) {
         log.info("DELETE /api/v1/shopping-store?productId={}", productId);
         return productService.deleteProduct(productId);
+    }
+
+    @GetMapping
+    public List<ProductDto> getProductsRoot(@RequestParam(required = false) String category) {
+        log.info("GET /api/v1/shopping-store?category={}", category);
+        if (category != null && !category.isEmpty()) {
+            return productService.getProductsByCategory(category);
+        }
+        return productService.getAllActiveProducts();
     }
 }

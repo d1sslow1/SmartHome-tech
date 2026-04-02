@@ -20,25 +20,22 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/warehouse")
 @RequiredArgsConstructor
-public class WarehouseController implements WarehouseClient {
+public class WarehouseController {
 
     private final WarehouseService warehouseService;
 
-    @Override
     @PostMapping(value = "/check", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<UUID, Boolean> checkAvailability(@RequestBody List<CartItemDto> items) {
         log.info("POST /check - checking availability for {} items", items.size());
         return warehouseService.checkAvailability(items);
     }
 
-    @Override
     @GetMapping(value = "/address", produces = MediaType.APPLICATION_JSON_VALUE)
     public AddressDto getWarehouseAddress() {
         log.info("GET /address - getting warehouse address");
         return warehouseService.getWarehouseAddress();
     }
 
-    @Override
     @PostMapping(value = "/shipping", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ShippingDto getShippingCost(@RequestBody List<CartItemDto> items) {
         log.info("POST /shipping - calculating shipping cost for {} items", items.size());
@@ -69,5 +66,19 @@ public class WarehouseController implements WarehouseClient {
                                            @RequestParam Integer quantity) {
         log.info("PUT /products/{}/quantity - updating quantity to {}", productId, quantity);
         return warehouseService.updateProductQuantity(productId, quantity);
+    }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public WarehouseProduct addProductPut(@RequestBody WarehouseProduct product) {
+        log.info("PUT /api/v1/warehouse - adding product");
+        return warehouseService.addProductToWarehouse(product);
+    }
+
+    @PostMapping(value = "/add", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public WarehouseProduct addProductViaPost(@RequestBody WarehouseProduct product) {
+        log.info("POST /api/v1/warehouse/add - adding product");
+        return warehouseService.addProductToWarehouse(product);
     }
 }
