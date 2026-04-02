@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.client.ShoppingStoreClient;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.dto.ProductState;
 import ru.yandex.practicum.service.ProductService;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class ProductController implements ShoppingStoreClient {
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
         log.info("POST /products");
         if (productDto.getProductState() == null) {
-            productDto.setProductState(ru.yandex.practicum.dto.ProductState.ACTIVE);
+            productDto.setProductState(ProductState.ACTIVE);
         }
         return productService.createProduct(productDto);
     }
@@ -98,5 +99,30 @@ public class ProductController implements ShoppingStoreClient {
             throw new IllegalArgumentException("quantityState cannot be empty");
         }
         return productService.updateQuantityState(productId, quantityState);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto createProductDirect(@RequestBody ProductDto productDto) {
+        log.info("POST /api/v1/shopping-store");
+        if (productDto.getProductState() == null) {
+            productDto.setProductState(ProductState.ACTIVE);
+        }
+        return productService.createProduct(productDto);
+    }
+
+    @PutMapping
+    public ProductDto updateProductDirect(@RequestBody ProductDto productDto) {
+        log.info("PUT /api/v1/shopping-store");
+        if (productDto.getProductId() == null) {
+            throw new IllegalArgumentException("Product ID is required");
+        }
+        return productService.updateProduct(productDto.getProductId(), productDto);
+    }
+
+    @DeleteMapping
+    public ProductDto deleteProductDirect(@RequestParam UUID productId) {
+        log.info("DELETE /api/v1/shopping-store?productId={}", productId);
+        return productService.deleteProduct(productId);
     }
 }

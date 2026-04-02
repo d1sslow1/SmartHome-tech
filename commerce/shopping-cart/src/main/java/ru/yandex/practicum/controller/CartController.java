@@ -75,4 +75,47 @@ public class CartController implements ShoppingCartClient {
         log.info("POST /{}/deactivate", username);
         cartService.deactivateCart(username);
     }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.OK)
+    public void addProductToCartDirect(@RequestBody Map<String, Object> request) {
+        log.info("POST /api/v1/shopping-cart");
+        String username = (String) request.get("username");
+        String productIdStr = (String) request.get("productId");
+        Integer quantity = (Integer) request.get("quantity");
+
+        if (username == null || productIdStr == null || quantity == null) {
+            throw new IllegalArgumentException("username, productId and quantity are required");
+        }
+
+        CartItemDto cartItem = new CartItemDto();
+        cartItem.setProductId(UUID.fromString(productIdStr));
+        cartItem.setQuantity(quantity);
+        cartService.addProductToCart(username, cartItem);
+    }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public void changeQuantityDirect(@RequestBody Map<String, Object> request) {
+        log.info("PUT /api/v1/shopping-cart");
+        String username = (String) request.get("username");
+        String productIdStr = (String) request.get("productId");
+        Integer newQuantity = (Integer) request.get("quantity");
+
+        if (username == null || productIdStr == null || newQuantity == null) {
+            throw new IllegalArgumentException("username, productId and quantity are required");
+        }
+
+        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+        changeRequest.setProductId(UUID.fromString(productIdStr));
+        changeRequest.setNewQuantity(newQuantity);
+        cartService.changeProductQuantity(username, changeRequest);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeProductDirect(@RequestParam String username, @RequestParam UUID productId) {
+        log.info("DELETE /api/v1/shopping-cart?username={}&productId={}", username, productId);
+        cartService.removeProductFromCart(username, productId);
+    }
 }
