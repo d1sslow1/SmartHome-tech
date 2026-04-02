@@ -44,7 +44,9 @@ public class CartController {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.addProductToCart(username, cartItem);
-        return cartService.getCart(username);
+        Map<UUID, Integer> result = cartService.getCart(username);
+        log.info("Returning cart after add: {}", result);
+        return result;
     }
 
     @PostMapping

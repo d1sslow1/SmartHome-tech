@@ -140,11 +140,18 @@ public class ProductController {
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "DESC") String sort) {
+            @RequestParam(defaultValue = "productName,DESC") String sort) {
         log.info("GET /api/v1/shopping-store?category={}&page={}&size={}&sort={}", category, page, size, sort);
+        String direction = "DESC";
+        if (sort != null && sort.contains(",")) {
+            String[] parts = sort.split(",");
+            if (parts.length > 1) {
+                direction = parts[1].toUpperCase();
+            }
+        }
 
-        Sort.Direction direction = parseSortDirection(sort);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "name"));
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "name"));
 
         if (category != null && !category.isEmpty()) {
             return productService.getProductsByCategoryPage(category, pageable);

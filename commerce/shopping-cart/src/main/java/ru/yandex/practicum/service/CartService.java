@@ -36,10 +36,12 @@ public class CartService {
         Cart cart = cartRepository.findByUsername(username)
                 .orElseGet(() -> createNewCart(username));
         Map<UUID, Integer> result = new HashMap<>();
-        for (CartItem item : cart.getItems()) {
-            result.put(item.getProductId(), item.getQuantity());
+        if (cart.getItems() != null) {
+            for (CartItem item : cart.getItems()) {
+                result.put(item.getProductId(), item.getQuantity());
+            }
         }
-        log.info("Cart for user {} has {} items", username, result.size());
+        log.info("Cart for user {}: {} items", username, result.size());
         return result;
     }
 
