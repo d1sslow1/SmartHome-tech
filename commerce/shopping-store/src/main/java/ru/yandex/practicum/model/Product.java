@@ -1,5 +1,6 @@
 package ru.yandex.practicum.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +21,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @JsonProperty("productName")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(length = 1000)
