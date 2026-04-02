@@ -38,18 +38,19 @@ public class CartController {
 
     @PostMapping("/{username}/add")
     @ResponseStatus(HttpStatus.OK)
-    public void addProductToCart(@PathVariable("username") String username,
-                                 @RequestBody CartItemDto cartItem) {
+    public Map<UUID, Integer> addProductToCart(@PathVariable("username") String username,
+                                               @RequestBody CartItemDto cartItem) {
         log.info("POST /{}/add - cartItem: {}", username, cartItem);
         if (cartItem == null || cartItem.getProductId() == null) {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.addProductToCart(username, cartItem);
+        return cartService.getCart(username);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    public void addProductToCartDirect(@RequestBody Map<String, Object> request) {
+    public Map<UUID, Integer> addProductToCartDirect(@RequestBody Map<String, Object> request) {
         log.info("POST /api/v1/shopping-cart");
         String username = (String) request.get("username");
         String productIdStr = (String) request.get("productId");
@@ -63,6 +64,7 @@ public class CartController {
         cartItem.setProductId(UUID.fromString(productIdStr));
         cartItem.setQuantity(quantity);
         cartService.addProductToCart(username, cartItem);
+        return cartService.getCart(username);
     }
 
     @DeleteMapping("/{username}/remove/{productId}")
