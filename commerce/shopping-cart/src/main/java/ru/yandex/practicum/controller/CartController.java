@@ -8,6 +8,7 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,17 +23,13 @@ public class CartController {
     @GetMapping("/{username}")
     public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        log.info("Cart content: {}", result);
-        return result;
+        return cartService.getCart(username);
     }
 
     @GetMapping
     public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
         log.info("GET /api/v1/shopping-cart?username={}", username);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        log.info("Cart content: {}", result);
-        return result;
+        return cartService.getCart(username);
     }
 
     @PostMapping("/{username}/add")
@@ -81,15 +78,16 @@ public class CartController {
 
     @PostMapping("/remove")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> removeProductPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+    public Map<UUID, Integer> removeProductPost(@RequestParam String username, @RequestBody List<Map<String, Object>> requests) {
         log.info("POST /remove?username={}", username);
-        String productIdStr = (String) request.get("productId");
-
-        if (productIdStr == null) {
-            throw new IllegalArgumentException("productId is required");
+        if (requests != null && !requests.isEmpty()) {
+            for (Map<String, Object> request : requests) {
+                String productIdStr = (String) request.get("productId");
+                if (productIdStr != null) {
+                    cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
+                }
+            }
         }
-
-        cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
         return cartService.getCart(username);
     }
 
@@ -107,19 +105,21 @@ public class CartController {
 
     @PostMapping("/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody List<Map<String, Object>> requests) {
         log.info("POST /change-quantity?username={}", username);
-        String productIdStr = (String) request.get("productId");
-        Integer newQuantity = (Integer) request.get("quantity");
+        if (requests != null && !requests.isEmpty()) {
+            for (Map<String, Object> request : requests) {
+                String productIdStr = (String) request.get("productId");
+                Integer newQuantity = (Integer) request.get("quantity");
 
-        if (productIdStr == null || newQuantity == null) {
-            throw new IllegalArgumentException("productId and quantity are required");
+                if (productIdStr != null && newQuantity != null) {
+                    ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+                    changeRequest.setProductId(UUID.fromString(productIdStr));
+                    changeRequest.setNewQuantity(newQuantity);
+                    cartService.changeProductQuantity(username, changeRequest);
+                }
+            }
         }
-
-        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-        changeRequest.setProductId(UUID.fromString(productIdStr));
-        changeRequest.setNewQuantity(newQuantity);
-        cartService.changeProductQuantity(username, changeRequest);
         return cartService.getCart(username);
     }
 
@@ -150,7 +150,7 @@ public class CartController {
 
     @PostMapping("/clear")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> clearCartPost(@RequestParam String username) {
+    public Map<UUID, Integer> clearCartPost(@RequestParam String username, @RequestBody(required = false) Object body) {
         log.info("POST /clear?username={}", username);
         cartService.clearCart(username);
         return cartService.getCart(username);
