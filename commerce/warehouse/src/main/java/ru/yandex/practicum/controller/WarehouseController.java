@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.client.WarehouseClient;
 import ru.yandex.practicum.dto.AddressDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ShippingDto;

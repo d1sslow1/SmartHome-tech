@@ -38,6 +38,12 @@ public class ProductController {
         return productService.getProductById(productId);
     }
 
+    @GetMapping("/{productId}")
+    public ProductDto getProductByIdDirect(@PathVariable("productId") UUID productId) {
+        log.info("GET /{}", productId);
+        return productService.getProductById(productId);
+    }
+
     @PostMapping("/products")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createProduct(@RequestBody ProductDto productDto) {
@@ -58,6 +64,12 @@ public class ProductController {
     @DeleteMapping("/products/{productId}")
     public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
+        return productService.deleteProduct(productId);
+    }
+
+    @DeleteMapping("/{productId}")
+    public ProductDto deleteProductByIdDirect(@PathVariable("productId") UUID productId) {
+        log.info("DELETE /{}", productId);
         return productService.deleteProduct(productId);
     }
 

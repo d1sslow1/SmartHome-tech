@@ -88,20 +88,20 @@ public class CartController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public void changeQuantityDirect(@RequestBody Map<String, Object> request) {
-        log.info("PUT /api/v1/shopping-cart");
-        String username = (String) request.get("username");
-        String productIdStr = (String) request.get("productId");
-        Integer newQuantity = (Integer) request.get("quantity");
-
-        if (username == null || productIdStr == null || newQuantity == null) {
-            throw new IllegalArgumentException("username, productId and quantity are required");
+    public void updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
+        log.info("PUT /api/v1/shopping-cart?username={}", username);
+        if (items == null) {
+            return;
         }
-
-        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
-        changeRequest.setProductId(UUID.fromString(productIdStr));
-        changeRequest.setNewQuantity(newQuantity);
-        cartService.changeProductQuantity(username, changeRequest);
+        cartService.clearCart(username);
+        for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
+            if (entry.getValue() != null && entry.getValue() > 0) {
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(entry.getKey());
+                cartItem.setQuantity(entry.getValue());
+                cartService.addProductToCart(username, cartItem);
+            }
+        }
     }
 
     @DeleteMapping("/{username}/clear")
