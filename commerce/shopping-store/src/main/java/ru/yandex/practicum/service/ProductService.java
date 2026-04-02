@@ -35,8 +35,9 @@ public class ProductService {
     }
 
     public Page<ProductDto> getProductsPage(Pageable pageable) {
-        return productRepository.findByState(ProductState.ACTIVE, pageable)
-                .map(productMapper::toDto);
+        Page<Product> products = productRepository.findByState(ProductState.ACTIVE, pageable);
+        log.info("Found {} products, page: {}/{}", products.getTotalElements(), pageable.getPageNumber(), pageable.getPageSize());
+        return products.map(productMapper::toDto);
     }
 
     public ProductDto getProductById(UUID id) {
@@ -60,7 +61,7 @@ public class ProductService {
             product.setState(ProductState.ACTIVE);
         }
         Product saved = productRepository.save(product);
-        log.info("Created product: {}", saved.getId());
+        log.info("Created product: {} with state: {}", saved.getId(), saved.getState());
         return productMapper.toDto(saved);
     }
 
@@ -70,7 +71,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         productMapper.updateEntity(productDto, product);
         Product saved = productRepository.save(product);
-        log.info("Updated product: {}", id);
+        log.info("Updated product: {} with state: {}", id, saved.getState());
         return productMapper.toDto(saved);
     }
 
@@ -78,9 +79,10 @@ public class ProductService {
     public ProductDto deleteProduct(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
+        log.info("Before delete - product state: {}", product.getState());
         product.setState(ProductState.DEACTIVATE);
         Product saved = productRepository.save(product);
-        log.info("Deactivated product: {} -> state: {}", id, saved.getState());
+        log.info("After delete - product state: {}", saved.getState());
         return productMapper.toDto(saved);
     }
 

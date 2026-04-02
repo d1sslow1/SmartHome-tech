@@ -62,18 +62,20 @@ public class ProductController {
     }
 
     @DeleteMapping("/products/{productId}")
+    @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
         ProductDto result = productService.deleteProduct(productId);
-        log.info("DELETE result state: {}", result.getProductState());
+        log.info("DELETE result - productState: {}", result.getProductState());
         return result;
     }
 
     @DeleteMapping("/{productId}")
+    @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProductByIdDirect(@PathVariable("productId") UUID productId) {
         log.info("DELETE /{}", productId);
         ProductDto result = productService.deleteProduct(productId);
-        log.info("DELETE result state: {}", result.getProductState());
+        log.info("DELETE result - productState: {}", result.getProductState());
         return result;
     }
 
@@ -129,9 +131,12 @@ public class ProductController {
     }
 
     @DeleteMapping
+    @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProductRoot(@RequestParam UUID productId) {
         log.info("DELETE /api/v1/shopping-store?productId={}", productId);
-        return productService.deleteProduct(productId);
+        ProductDto result = productService.deleteProduct(productId);
+        log.info("DELETE result - productState: {}", result.getProductState());
+        return result;
     }
 
     @GetMapping

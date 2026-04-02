@@ -77,29 +77,29 @@ public class CartController {
 
     @PutMapping("/{username}/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public void changeProductQuantity(@PathVariable("username") String username,
-                                      @RequestBody ChangeProductQuantityRequest request) {
+    public Map<UUID, Integer> changeProductQuantity(@PathVariable("username") String username,
+                                                    @RequestBody ChangeProductQuantityRequest request) {
         log.info("PUT /{}/change-quantity - request: {}", username, request);
         if (request == null || request.getProductId() == null) {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.changeProductQuantity(username, request);
+        return cartService.getCart(username);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public Map<UUID, Integer> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
         log.info("PUT /api/v1/shopping-cart?username={}", username);
-        if (items == null) {
-            return cartService.getCart(username);
-        }
-        cartService.clearCart(username);
-        for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
-            if (entry.getValue() != null && entry.getValue() > 0) {
-                CartItemDto cartItem = new CartItemDto();
-                cartItem.setProductId(entry.getKey());
-                cartItem.setQuantity(entry.getValue());
-                cartService.addProductToCart(username, cartItem);
+        if (items != null) {
+            cartService.clearCart(username);
+            for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
+                if (entry.getValue() != null && entry.getValue() > 0) {
+                    CartItemDto cartItem = new CartItemDto();
+                    cartItem.setProductId(entry.getKey());
+                    cartItem.setQuantity(entry.getValue());
+                    cartService.addProductToCart(username, cartItem);
+                }
             }
         }
         return cartService.getCart(username);
