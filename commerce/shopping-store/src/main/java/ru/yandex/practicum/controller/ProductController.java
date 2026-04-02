@@ -29,9 +29,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /products - page={}, size={}", page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
-        Page<ProductDto> result = productService.getProductsPage(pageable);
-        log.info("Returning page with {} elements, total: {}", result.getNumberOfElements(), result.getTotalElements());
-        return result;
+        return productService.getProductsPage(pageable);
     }
 
     @GetMapping("/products/{productId}")
@@ -67,18 +65,14 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
-        ProductDto result = productService.deleteProduct(productId);
-        log.info("DELETE result - productState: {}", result.getProductState());
-        return result;
+        return productService.deleteProduct(productId);
     }
 
     @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProductByIdDirect(@PathVariable("productId") UUID productId) {
         log.info("DELETE /{}", productId);
-        ProductDto result = productService.deleteProduct(productId);
-        log.info("DELETE result - productState: {}", result.getProductState());
-        return result;
+        return productService.deleteProduct(productId);
     }
 
     @PostMapping("/products/{productId}/activate")
@@ -136,18 +130,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.OK)
     public ProductDto deleteProductRoot(@RequestParam UUID productId) {
         log.info("DELETE /api/v1/shopping-store?productId={}", productId);
-        ProductDto result = productService.deleteProduct(productId);
-        log.info("DELETE result - productState: {}", result.getProductState());
-        return result;
-    }
-
-    @GetMapping
-    public List<ProductDto> getProductsRoot(@RequestParam(required = false) String category) {
-        log.info("GET /api/v1/shopping-store?category={}", category);
-        if (category != null && !category.isEmpty()) {
-            return productService.getProductsByCategory(category);
-        }
-        return productService.getAllActiveProducts();
+        return productService.deleteProduct(productId);
     }
 
     @PostMapping("/removeProductFromStore")
