@@ -8,6 +8,7 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,13 +24,16 @@ public class CartController {
     @GetMapping("/{username}")
     public Map<UUID, Integer> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
-        return cartService.getCart(username);
+        Map<UUID, Integer> result = cartService.getCart(username);
+        log.info("Returning cart: {}", result);
+        return result != null ? result : new HashMap<>();
     }
 
     @GetMapping
     public Map<UUID, Integer> getCartByParam(@RequestParam String username) {
         log.info("GET /api/v1/shopping-cart?username={}", username);
-        return cartService.getCart(username);
+        Map<UUID, Integer> result = cartService.getCart(username);
+        return result != null ? result : new HashMap<>();
     }
 
     @PostMapping("/{username}/add")
@@ -86,20 +90,10 @@ public class CartController {
             for (Object item : list) {
                 if (item instanceof String) {
                     cartService.removeProductFromCart(username, UUID.fromString((String) item));
-                } else if (item instanceof Map) {
-                    String productIdStr = (String) ((Map) item).get("productId");
-                    if (productIdStr != null) {
-                        cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
-                    }
                 }
             }
         } else if (body instanceof String) {
             cartService.removeProductFromCart(username, UUID.fromString((String) body));
-        } else if (body instanceof Map) {
-            String productIdStr = (String) ((Map) body).get("productId");
-            if (productIdStr != null) {
-                cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
-            }
         }
 
         return cartService.getCart(username);
@@ -119,38 +113,19 @@ public class CartController {
 
     @PostMapping("/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody Object body) {
+    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
         log.info("POST /change-quantity?username={}", username);
+        String productIdStr = (String) request.get("productId");
+        Integer newQuantity = (Integer) request.get("newQuantity");
 
-        if (body instanceof List) {
-            List<?> list = (List<?>) body;
-            for (Object item : list) {
-                if (item instanceof Map) {
-                    Map<String, Object> map = (Map<String, Object>) item;
-                    String productIdStr = (String) map.get("productId");
-                    Integer newQuantity = (Integer) map.get("quantity");
-
-                    if (productIdStr != null && newQuantity != null) {
-                        ChangeProductQuantityRequest request = new ChangeProductQuantityRequest();
-                        request.setProductId(UUID.fromString(productIdStr));
-                        request.setNewQuantity(newQuantity);
-                        cartService.changeProductQuantity(username, request);
-                    }
-                }
-            }
-        } else if (body instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) body;
-            String productIdStr = (String) map.get("productId");
-            Integer newQuantity = (Integer) map.get("quantity");
-
-            if (productIdStr != null && newQuantity != null) {
-                ChangeProductQuantityRequest request = new ChangeProductQuantityRequest();
-                request.setProductId(UUID.fromString(productIdStr));
-                request.setNewQuantity(newQuantity);
-                cartService.changeProductQuantity(username, request);
-            }
+        if (productIdStr == null || newQuantity == null) {
+            return cartService.getCart(username);
         }
 
+        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+        changeRequest.setProductId(UUID.fromString(productIdStr));
+        changeRequest.setNewQuantity(newQuantity);
+        cartService.changeProductQuantity(username, changeRequest);
         return cartService.getCart(username);
     }
 

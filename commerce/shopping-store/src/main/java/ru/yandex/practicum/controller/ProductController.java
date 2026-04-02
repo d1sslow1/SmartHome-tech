@@ -26,9 +26,11 @@ public class ProductController {
     @GetMapping("/products")
     public Page<ProductDto> getProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("GET /products - page={}, size={}", page, size);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
+        log.info("GET /products - page={}, size={}, sort={}", page, size, sortDirection);
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), "name");
+        Pageable pageable = PageRequest.of(page, size, sort);
         return productService.getProductsPage(pageable);
     }
 
@@ -137,9 +139,11 @@ public class ProductController {
     public Page<ProductDto> getProductsRoot(
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        log.info("GET /api/v1/shopping-store?category={}&page={}&size={}", category, page, size);
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "DESC") String sort) {
+        log.info("GET /api/v1/shopping-store?category={}&page={}&size={}&sort={}", category, page, size, sort);
+        Sort.Direction direction = Sort.Direction.fromString(sort.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "name"));
         if (category != null && !category.isEmpty()) {
             return productService.getProductsByCategoryPage(category, pageable);
         }
