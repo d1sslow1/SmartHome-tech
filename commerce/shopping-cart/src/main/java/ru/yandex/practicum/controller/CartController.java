@@ -75,6 +75,20 @@ public class CartController {
         cartService.removeProductFromCart(username, productId);
     }
 
+    @PostMapping("/remove")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<UUID, Integer> removeProductPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+        log.info("POST /remove?username={}", username);
+        String productIdStr = (String) request.get("productId");
+
+        if (productIdStr == null) {
+            throw new IllegalArgumentException("productId is required");
+        }
+
+        cartService.removeProductFromCart(username, UUID.fromString(productIdStr));
+        return cartService.getCart(username);
+    }
+
     @PutMapping("/{username}/change-quantity")
     @ResponseStatus(HttpStatus.OK)
     public Map<UUID, Integer> changeProductQuantity(@PathVariable("username") String username,
@@ -84,6 +98,24 @@ public class CartController {
             throw new IllegalArgumentException("ProductId cannot be null");
         }
         cartService.changeProductQuantity(username, request);
+        return cartService.getCart(username);
+    }
+
+    @PostMapping("/change-quantity")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<UUID, Integer> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+        log.info("POST /change-quantity?username={}", username);
+        String productIdStr = (String) request.get("productId");
+        Integer newQuantity = (Integer) request.get("quantity");
+
+        if (productIdStr == null || newQuantity == null) {
+            throw new IllegalArgumentException("productId and quantity are required");
+        }
+
+        ChangeProductQuantityRequest changeRequest = new ChangeProductQuantityRequest();
+        changeRequest.setProductId(UUID.fromString(productIdStr));
+        changeRequest.setNewQuantity(newQuantity);
+        cartService.changeProductQuantity(username, changeRequest);
         return cartService.getCart(username);
     }
 
@@ -110,6 +142,14 @@ public class CartController {
     public void clearCart(@PathVariable("username") String username) {
         log.info("DELETE /{}/clear", username);
         cartService.clearCart(username);
+    }
+
+    @PostMapping("/clear")
+    @ResponseStatus(HttpStatus.OK)
+    public Map<UUID, Integer> clearCartPost(@RequestParam String username) {
+        log.info("POST /clear?username={}", username);
+        cartService.clearCart(username);
+        return cartService.getCart(username);
     }
 
     @PostMapping("/{username}/deactivate")

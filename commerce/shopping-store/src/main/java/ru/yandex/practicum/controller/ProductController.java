@@ -147,4 +147,12 @@ public class ProductController {
         }
         return productService.getAllActiveProducts();
     }
+    @PostMapping("/removeProductFromStore")
+    @ResponseStatus(HttpStatus.OK)
+    public ProductDto removeProductFromStore(@RequestBody String productId) {
+        log.info("POST /removeProductFromStore - productId={}", productId);
+        productId = productId.replace("\"", "");
+        return productService.deleteProduct(UUID.fromString(productId));
+    }
+
 }
