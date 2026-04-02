@@ -80,7 +80,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found: " + id));
         product.setState(ProductState.DEACTIVATE);
         Product saved = productRepository.save(product);
-        log.info("Deactivated product: {}", id);
+        log.info("Deactivated product: {} -> state: {}", id, saved.getState());
         return productMapper.toDto(saved);
     }
 

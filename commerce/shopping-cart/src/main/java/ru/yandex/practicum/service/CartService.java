@@ -55,18 +55,16 @@ public class CartService {
     public void addProductToCart(String username, CartItemDto cartItem) {
         log.info("Adding product {} to cart for user {}", cartItem.getProductId(), username);
         Cart cart = getActiveCart(username);
-        try {
-            List<CartItemDto> itemsToCheck = List.of(cartItem);
-            Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
-            Boolean isAvailable = availability.get(cartItem.getProductId());
-            if (isAvailable == null || !isAvailable) {
-                log.warn("Product {} is not available in warehouse", cartItem.getProductId());
-                throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
-            }
-        } catch (Exception e) {
-            log.error("Error checking availability with warehouse: {}", e.getMessage());
-            throw new ProductNotAvailableException("Cannot verify product availability: " + cartItem.getProductId());
+
+        List<CartItemDto> itemsToCheck = List.of(cartItem);
+        Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
+        Boolean isAvailable = availability.get(cartItem.getProductId());
+
+        if (isAvailable == null || !isAvailable) {
+            log.warn("Product {} is not available in warehouse", cartItem.getProductId());
+            throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
         }
+
         CartItem existingItem = cart.getItems().stream()
                 .filter(item -> item.getProductId().equals(cartItem.getProductId()))
                 .findFirst()

@@ -64,13 +64,17 @@ public class ProductController {
     @DeleteMapping("/products/{productId}")
     public ProductDto deleteProduct(@PathVariable("productId") UUID productId) {
         log.info("DELETE /products/{}", productId);
-        return productService.deleteProduct(productId);
+        ProductDto result = productService.deleteProduct(productId);
+        log.info("DELETE result state: {}", result.getProductState());
+        return result;
     }
 
     @DeleteMapping("/{productId}")
     public ProductDto deleteProductByIdDirect(@PathVariable("productId") UUID productId) {
         log.info("DELETE /{}", productId);
-        return productService.deleteProduct(productId);
+        ProductDto result = productService.deleteProduct(productId);
+        log.info("DELETE result state: {}", result.getProductState());
+        return result;
     }
 
     @PostMapping("/products/{productId}/activate")

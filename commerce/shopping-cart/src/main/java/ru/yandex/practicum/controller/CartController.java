@@ -88,10 +88,10 @@ public class CartController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public void updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
+    public Map<UUID, Integer> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
         log.info("PUT /api/v1/shopping-cart?username={}", username);
         if (items == null) {
-            return;
+            return cartService.getCart(username);
         }
         cartService.clearCart(username);
         for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
@@ -102,6 +102,7 @@ public class CartController {
                 cartService.addProductToCart(username, cartItem);
             }
         }
+        return cartService.getCart(username);
     }
 
     @DeleteMapping("/{username}/clear")
