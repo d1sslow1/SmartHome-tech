@@ -133,6 +133,19 @@ public class ProductController {
         return productService.deleteProduct(productId);
     }
 
+    @GetMapping
+    public Page<ProductDto> getProductsRoot(
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /api/v1/shopping-store?category={}&page={}&size={}", category, page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+        if (category != null && !category.isEmpty()) {
+            return productService.getProductsByCategoryPage(category, pageable);
+        }
+        return productService.getProductsPage(pageable);
+    }
+
     @PostMapping("/removeProductFromStore")
     @ResponseStatus(HttpStatus.OK)
     public ProductDto removeProductFromStore(@RequestBody String productId) {

@@ -113,4 +113,9 @@ public class ProductService {
         log.info("Updated quantity state for product {} to {}", id, quantityState);
         return productMapper.toDto(saved);
     }
+    public Page<ProductDto> getProductsByCategoryPage(String category, Pageable pageable) {
+        ProductCategory productCategory = ProductCategory.valueOf(category.toUpperCase());
+        return productRepository.findByCategoryAndState(productCategory, ProductState.ACTIVE, pageable)
+                .map(productMapper::toDto);
+    }
 }
