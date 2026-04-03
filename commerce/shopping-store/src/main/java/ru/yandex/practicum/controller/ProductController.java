@@ -140,7 +140,7 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /api/v1/shopping-store?category={}&page={}&size={}", category, page, size);
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "name"));
+        Pageable pageable = PageRequest.of(page, size);
 
         if (category != null && !category.isEmpty()) {
             return productService.getProductsByCategoryPage(category, pageable);
