@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.dto.ProductPageResponse;
 import ru.yandex.practicum.dto.ProductState;
 import ru.yandex.practicum.service.ProductService;
 
@@ -24,23 +25,23 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/products")
-    public Page<ProductDto> getProducts(
+    public ProductPageResponse getProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "productName,DESC") String sort) {
-        log.info("GET /products - page={}, size={}, sort={}", page, size, sort);
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /products - page={}, size={}", page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "name"));
+        Page<ProductDto> pageResult = productService.getProductsPage(pageable);
 
-        String direction = "DESC";
-        if (sort != null && sort.contains(",")) {
-            String[] parts = sort.split(",");
-            if (parts.length > 1) {
-                direction = parts[1].toUpperCase();
-            }
-        }
-
-        Sort.Direction sortDirection = direction.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "name"));
-        return productService.getProductsPage(pageable);
+        return ProductPageResponse.builder()
+                .content(pageResult.getContent())
+                .page(pageResult.getNumber())
+                .size(pageResult.getSize())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .first(pageResult.isFirst())
+                .last(pageResult.isLast())
+                .empty(pageResult.isEmpty())
+                .build();
     }
 
     @GetMapping("/products/{productId}")
@@ -145,28 +146,31 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<ProductDto> getProductsRoot(
+    public ProductPageResponse getProductsRoot(
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "productName,DESC") String sort) {
-        log.info("GET /api/v1/shopping-store?category={}&page={}&size={}&sort={}", category, page, size, sort);
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("GET /api/v1/shopping-store?category={}&page={}&size={}", category, page, size);
 
-        String direction = "DESC";
-        if (sort != null && sort.contains(",")) {
-            String[] parts = sort.split(",");
-            if (parts.length > 1) {
-                direction = parts[1].toUpperCase();
-            }
-        }
-
-        Sort.Direction sortDirection = direction.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, "name"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "name"));
+        Page<ProductDto> pageResult;
 
         if (category != null && !category.isEmpty()) {
-            return productService.getProductsByCategoryPage(category, pageable);
+            pageResult = productService.getProductsByCategoryPage(category, pageable);
+        } else {
+            pageResult = productService.getProductsPage(pageable);
         }
-        return productService.getProductsPage(pageable);
+
+        return ProductPageResponse.builder()
+                .content(pageResult.getContent())
+                .page(pageResult.getNumber())
+                .size(pageResult.getSize())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .first(pageResult.isFirst())
+                .last(pageResult.isLast())
+                .empty(pageResult.isEmpty())
+                .build();
     }
 
     @PostMapping("/removeProductFromStore")
@@ -175,10 +179,5 @@ public class ProductController {
         log.info("POST /removeProductFromStore - productId={}", productId);
         productId = productId.replace("\"", "");
         return productService.deleteProduct(UUID.fromString(productId));
-    }
-    @GetMapping("/test-products")
-    public List<ProductDto> getProductsForTest() {
-        log.info("GET /test-products");
-        return productService.getAllActiveProducts();
     }
 }
