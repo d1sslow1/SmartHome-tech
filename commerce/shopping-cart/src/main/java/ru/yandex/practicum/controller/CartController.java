@@ -18,11 +18,19 @@ public class CartController {
 
     private final CartService cartService;
 
-    @GetMapping("/{username}")
-    public List<Map<UUID, Integer>> getCart(@PathVariable("username") String username) {
-        log.info("GET /{}", username);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
+    @GetMapping
+    public List<Map<String, Object>> getCart(@RequestParam String username) {
+        log.info("GET /api/v1/shopping-cart?username={}", username);
+        Map<UUID, Integer> cart = cartService.getCart(username);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<UUID, Integer> entry : cart.entrySet()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("productId", entry.getKey().toString());
+            item.put("quantity", entry.getValue());
+            result.add(item);
+        }
+        log.info("Returning cart: {}", result);
+        return result;
     }
 
     @GetMapping
