@@ -29,33 +29,12 @@ public class CartController {
             item.put("quantity", entry.getValue());
             result.add(item);
         }
-        log.info("Returning cart: {}", result);
         return result;
-    }
-
-    @GetMapping
-    public List<Map<UUID, Integer>> getCartByParam(@RequestParam String username) {
-        log.info("GET /api/v1/shopping-cart?username={}", username);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
-    }
-
-    @PostMapping("/{username}/add")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> addProductToCart(@PathVariable("username") String username,
-                                                     @RequestBody CartItemDto cartItem) {
-        log.info("POST /{}/add - cartItem: {}", username, cartItem);
-        if (cartItem == null || cartItem.getProductId() == null) {
-            throw new IllegalArgumentException("ProductId cannot be null");
-        }
-        cartService.addProductToCart(username, cartItem);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> addProductToCartDirect(@RequestBody Map<String, Object> request) {
+    public List<Map<String, Object>> addProductToCart(@RequestBody Map<String, Object> request) {
         log.info("POST /api/v1/shopping-cart");
         String username = (String) request.get("username");
         String productIdStr = (String) request.get("productId");
@@ -69,62 +48,40 @@ public class CartController {
         cartItem.setProductId(UUID.fromString(productIdStr));
         cartItem.setQuantity(quantity);
         cartService.addProductToCart(username, cartItem);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
-    }
 
-    @DeleteMapping("/{username}/remove/{productId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removeProductFromCart(@PathVariable("username") String username,
-                                      @PathVariable("productId") UUID productId) {
-        log.info("DELETE /{}/remove/{}", username, productId);
-        cartService.removeProductFromCart(username, productId);
+        return getCart(username);
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCart(@RequestParam String username) {
-        log.info("DELETE /api/v1/shopping-cart?username={}", username);
+    public void removeProductFromCart(@RequestParam String username, @RequestParam String productId) {
+        log.info("DELETE /api/v1/shopping-cart?username={}&productId={}", username, productId);
+        cartService.removeProductFromCart(username, UUID.fromString(productId));
+    }
+
+    @PutMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<Map<String, Object>> updateCart(@RequestParam String username, @RequestBody List<Map<String, Integer>> items) {
+        log.info("PUT /api/v1/shopping-cart?username={}", username);
+
         cartService.clearCart(username);
-    }
-
-    @PostMapping("/remove")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> removeProductPost(@RequestParam String username, @RequestBody Object body) {
-        log.info("POST /remove?username={}", username);
-
-        if (body instanceof List) {
-            List<?> list = (List<?>) body;
-            for (Object item : list) {
-                if (item instanceof String) {
-                    cartService.removeProductFromCart(username, UUID.fromString((String) item));
-                }
+        for (Map<String, Integer> item : items) {
+            for (Map.Entry<String, Integer> entry : item.entrySet()) {
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(UUID.fromString(entry.getKey()));
+                cartItem.setQuantity(entry.getValue());
+                cartService.addProductToCart(username, cartItem);
             }
-        } else if (body instanceof String) {
-            cartService.removeProductFromCart(username, UUID.fromString((String) body));
         }
 
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
-    }
-
-    @PutMapping("/{username}/change-quantity")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> changeProductQuantity(@PathVariable("username") String username,
-                                                          @RequestBody ChangeProductQuantityRequest request) {
-        log.info("PUT /{}/change-quantity - request: {}", username, request);
-        if (request == null || request.getProductId() == null) {
-            throw new IllegalArgumentException("ProductId cannot be null");
-        }
-        cartService.changeProductQuantity(username, request);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
+        return getCart(username);
     }
 
     @PostMapping("/change-quantity")
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> changeProductQuantityPost(@RequestParam String username, @RequestBody Map<String, Object> request) {
+    public List<Map<String, Object>> changeQuantity(@RequestParam String username, @RequestBody Map<String, Object> request) {
         log.info("POST /change-quantity?username={}", username);
+
         String productIdStr = (String) request.get("productId");
         Integer newQuantity = (Integer) request.get("newQuantity");
 
@@ -134,55 +91,25 @@ public class CartController {
             changeRequest.setNewQuantity(newQuantity);
             cartService.changeProductQuantity(username, changeRequest);
         }
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
+
+        return getCart(username);
     }
 
-    @PutMapping
+    @PostMapping("/remove")
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> updateCartDirect(@RequestParam String username, @RequestBody Map<UUID, Integer> items) {
-        log.info("PUT /api/v1/shopping-cart?username={}", username);
-        if (items != null && !items.isEmpty()) {
-            cartService.clearCart(username);
-            for (Map.Entry<UUID, Integer> entry : items.entrySet()) {
-                if (entry.getValue() != null && entry.getValue() > 0) {
-                    CartItemDto cartItem = new CartItemDto();
-                    cartItem.setProductId(entry.getKey());
-                    cartItem.setQuantity(entry.getValue());
-                    cartService.addProductToCart(username, cartItem);
-                }
-            }
+    public List<Map<String, Object>> removeProduct(@RequestParam String username, @RequestBody List<String> productIds) {
+        log.info("POST /remove?username={}", username);
+
+        for (String productId : productIds) {
+            cartService.removeProductFromCart(username, UUID.fromString(productId));
         }
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
-    }
 
-    @DeleteMapping("/{username}/clear")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clearCart(@PathVariable("username") String username) {
-        log.info("DELETE /{}/clear", username);
-        cartService.clearCart(username);
-    }
-
-    @PostMapping("/clear")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Map<UUID, Integer>> clearCartPost(@RequestParam String username) {
-        log.info("POST /clear?username={}", username);
-        cartService.clearCart(username);
-        Map<UUID, Integer> result = cartService.getCart(username);
-        return Collections.singletonList(result != null ? result : new HashMap<>());
-    }
-
-    @PostMapping("/{username}/deactivate")
-    @ResponseStatus(HttpStatus.OK)
-    public void deactivateCart(@PathVariable("username") String username) {
-        log.info("POST /{}/deactivate", username);
-        cartService.deactivateCart(username);
+        return getCart(username);
     }
 
     @PostMapping("/deactivate")
     @ResponseStatus(HttpStatus.OK)
-    public void deactivateCartDirect(@RequestParam String username) {
+    public void deactivateCart(@RequestParam String username) {
         log.info("POST /deactivate?username={}", username);
         cartService.deactivateCart(username);
     }
