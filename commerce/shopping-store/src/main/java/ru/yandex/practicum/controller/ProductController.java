@@ -9,7 +9,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
-import ru.yandex.practicum.dto.ProductPageResponse;
 import ru.yandex.practicum.dto.ProductState;
 import ru.yandex.practicum.service.ProductService;
 
@@ -25,23 +24,12 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/products")
-    public ProductPageResponse getProducts(
+    public Page<ProductDto> getProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /products - page={}, size={}", page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "name"));
-        Page<ProductDto> pageResult = productService.getProductsPage(pageable);
-
-        return ProductPageResponse.builder()
-                .content(pageResult.getContent())
-                .page(pageResult.getNumber())
-                .size(pageResult.getSize())
-                .totalElements(pageResult.getTotalElements())
-                .totalPages(pageResult.getTotalPages())
-                .first(pageResult.isFirst())
-                .last(pageResult.isLast())
-                .empty(pageResult.isEmpty())
-                .build();
+        return productService.getProductsPage(pageable);
     }
 
     @GetMapping("/products/{productId}")
@@ -146,31 +134,18 @@ public class ProductController {
     }
 
     @GetMapping
-    public ProductPageResponse getProductsRoot(
+    public Page<ProductDto> getProductsRoot(
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         log.info("GET /api/v1/shopping-store?category={}&page={}&size={}", category, page, size);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "name"));
-        Page<ProductDto> pageResult;
 
         if (category != null && !category.isEmpty()) {
-            pageResult = productService.getProductsByCategoryPage(category, pageable);
-        } else {
-            pageResult = productService.getProductsPage(pageable);
+            return productService.getProductsByCategoryPage(category, pageable);
         }
-
-        return ProductPageResponse.builder()
-                .content(pageResult.getContent())
-                .page(pageResult.getNumber())
-                .size(pageResult.getSize())
-                .totalElements(pageResult.getTotalElements())
-                .totalPages(pageResult.getTotalPages())
-                .first(pageResult.isFirst())
-                .last(pageResult.isLast())
-                .empty(pageResult.isEmpty())
-                .build();
+        return productService.getProductsPage(pageable);
     }
 
     @PostMapping("/removeProductFromStore")
