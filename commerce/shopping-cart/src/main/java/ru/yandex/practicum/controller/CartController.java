@@ -61,15 +61,17 @@ public class CartController {
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<String, Object>> updateCart(@RequestParam String username, @RequestBody Map<String, Integer> items) {
+    public List<Map<String, Object>> updateCart(@RequestParam String username, @RequestBody List<Map<String, Integer>> items) {
         log.info("PUT /api/v1/shopping-cart?username={}", username);
 
         cartService.clearCart(username);
-        for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            CartItemDto cartItem = new CartItemDto();
-            cartItem.setProductId(UUID.fromString(entry.getKey()));
-            cartItem.setQuantity(entry.getValue());
-            cartService.addProductToCart(username, cartItem);
+        for (Map<String, Integer> item : items) {
+            for (Map.Entry<String, Integer> entry : item.entrySet()) {
+                CartItemDto cartItem = new CartItemDto();
+                cartItem.setProductId(UUID.fromString(entry.getKey()));
+                cartItem.setQuantity(entry.getValue());
+                cartService.addProductToCart(username, cartItem);
+            }
         }
 
         return getCart(username);
@@ -95,18 +97,13 @@ public class CartController {
 
     @PostMapping("/remove")
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<String, Object>> removeProduct(@RequestParam String username, @RequestBody Object body) {
+    public List<Map<String, Object>> removeProduct(@RequestParam String username, @RequestBody List<String> productIds) {
         log.info("POST /remove?username={}", username);
 
-        if (body instanceof List) {
-            List<?> list = (List<?>) body;
-            for (Object item : list) {
-                if (item instanceof String) {
-                    cartService.removeProductFromCart(username, UUID.fromString((String) item));
-                }
+        if (productIds != null) {
+            for (String productId : productIds) {
+                cartService.removeProductFromCart(username, UUID.fromString(productId));
             }
-        } else if (body instanceof String) {
-            cartService.removeProductFromCart(username, UUID.fromString((String) body));
         }
 
         return getCart(username);
