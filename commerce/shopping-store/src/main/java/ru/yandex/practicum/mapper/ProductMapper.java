@@ -10,16 +10,16 @@ public class ProductMapper {
     public ProductDto toDto(Product product) {
         if (product == null) return null;
 
-        return ProductDto.builder()
-                .productId(product.getId())
-                .productName(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .quantityState(product.getQuantityState())
-                .productState(product.getState())
-                .productCategory(product.getCategory())
-                .imageSrc(product.getImageUrl())
-                .build();
+        ProductDto dto = new ProductDto();
+        dto.setProductId(product.getId());
+        dto.setProductName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setPrice(product.getPrice());
+        dto.setQuantityState(product.getQuantityState());
+        dto.setProductState(product.getState());
+        dto.setProductCategory(product.getCategory());
+        dto.setImageSrc(product.getImageUrl());
+        return dto;
     }
 
     public Product toEntity(ProductDto dto) {

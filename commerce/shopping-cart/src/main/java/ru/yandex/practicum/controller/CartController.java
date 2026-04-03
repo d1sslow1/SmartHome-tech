@@ -22,14 +22,14 @@ public class CartController {
     public List<Map<UUID, Integer>> getCart(@PathVariable("username") String username) {
         log.info("GET /{}", username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @GetMapping
     public List<Map<UUID, Integer>> getCartByParam(@RequestParam String username) {
         log.info("GET /api/v1/shopping-cart?username={}", username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PostMapping("/{username}/add")
@@ -42,7 +42,7 @@ public class CartController {
         }
         cartService.addProductToCart(username, cartItem);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PostMapping
@@ -62,7 +62,7 @@ public class CartController {
         cartItem.setQuantity(quantity);
         cartService.addProductToCart(username, cartItem);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @DeleteMapping("/{username}/remove/{productId}")
@@ -97,7 +97,7 @@ public class CartController {
         }
 
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PutMapping("/{username}/change-quantity")
@@ -110,7 +110,7 @@ public class CartController {
         }
         cartService.changeProductQuantity(username, request);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PostMapping("/change-quantity")
@@ -127,7 +127,7 @@ public class CartController {
             cartService.changeProductQuantity(username, changeRequest);
         }
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PutMapping
@@ -146,7 +146,7 @@ public class CartController {
             }
         }
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @DeleteMapping("/{username}/clear")
@@ -162,7 +162,7 @@ public class CartController {
         log.info("POST /clear?username={}", username);
         cartService.clearCart(username);
         Map<UUID, Integer> result = cartService.getCart(username);
-        return List.of(result != null ? result : new HashMap<>());
+        return Collections.singletonList(result != null ? result : new HashMap<>());
     }
 
     @PostMapping("/{username}/deactivate")
