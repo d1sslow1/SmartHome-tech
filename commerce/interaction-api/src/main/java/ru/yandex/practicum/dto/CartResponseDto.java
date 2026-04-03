@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -12,8 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartResponseDto {
-    private UUID cartId;
     private String username;
     private String state;
-    private java.util.Map<UUID, Integer> items;
+    private Map<UUID, Integer> items;
 }

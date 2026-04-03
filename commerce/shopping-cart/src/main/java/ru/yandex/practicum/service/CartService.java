@@ -41,7 +41,7 @@ public class CartService {
                 result.put(item.getProductId(), item.getQuantity());
             }
         }
-        log.info("Cart for user {}: {} items", username, result.size());
+        log.info("Cart for user {} has {} items", username, result.size());
         return result;
     }
 
@@ -119,9 +119,11 @@ public class CartService {
     public void clearCart(String username) {
         log.info("Clearing cart for user {}", username);
         Cart cart = getActiveCart(username);
-        cartItemRepository.deleteAll(cart.getItems());
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        if (cart.getItems() != null && !cart.getItems().isEmpty()) {
+            cartItemRepository.deleteAll(cart.getItems());
+            cart.getItems().clear();
+            cartRepository.save(cart);
+        }
     }
 
     @Transactional
