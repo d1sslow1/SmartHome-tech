@@ -33,14 +33,16 @@ public class CartService {
 
     public Map<UUID, Integer> getCart(String username) {
         log.info("Getting cart for user: {}", username);
-        Cart cart = cartRepository.findByUsername(username)
-                .orElseGet(() -> createNewCart(username));
+        Cart cart = cartRepository.findByUsername(username).orElse(null);
+
         Map<UUID, Integer> result = new HashMap<>();
-        if (cart.getItems() != null) {
+
+        if (cart != null && cart.getItems() != null) {
             for (CartItem item : cart.getItems()) {
                 result.put(item.getProductId(), item.getQuantity());
             }
         }
+
         log.info("Cart for user {} has {} items", username, result.size());
         return result;
     }
@@ -57,14 +59,18 @@ public class CartService {
     @Transactional
     public void addProductToCart(String username, CartItemDto cartItem) {
         log.info("Adding product {} to cart for user {}", cartItem.getProductId(), username);
-        Cart cart = getActiveCart(username);
+
+        Cart cart = cartRepository.findByUsername(username).orElseGet(() -> createNewCart(username));
+
+        if (cart.getState() == CartState.DEACTIVATE) {
+            throw new CartDeactivatedException("Cart is deactivated for user: " + username);
+        }
 
         List<CartItemDto> itemsToCheck = List.of(cartItem);
         Map<UUID, Boolean> availability = warehouseClient.checkAvailability(itemsToCheck);
         Boolean isAvailable = availability.get(cartItem.getProductId());
 
         if (isAvailable == null || !isAvailable) {
-            log.warn("Product {} is not available in warehouse", cartItem.getProductId());
             throw new ProductNotAvailableException("Product not available: " + cartItem.getProductId());
         }
 
@@ -72,6 +78,7 @@ public class CartService {
                 .filter(item -> item.getProductId().equals(cartItem.getProductId()))
                 .findFirst()
                 .orElse(null);
+
         if (existingItem != null) {
             existingItem.setQuantity(existingItem.getQuantity() + cartItem.getQuantity());
         } else {
@@ -88,11 +95,19 @@ public class CartService {
     @Transactional
     public void removeProductFromCart(String username, UUID productId) {
         log.info("Removing product {} from cart for user {}", productId, username);
-        Cart cart = getActiveCart(username);
+
+        Cart cart = cartRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Cart not found for user: " + username));
+
+        if (cart.getState() == CartState.DEACTIVATE) {
+            throw new CartDeactivatedException("Cart is deactivated for user: " + username);
+        }
+
         CartItem itemToRemove = cart.getItems().stream()
                 .filter(item -> item.getProductId().equals(productId))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Product not found in cart: " + productId));
+
         cart.getItems().remove(itemToRemove);
         cartItemRepository.delete(itemToRemove);
         cartRepository.save(cart);
@@ -102,15 +117,24 @@ public class CartService {
     public void changeProductQuantity(String username, ChangeProductQuantityRequest request) {
         log.info("Changing quantity for product {} to {} for user {}",
                 request.getProductId(), request.getNewQuantity(), username);
-        Cart cart = getActiveCart(username);
+
+        Cart cart = cartRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Cart not found for user: " + username));
+
+        if (cart.getState() == CartState.DEACTIVATE) {
+            throw new CartDeactivatedException("Cart is deactivated for user: " + username);
+        }
+
         if (request.getNewQuantity() <= 0) {
             removeProductFromCart(username, request.getProductId());
             return;
         }
+
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getProductId().equals(request.getProductId()))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Product not found in cart: " + request.getProductId()));
+
         item.setQuantity(request.getNewQuantity());
         cartRepository.save(cart);
     }
@@ -118,7 +142,14 @@ public class CartService {
     @Transactional
     public void clearCart(String username) {
         log.info("Clearing cart for user {}", username);
-        Cart cart = getActiveCart(username);
+
+        Cart cart = cartRepository.findByUsername(username)
+                .orElseThrow(() -> new NotFoundException("Cart not found for user: " + username));
+
+        if (cart.getState() == CartState.DEACTIVATE) {
+            throw new CartDeactivatedException("Cart is deactivated for user: " + username);
+        }
+
         if (cart.getItems() != null && !cart.getItems().isEmpty()) {
             cartItemRepository.deleteAll(cart.getItems());
             cart.getItems().clear();
@@ -129,19 +160,11 @@ public class CartService {
     @Transactional
     public void deactivateCart(String username) {
         log.info("Deactivating cart for user {}", username);
+
         Cart cart = cartRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("Cart not found for user: " + username));
+
         cart.setState(CartState.DEACTIVATE);
         cartRepository.save(cart);
-    }
-
-    private Cart getActiveCart(String username) {
-        Cart cart = cartRepository.findByUsername(username)
-                .orElseGet(() -> createNewCart(username));
-        if (cart.getState() == CartState.DEACTIVATE) {
-            log.warn("Attempt to modify deactivated cart for user {}", username);
-            throw new CartDeactivatedException("Cart is deactivated for user: " + username);
-        }
-        return cart;
     }
 }
