@@ -4,22 +4,18 @@ server:
 spring:
   application:
     name: shopping-cart
-
   config:
     import: "optional:configserver:"
-
   cloud:
     config:
       discovery:
         enabled: true
         serviceId: config-server
-
   datasource:
-    url: jdbc:h2:mem:warehouse-db
+    url: jdbc:h2:mem:shopping-cart-db
     driver-class-name: org.h2.Driver
     username: sa
     password:
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -27,7 +23,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
-
   sql:
     init:
       mode: never
@@ -36,3 +31,12 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG
