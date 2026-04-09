@@ -7,16 +7,15 @@ import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
 import ru.yandex.practicum.dto.WarehouseItemDto;
 
 public interface WarehouseApi {
-
-    @GetMapping("/address")
+    @GetMapping("/api/v1/warehouse/address")
     WarehouseAddressDto getCurrentAddress();
 
-    @PostMapping("/check")
+    @PostMapping("/api/v1/warehouse/check")
     WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request);
 
-    @PostMapping("/add")
+    @PostMapping("/api/v1/warehouse/add")
     void addItem(@RequestBody WarehouseItemDto dto);
 
-    @PostMapping("/update")
+    @PutMapping("/api/v1/warehouse/update")
     void updateQuantity(@RequestParam Long productId, @RequestParam int quantity);
 }

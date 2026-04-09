@@ -1,8 +1,8 @@
-
 package ru.yandex.practicum.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
@@ -22,13 +22,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDto> getProducts(ProductCategory category) {
         List<Product> products;
-
         if (category != null) {
             products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE);
         } else {
             products = repository.findByStatus(ProductStatus.ACTIVE);
         }
-
         return products.stream().map(this::toDto).toList();
     }
 
@@ -36,7 +34,6 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         return toDto(product);
     }
 
@@ -51,13 +48,11 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
         product.setImages(dto.getImages());
-
         return toDto(repository.save(product));
     }
 
@@ -65,8 +60,15 @@ public class ProductServiceImpl implements ProductService {
     public void deactivateProduct(Long id) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         product.setStatus(ProductStatus.DEACTIVATE);
+        repository.save(product);
+    }
+
+    @Override
+    public void updateAvailability(Long productId, ProductAvailability availability) {
+        Product product = repository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setAvailability(availability);
         repository.save(product);
     }
 
