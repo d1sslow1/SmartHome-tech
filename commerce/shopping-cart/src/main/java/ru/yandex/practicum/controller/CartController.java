@@ -95,18 +95,13 @@ public class CartController {
 
     @PostMapping("/remove")
     @ResponseStatus(HttpStatus.OK)
-    public List<Map<String, Object>> removeProduct(@RequestParam String username, @RequestBody Object body) {
+    public List<Map<String, Object>> removeProduct(@RequestParam String username, @RequestBody List<String> productIds) {
         log.info("POST /remove?username={}", username);
 
-        if (body instanceof List) {
-            List<?> list = (List<?>) body;
-            for (Object item : list) {
-                if (item instanceof String) {
-                    cartService.removeProductFromCart(username, UUID.fromString((String) item));
-                }
+        if (productIds != null) {
+            for (String productId : productIds) {
+                cartService.removeProductFromCart(username, UUID.fromString(productId));
             }
-        } else if (body instanceof String) {
-            cartService.removeProductFromCart(username, UUID.fromString((String) body));
         }
 
         return getCart(username);
