@@ -1,3 +1,6 @@
+server:
+  port: 8888
+
 spring:
   application:
     name: config-server
@@ -8,15 +11,9 @@ spring:
       server:
         native:
           searchLocations:
-            - file:/Users/d1sslow/IdeaProjects/SmartHome-tech/infra/config-server/src/main/resources/config/telemetry/
-            - file:/Users/d1sslow/IdeaProjects/SmartHome-tech/infra/config-server/src/main/resources/config/commerce/
-
-server:
-  port: 8888
+            - classpath:/config.telemetry
 
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
