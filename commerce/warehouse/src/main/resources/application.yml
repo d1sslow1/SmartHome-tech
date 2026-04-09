@@ -1,13 +1,11 @@
-server:
-  port: 0
-
 spring:
-  application:
-    name: warehouse
+  config:
+    import: ""
   cloud:
     config:
       enabled: false
-      import: ""
+  application:
+    name: warehouse
   datasource:
     url: jdbc:h2:mem:warehouse-db
     driver-class-name: org.h2.Driver
@@ -23,6 +21,9 @@ spring:
   sql:
     init:
       mode: never
+
+server:
+  port: 0
 
 eureka:
   client:
