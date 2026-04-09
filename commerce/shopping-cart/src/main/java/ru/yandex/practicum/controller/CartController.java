@@ -8,7 +8,6 @@ import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
 @RestController
-@RequestMapping("/api/v1/shopping-cart")
 public class CartController implements CartApi {
 
     private final CartService cartService;
@@ -18,26 +17,22 @@ public class CartController implements CartApi {
     }
 
     @Override
-    @PostMapping("/add")
-    public ResponseEntity<CartDto> addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
+    public ResponseEntity<CartDto> addProductToCart(String username, CartItemDto item) {
         return ResponseEntity.ok(cartService.addItem(username, item));
     }
 
     @Override
-    @GetMapping("/{username}")
-    public ResponseEntity<CartDto> getCart(@PathVariable String username) {
+    public ResponseEntity<CartDto> getCart(String username) {
         return ResponseEntity.ok(cartService.getCart(username));
     }
 
     @Override
-    @PutMapping("/update")
-    public ResponseEntity<CartDto> updateItem(@RequestParam String username, @RequestBody CartItemDto item) {
+    public ResponseEntity<CartDto> updateItem(String username, CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 
     @Override
-    @PostMapping("/deactivate")
-    public ResponseEntity<Void> deactivateCart(@RequestParam String username) {
+    public ResponseEntity<Void> deactivateCart(String username) {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();
     }

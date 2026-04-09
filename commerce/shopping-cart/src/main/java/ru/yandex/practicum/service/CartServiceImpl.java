@@ -1,4 +1,3 @@
-
 package ru.yandex.practicum.service;
 
 import org.springframework.stereotype.Service;
@@ -12,13 +11,11 @@ import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.repository.CartRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
-    ;
     private final WarehouseClient warehouseClient;
 
     public CartServiceImpl(CartRepository cartRepository, WarehouseClient warehouseClient) {
@@ -34,64 +31,50 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto addItem(String username, CartItemDto itemDto) {
-
-        WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-        request.setItems(List.of(itemDto));
-
-        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
-
-        if (!response.isAvailable(itemDto.getProductId())) {
-            throw new RuntimeException("Недостаточно товара на складе");
-        }
-
         Cart cart = getOrCreateCart(username);
 
         if (!cart.isActive()) {
-            throw new RuntimeException("Корзина деактивирована");
+            throw new RuntimeException("Cart is deactivated");
         }
 
-        Optional<CartItem> existingItem = cart.getItems().stream().filter(i -> i.getProductId().equals(itemDto.getProductId())).findFirst();
+        WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
+        request.setItems(List.of(itemDto));
+        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
 
-        if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + itemDto.getQuantity());
-        } else {
-            CartItem item = new CartItem();
-            item.setProductId(itemDto.getProductId());
-            item.setQuantity(itemDto.getQuantity());
-            cart.getItems().add(item);
+        if (!response.isAvailable(itemDto.getProductId())) {
+            throw new RuntimeException("Product not available in warehouse");
         }
 
-        cartRepository.save(cart);
-        return toDto(cart);
+        cart.getItems().stream()
+                .filter(i -> i.getProductId().equals(itemDto.getProductId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        item -> item.setQuantity(item.getQuantity() + itemDto.getQuantity()),
+                        () -> {
+                            CartItem newItem = new CartItem();
+                            newItem.setProductId(itemDto.getProductId());
+                            newItem.setQuantity(itemDto.getQuantity());
+                            cart.getItems().add(newItem);
+                        }
+                );
+
+        return toDto(cartRepository.save(cart));
     }
 
     @Override
     public CartDto updateItem(String username, CartItemDto itemDto) {
-
         Cart cart = getOrCreateCart(username);
 
         if (!cart.isActive()) {
-            throw new RuntimeException("Корзина деактивирована");
+            throw new RuntimeException("Cart is deactivated");
         }
 
-        WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-        request.setItems(List.of(itemDto));
+        cart.getItems().stream()
+                .filter(i -> i.getProductId().equals(itemDto.getProductId()))
+                .findFirst()
+                .ifPresent(item -> item.setQuantity(itemDto.getQuantity()));
 
-        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
-
-        if (!response.isAvailable(itemDto.getProductId())) {
-            throw new RuntimeException("Недостаточно товара на складе");
-        }
-
-        cart.getItems().forEach(item -> {
-            if (item.getProductId().equals(itemDto.getProductId())) {
-                item.setQuantity(itemDto.getQuantity());
-            }
-        });
-
-        cartRepository.save(cart);
-        return toDto(cart);
+        return toDto(cartRepository.save(cart));
     }
 
     @Override
@@ -102,25 +85,26 @@ public class CartServiceImpl implements CartService {
     }
 
     private Cart getOrCreateCart(String username) {
-        return cartRepository.findByUsernameAndActiveTrue(username).orElseGet(() -> {
-            Cart cart = new Cart();
-            cart.setUsername(username);
-            return cartRepository.save(cart);
-        });
+        return cartRepository.findByUsernameAndActiveTrue(username)
+                .orElseGet(() -> {
+                    Cart cart = new Cart();
+                    cart.setUsername(username);
+                    cart.setActive(true);
+                    return cartRepository.save(cart);
+                });
     }
 
     private CartDto toDto(Cart cart) {
         CartDto dto = new CartDto();
         dto.setUsername(cart.getUsername());
         dto.setActive(cart.isActive());
-
-        dto.setItems(cart.getItems().stream().map(item -> {
-            CartItemDto i = new CartItemDto();
-            i.setProductId(item.getProductId());
-            i.setQuantity(item.getQuantity());
-            return i;
-        }).toList());
-
+        dto.setItems(cart.getItems().stream()
+                .map(item -> {
+                    CartItemDto i = new CartItemDto();
+                    i.setProductId(item.getProductId());
+                    i.setQuantity(item.getQuantity());
+                    return i;
+                }).toList());
         return dto;
     }
 }

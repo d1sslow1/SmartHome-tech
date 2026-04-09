@@ -9,7 +9,6 @@ import ru.yandex.practicum.dto.WarehouseItemDto;
 import ru.yandex.practicum.service.WarehouseService;
 
 @RestController
-@RequestMapping("/api/v1/warehouse")
 public class WarehouseController implements WarehouseApi {
 
     private final WarehouseService warehouseService;
@@ -19,26 +18,22 @@ public class WarehouseController implements WarehouseApi {
     }
 
     @Override
-    @GetMapping("/address")
     public WarehouseAddressDto getCurrentAddress() {
         return warehouseService.getCurrentAddress();
     }
 
     @Override
-    @PostMapping("/check")
-    public WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request) {
+    public WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request) {
         return warehouseService.checkAvailability(request);
     }
 
     @Override
-    @PostMapping("/add")
-    public void addItem(@RequestBody WarehouseItemDto dto) {
+    public void addItem(WarehouseItemDto dto) {
         warehouseService.addItem(dto);
     }
 
     @Override
-    @PutMapping("/update")
-    public void updateQuantity(@RequestParam Long productId, @RequestParam int quantity) {
+    public void updateQuantity(Long productId, int quantity) {
         warehouseService.updateQuantity(productId, quantity);
     }
 }

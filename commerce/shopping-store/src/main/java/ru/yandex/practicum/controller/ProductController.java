@@ -10,7 +10,6 @@ import ru.yandex.practicum.service.ProductService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/shopping-store")
 public class ProductController implements StoreApi {
 
     private final ProductService productService;
@@ -20,38 +19,32 @@ public class ProductController implements StoreApi {
     }
 
     @Override
-    @GetMapping("/products/{id}")
-    public ProductDto getProduct(@PathVariable Long id) {
+    public ProductDto getProduct(Long id) {
         return productService.getProduct(id);
     }
 
     @Override
-    @GetMapping("/products")
-    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
+    public List<ProductDto> getProducts(ProductCategory category) {
         return productService.getProducts(category);
     }
 
     @Override
-    @PostMapping("/products")
-    public ProductDto addProduct(@RequestBody ProductDto product) {
+    public ProductDto addProduct(ProductDto product) {
         return productService.addProduct(product);
     }
 
     @Override
-    @PutMapping("/products")
-    public ProductDto updateProduct(@RequestBody ProductDto product) {
+    public ProductDto updateProduct(ProductDto product) {
         return productService.updateProduct(product);
     }
 
     @Override
-    @DeleteMapping("/products/{id}")
-    public void deactivateProduct(@PathVariable Long id) {
+    public void deactivateProduct(Long id) {
         productService.deactivateProduct(id);
     }
 
     @Override
-    @PutMapping("/quantityState")
-    public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
+    public void updateQuantityState(Long productId, ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
     }
 }
