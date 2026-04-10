@@ -20,22 +20,17 @@ public class CartController {
         return ResponseEntity.ok(cartService.addItem(username, item));
     }
 
-    @GetMapping("/api/v1/shopping-cart/{username}")
-    public ResponseEntity<CartDto> getCart(@PathVariable String username) {
-        return ResponseEntity.ok(cartService.getCart(username));
-    }
-
     @GetMapping("/api/v1/shopping-cart")
-    public ResponseEntity<CartDto> getCartByParam(@RequestParam String username) {
+    public ResponseEntity<CartDto> getCart(@RequestParam String username) {
         return ResponseEntity.ok(cartService.getCart(username));
     }
 
-    @PutMapping("/api/v1/shopping-cart/update")
+    @PostMapping("/api/v1/shopping-cart/update")
     public ResponseEntity<CartDto> updateItem(@RequestParam String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 
-    @PostMapping("/api/v1/shopping-cart/deactivate")
+    @DeleteMapping("/api/v1/shopping-cart")
     public ResponseEntity<Void> deactivateCart(@RequestParam String username) {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();

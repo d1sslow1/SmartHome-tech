@@ -1,5 +1,8 @@
 package ru.yandex.practicum.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductAvailability;
@@ -23,8 +26,12 @@ public class ProductController {
     }
 
     @GetMapping("/api/v1/shopping-store")
-    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
-        return productService.getProducts(category);
+    public Page<ProductDto> getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "150") int size) {
+        List<ProductDto> products = productService.getProducts(category);
+        return new PageImpl<>(products, PageRequest.of(page, size), products.size());
     }
 
     @PostMapping("/api/v1/shopping-store")
@@ -34,12 +41,6 @@ public class ProductController {
 
     @PutMapping("/api/v1/shopping-store")
     public ProductDto updateProduct(@RequestBody ProductDto product) {
-        return productService.updateProduct(product);
-    }
-
-    @PutMapping("/api/v1/shopping-store/{id}")
-    public ProductDto updateProductById(@PathVariable Long id, @RequestBody ProductDto product) {
-        product.setId(id);
         return productService.updateProduct(product);
     }
 

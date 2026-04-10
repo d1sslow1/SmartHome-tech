@@ -1,7 +1,6 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.api.WarehouseApi;
 import ru.yandex.practicum.dto.WarehouseAddressDto;
 import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
 import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
@@ -9,7 +8,7 @@ import ru.yandex.practicum.dto.WarehouseItemDto;
 import ru.yandex.practicum.service.WarehouseService;
 
 @RestController
-public class WarehouseController implements WarehouseApi {
+public class WarehouseController {
 
     private final WarehouseService warehouseService;
 
@@ -17,23 +16,23 @@ public class WarehouseController implements WarehouseApi {
         this.warehouseService = warehouseService;
     }
 
-    @Override
+    @GetMapping("/api/v1/warehouse/address")
     public WarehouseAddressDto getCurrentAddress() {
         return warehouseService.getCurrentAddress();
     }
 
-    @Override
-    public WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request) {
+    @PostMapping("/api/v1/warehouse/check")
+    public WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request) {
         return warehouseService.checkAvailability(request);
     }
 
-    @Override
-    public void addItem(WarehouseItemDto dto) {
+    @PostMapping("/api/v1/warehouse/add")
+    public void addItem(@RequestBody WarehouseItemDto dto) {
         warehouseService.addItem(dto);
     }
 
-    @Override
-    public void updateQuantity(Long productId, int quantity) {
-        warehouseService.updateQuantity(productId, quantity);
+    @PutMapping("/api/v1/warehouse")
+    public void addOrUpdateItem(@RequestBody WarehouseItemDto dto) {
+        warehouseService.addItem(dto);
     }
 }
