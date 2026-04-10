@@ -36,4 +36,14 @@ public class CartController implements CartApi {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();
     }
+
+    @Override
+    public ResponseEntity<CartDto> removeItem(String username, CartItemDto item) {
+        return ResponseEntity.ok(cartService.removeItem(username, item));
+    }
+
+    @Override
+    public ResponseEntity<CartDto> changeQuantity(String username, CartItemDto item) {
+        return ResponseEntity.ok(cartService.updateItem(username, item));
+    }
 }

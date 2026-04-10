@@ -34,7 +34,8 @@ public class ProductController implements StoreApi {
     }
 
     @Override
-    public ProductDto updateProduct(ProductDto product) {
+    public ProductDto updateProduct(Long id, ProductDto product) {
+        product.setId(id);
         return productService.updateProduct(product);
     }
 
@@ -44,7 +45,7 @@ public class ProductController implements StoreApi {
     }
 
     @Override
-    public void updateQuantityState(Long productId, ProductAvailability quantityState) {
-        productService.updateAvailability(productId, quantityState);
+    public void updateQuantityState(Long id, ProductAvailability quantityState) {
+        productService.updateAvailability(id, quantityState);
     }
 }

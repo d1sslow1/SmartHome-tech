@@ -17,4 +17,10 @@ public interface CartApi {
 
     @DeleteMapping("/api/v1/shopping-cart/{username}")
     ResponseEntity<Void> deactivateCart(@PathVariable String username);
+
+    @PostMapping("/api/v1/shopping-cart/{username}/remove")
+    ResponseEntity<CartDto> removeItem(@PathVariable String username, @RequestBody CartItemDto item);
+
+    @PostMapping("/api/v1/shopping-cart/{username}/change-quantity")
+    ResponseEntity<CartDto> changeQuantity(@PathVariable String username, @RequestBody CartItemDto item);
 }

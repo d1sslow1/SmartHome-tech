@@ -20,7 +20,11 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public void addItem(WarehouseItemDto dto) {
         WarehouseItem item = new WarehouseItem();
-        item.setProductId(Long.parseLong(dto.getProductId()));
+        try {
+            item.setProductId(Long.parseLong(dto.getProductId()));
+        } catch (NumberFormatException e) {
+            item.setProductId(0L);
+        }
         item.setQuantity(dto.getQuantity());
         item.setWeight(dto.getWeight());
         if (dto.getDimension() != null) {

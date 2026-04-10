@@ -58,7 +58,8 @@ public class CartServiceImpl implements CartService {
                         }
                 );
 
-        return toDto(cartRepository.save(cart));
+        cartRepository.save(cart);
+        return toDto(cart);
     }
 
     @Override
@@ -74,7 +75,21 @@ public class CartServiceImpl implements CartService {
                 .findFirst()
                 .ifPresent(item -> item.setQuantity(itemDto.getQuantity()));
 
-        return toDto(cartRepository.save(cart));
+        cartRepository.save(cart);
+        return toDto(cart);
+    }
+
+    @Override
+    public CartDto removeItem(String username, CartItemDto itemDto) {
+        Cart cart = getOrCreateCart(username);
+
+        if (!cart.isActive()) {
+            throw new RuntimeException("Cart is deactivated");
+        }
+
+        cart.getItems().removeIf(i -> i.getProductId().equals(itemDto.getProductId()));
+        cartRepository.save(cart);
+        return toDto(cart);
     }
 
     @Override

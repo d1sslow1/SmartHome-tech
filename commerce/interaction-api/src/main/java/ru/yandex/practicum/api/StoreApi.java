@@ -17,12 +17,12 @@ public interface StoreApi {
     @PostMapping("/api/v1/shopping-store")
     ProductDto addProduct(@RequestBody ProductDto product);
 
-    @PutMapping("/api/v1/shopping-store")
-    ProductDto updateProduct(@RequestBody ProductDto product);
+    @PutMapping("/api/v1/shopping-store/{id}")
+    ProductDto updateProduct(@PathVariable Long id, @RequestBody ProductDto product);
 
     @DeleteMapping("/api/v1/shopping-store/{id}")
     void deactivateProduct(@PathVariable Long id);
 
-    @PutMapping("/api/v1/shopping-store/quantityState")
-    void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState);
+    @PutMapping("/api/v1/shopping-store/{id}/quantityState")
+    void updateQuantityState(@PathVariable Long id, @RequestParam ProductAvailability quantityState);
 }
