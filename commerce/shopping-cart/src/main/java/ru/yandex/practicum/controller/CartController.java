@@ -15,8 +15,8 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/api/v1/shopping-cart/{username}/add")
-    public ResponseEntity<CartDto> addProductToCart(@PathVariable String username, @RequestBody CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/add")
+    public ResponseEntity<CartDto> addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.addItem(username, item));
     }
 
@@ -25,24 +25,29 @@ public class CartController {
         return ResponseEntity.ok(cartService.getCart(username));
     }
 
-    @PutMapping("/api/v1/shopping-cart/{username}/update")
-    public ResponseEntity<CartDto> updateItem(@PathVariable String username, @RequestBody CartItemDto item) {
+    @GetMapping("/api/v1/shopping-cart")
+    public ResponseEntity<CartDto> getCartByParam(@RequestParam String username) {
+        return ResponseEntity.ok(cartService.getCart(username));
+    }
+
+    @PutMapping("/api/v1/shopping-cart/update")
+    public ResponseEntity<CartDto> updateItem(@RequestParam String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 
-    @DeleteMapping("/api/v1/shopping-cart/{username}")
-    public ResponseEntity<Void> deactivateCart(@PathVariable String username) {
+    @PostMapping("/api/v1/shopping-cart/deactivate")
+    public ResponseEntity<Void> deactivateCart(@RequestParam String username) {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/api/v1/shopping-cart/{username}/remove")
-    public ResponseEntity<CartDto> removeItem(@PathVariable String username, @RequestBody CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/remove")
+    public ResponseEntity<CartDto> removeItem(@RequestParam String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.removeItem(username, item));
     }
 
-    @PostMapping("/api/v1/shopping-cart/{username}/change-quantity")
-    public ResponseEntity<CartDto> changeQuantity(@PathVariable String username, @RequestBody CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/change-quantity")
+    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 }

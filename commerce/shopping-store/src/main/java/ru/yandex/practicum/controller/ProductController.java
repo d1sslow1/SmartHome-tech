@@ -1,7 +1,6 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.api.StoreApi;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
@@ -10,7 +9,7 @@ import ru.yandex.practicum.service.ProductService;
 import java.util.List;
 
 @RestController
-public class ProductController implements StoreApi {
+public class ProductController {
 
     private final ProductService productService;
 
@@ -18,34 +17,39 @@ public class ProductController implements StoreApi {
         this.productService = productService;
     }
 
-    @Override
-    public ProductDto getProduct(Long id) {
+    @GetMapping("/api/v1/shopping-store/{id}")
+    public ProductDto getProduct(@PathVariable Long id) {
         return productService.getProduct(id);
     }
 
-    @Override
-    public List<ProductDto> getProducts(ProductCategory category) {
+    @GetMapping("/api/v1/shopping-store")
+    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
         return productService.getProducts(category);
     }
 
-    @Override
-    public ProductDto addProduct(ProductDto product) {
+    @PostMapping("/api/v1/shopping-store")
+    public ProductDto addProduct(@RequestBody ProductDto product) {
         return productService.addProduct(product);
     }
 
-    @Override
-    public ProductDto updateProduct(Long id, ProductDto product) {
+    @PutMapping("/api/v1/shopping-store")
+    public ProductDto updateProduct(@RequestBody ProductDto product) {
+        return productService.updateProduct(product);
+    }
+
+    @PutMapping("/api/v1/shopping-store/{id}")
+    public ProductDto updateProductById(@PathVariable Long id, @RequestBody ProductDto product) {
         product.setId(id);
         return productService.updateProduct(product);
     }
 
-    @Override
-    public void deactivateProduct(Long id) {
+    @DeleteMapping("/api/v1/shopping-store/{id}")
+    public void deactivateProduct(@PathVariable Long id) {
         productService.deactivateProduct(id);
     }
 
-    @Override
-    public void updateQuantityState(Long id, ProductAvailability quantityState) {
-        productService.updateAvailability(id, quantityState);
+    @PutMapping("/api/v1/shopping-store/quantityState")
+    public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
+        productService.updateAvailability(productId, quantityState);
     }
 }

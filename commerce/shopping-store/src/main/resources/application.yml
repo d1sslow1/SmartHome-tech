@@ -12,10 +12,9 @@ spring:
         enabled: true
         serviceId: config-server
   datasource:
-    url: jdbc:postgresql://localhost:5432/shopping_store_db
+    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
     password: postgres
-    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
