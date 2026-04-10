@@ -2,13 +2,12 @@ package ru.yandex.practicum.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.api.CartApi;
 import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
 @RestController
-public class CartController implements CartApi {
+public class CartController {
 
     private final CartService cartService;
 
@@ -16,34 +15,34 @@ public class CartController implements CartApi {
         this.cartService = cartService;
     }
 
-    @Override
-    public ResponseEntity<CartDto> addProductToCart(String username, CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/{username}/add")
+    public ResponseEntity<CartDto> addProductToCart(@PathVariable String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.addItem(username, item));
     }
 
-    @Override
-    public ResponseEntity<CartDto> getCart(String username) {
+    @GetMapping("/api/v1/shopping-cart/{username}")
+    public ResponseEntity<CartDto> getCart(@PathVariable String username) {
         return ResponseEntity.ok(cartService.getCart(username));
     }
 
-    @Override
-    public ResponseEntity<CartDto> updateItem(String username, CartItemDto item) {
+    @PutMapping("/api/v1/shopping-cart/{username}/update")
+    public ResponseEntity<CartDto> updateItem(@PathVariable String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 
-    @Override
-    public ResponseEntity<Void> deactivateCart(String username) {
+    @DeleteMapping("/api/v1/shopping-cart/{username}")
+    public ResponseEntity<Void> deactivateCart(@PathVariable String username) {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    public ResponseEntity<CartDto> removeItem(String username, CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/{username}/remove")
+    public ResponseEntity<CartDto> removeItem(@PathVariable String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.removeItem(username, item));
     }
 
-    @Override
-    public ResponseEntity<CartDto> changeQuantity(String username, CartItemDto item) {
+    @PostMapping("/api/v1/shopping-cart/{username}/change-quantity")
+    public ResponseEntity<CartDto> changeQuantity(@PathVariable String username, @RequestBody CartItemDto item) {
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 }
