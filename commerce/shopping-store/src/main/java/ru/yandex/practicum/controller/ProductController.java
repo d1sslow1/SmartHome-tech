@@ -66,4 +66,8 @@ public class ProductController {
     public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
     }
+    @PostMapping("/api/v1/shopping-store/removeProductFromStore")
+    public void removeProductFromStore(@RequestParam Long productId) {
+        productService.deactivateProduct(productId);
+    }
 }

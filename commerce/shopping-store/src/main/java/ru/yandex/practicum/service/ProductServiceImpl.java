@@ -46,8 +46,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductDto dto) {
+        if (dto.getId() == null) {
+            throw new RuntimeException("Product id is required for update");
+        }
         Product product = repository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getId()));
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
