@@ -6,6 +6,8 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.Map;
+
 @RestController
 public class CartController {
 
@@ -23,6 +25,22 @@ public class CartController {
     @GetMapping("/api/v1/shopping-cart")
     public ResponseEntity<CartDto> getCart(@RequestParam String username) {
         return ResponseEntity.ok(cartService.getCart(username));
+    }
+
+    @PutMapping("/api/v1/shopping-cart")
+    public ResponseEntity<CartDto> updateCart(@RequestParam String username, @RequestBody Map<String, Integer> items) {
+        CartDto cart = cartService.getCart(username);
+        for (Map.Entry<String, Integer> entry : items.entrySet()) {
+            CartItemDto item = new CartItemDto();
+            try {
+                item.setProductId(Long.parseLong(entry.getKey()));
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            item.setQuantity(entry.getValue());
+            cart = cartService.updateItem(username, item);
+        }
+        return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/api/v1/shopping-cart/update")
