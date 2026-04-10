@@ -12,8 +12,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final WarehouseRepository repository;
     private final WarehouseAddress warehouseAddress;
 
-    public WarehouseServiceImpl(WarehouseRepository repository,
-                                WarehouseAddress warehouseAddress) {
+    public WarehouseServiceImpl(WarehouseRepository repository, WarehouseAddress warehouseAddress) {
         this.repository = repository;
         this.warehouseAddress = warehouseAddress;
     }
@@ -21,14 +20,15 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public void addItem(WarehouseItemDto dto) {
         WarehouseItem item = new WarehouseItem();
-        item.setProductId(dto.getProductId());
+        item.setProductId(Long.parseLong(dto.getProductId()));
         item.setQuantity(dto.getQuantity());
         item.setWeight(dto.getWeight());
-        item.setWidth(dto.getWidth());
-        item.setHeight(dto.getHeight());
-        item.setDepth(dto.getDepth());
+        if (dto.getDimension() != null) {
+            item.setWidth(dto.getDimension().getWidth());
+            item.setHeight(dto.getDimension().getHeight());
+            item.setDepth(dto.getDimension().getDepth());
+        }
         item.setFragile(dto.isFragile());
-
         repository.save(item);
     }
 
@@ -36,7 +36,6 @@ public class WarehouseServiceImpl implements WarehouseService {
     public void updateQuantity(Long productId, int quantity) {
         WarehouseItem item = repository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         item.setQuantity(quantity);
         repository.save(item);
     }
@@ -44,17 +43,11 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request) {
         WarehouseCheckResponseDto response = new WarehouseCheckResponseDto();
-
         for (CartItemDto item : request.getItems()) {
-            WarehouseItem warehouseItem = repository.findByProductId(item.getProductId())
-                    .orElse(null);
-
-            boolean available = warehouseItem != null &&
-                    warehouseItem.getQuantity() >= item.getQuantity();
-
+            WarehouseItem warehouseItem = repository.findByProductId(item.getProductId()).orElse(null);
+            boolean available = warehouseItem != null && warehouseItem.getQuantity() >= item.getQuantity();
             response.addAvailability(item.getProductId(), available);
         }
-
         return response;
     }
 

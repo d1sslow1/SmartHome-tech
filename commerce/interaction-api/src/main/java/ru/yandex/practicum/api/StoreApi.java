@@ -8,21 +8,21 @@ import ru.yandex.practicum.enums.ProductCategory;
 import java.util.List;
 
 public interface StoreApi {
-    @GetMapping("/api/v1/shopping-store/products/{id}")
+    @GetMapping("/api/v1/shopping-store/{id}")
     ProductDto getProduct(@PathVariable Long id);
 
-    @GetMapping("/api/v1/shopping-store/products")
+    @GetMapping("/api/v1/shopping-store")
     List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category);
 
-    @PostMapping("/api/v1/shopping-store/products")
+    @PostMapping("/api/v1/shopping-store")
     ProductDto addProduct(@RequestBody ProductDto product);
 
-    @PutMapping("/api/v1/shopping-store/products")
+    @PutMapping("/api/v1/shopping-store")
     ProductDto updateProduct(@RequestBody ProductDto product);
 
-    @DeleteMapping("/api/v1/shopping-store/products/{id}")
+    @DeleteMapping("/api/v1/shopping-store/{id}")
     void deactivateProduct(@PathVariable Long id);
 
-    @PutMapping("/api/v1/shopping-store/products/quantityState")
+    @PutMapping("/api/v1/shopping-store/quantityState")
     void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState);
 }
