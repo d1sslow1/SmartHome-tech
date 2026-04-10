@@ -21,13 +21,8 @@ public class ProductController {
     }
 
     @GetMapping("/api/v1/shopping-store/{id}")
-    public ProductDto getProduct(@PathVariable String id) {
-        try {
-            Long productId = Long.parseLong(id);
-            return productService.getProduct(productId);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid product id: " + id);
-        }
+    public ProductDto getProduct(@PathVariable Long id) {
+        return productService.getProduct(id);
     }
 
     @GetMapping("/api/v1/shopping-store")
@@ -58,16 +53,12 @@ public class ProductController {
     }
 
     @PostMapping("/api/v1/shopping-store/removeProductFromStore")
-    public void removeProduct(@RequestParam Long productId) {
+    public void removeProductFromStore(@RequestParam Long productId) {
         productService.deactivateProduct(productId);
     }
 
     @PutMapping("/api/v1/shopping-store/quantityState")
     public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
-    }
-    @PostMapping("/api/v1/shopping-store/removeProductFromStore")
-    public void removeProductFromStore(@RequestParam Long productId) {
-        productService.deactivateProduct(productId);
     }
 }
