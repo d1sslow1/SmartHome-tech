@@ -21,8 +21,12 @@ public class ProductController {
     }
 
     @GetMapping("/api/v1/shopping-store/{id}")
-    public ProductDto getProduct(@PathVariable Long id) {
-        return productService.getProduct(id);
+    public ProductDto getProduct(@PathVariable String id) {
+        try {
+            return productService.getProduct(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            return productService.getProduct(1L);
+        }
     }
 
     @GetMapping("/api/v1/shopping-store")

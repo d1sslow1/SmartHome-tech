@@ -61,7 +61,13 @@ public class CartController {
     }
 
     @PostMapping("/api/v1/shopping-cart/change-quantity")
-    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
-        return ResponseEntity.ok(cartService.updateItem(username, item));
+    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody Map<String, Integer> request) {
+        for (Map.Entry<String, Integer> entry : request.entrySet()) {
+            CartItemDto item = new CartItemDto();
+            item.setProductId(entry.getKey());
+            item.setQuantity(entry.getValue());
+            cartService.updateItem(username, item);
+        }
+        return ResponseEntity.ok(cartService.getCart(username));
     }
 }

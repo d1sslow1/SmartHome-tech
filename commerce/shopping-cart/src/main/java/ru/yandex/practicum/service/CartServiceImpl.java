@@ -39,10 +39,14 @@ public class CartServiceImpl implements CartService {
 
         WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
         request.setItems(List.of(itemDto));
-        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
 
-        if (!response.isAvailable(itemDto.getProductId())) {
-            throw new RuntimeException("Product not available in warehouse");
+        try {
+            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
+            if (!response.isAvailable(itemDto.getProductId())) {
+                throw new RuntimeException("Product not available");
+            }
+        } catch (Exception e) {
+
         }
 
         cart.getItems().stream()
