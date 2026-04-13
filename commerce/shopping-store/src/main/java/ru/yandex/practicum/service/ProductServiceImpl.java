@@ -33,7 +33,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         return toDto(product);
     }
 
@@ -47,22 +47,25 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto updateProduct(ProductDto dto) {
         if (dto.getId() == null) {
-            throw new RuntimeException("Product id is required for update");
+            return addProduct(dto);
         }
-        Product product = repository.findById(dto.getId())
+        Product existing = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getId()));
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setAvailability(dto.getAvailability());
-        product.setImages(dto.getImages());
-        return toDto(repository.save(product));
+        existing.setName(dto.getName());
+        existing.setDescription(dto.getDescription());
+        existing.setCategory(dto.getCategory());
+        existing.setAvailability(dto.getAvailability());
+        existing.setImages(dto.getImages());
+        if (dto.getStatus() != null) {
+            existing.setStatus(dto.getStatus());
+        }
+        return toDto(repository.save(existing));
     }
 
     @Override
     public void deactivateProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
         product.setStatus(ProductStatus.DEACTIVATE);
         repository.save(product);
     }
@@ -70,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateAvailability(Long productId, ProductAvailability availability) {
         Product product = repository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
         product.setAvailability(availability);
         repository.save(product);
     }
