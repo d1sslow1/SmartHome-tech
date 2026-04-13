@@ -9,11 +9,8 @@ import java.util.List;
 public interface ProductService {
     List<ProductDto> getProducts(ProductCategory category);
     ProductDto getProduct(Long id);
-    ProductDto getProductByStringId(String id);
     ProductDto addProduct(ProductDto product);
     ProductDto updateProduct(ProductDto product);
     void deactivateProduct(Long id);
-    void deactivateProductByStringId(String id);
     void updateAvailability(Long productId, ProductAvailability availability);
-    void updateAvailabilityByStringId(String productId, ProductAvailability availability);
 }
