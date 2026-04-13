@@ -30,14 +30,13 @@ public class CartController {
 
     @PutMapping("/api/v1/shopping-cart")
     public ResponseEntity<CartDto> updateCart(@RequestParam String username, @RequestBody Map<String, Integer> items) {
-        CartDto cart = cartService.getCart(username);
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
             CartItemDto item = new CartItemDto();
             item.setProductId(entry.getKey());
             item.setQuantity(entry.getValue());
-            cart = cartService.updateItem(username, item);
+            cartService.updateItem(username, item);
         }
-        return ResponseEntity.ok(cart);
+        return ResponseEntity.ok(cartService.getCart(username));
     }
 
     @PostMapping("/api/v1/shopping-cart/update")
@@ -62,13 +61,7 @@ public class CartController {
     }
 
     @PostMapping("/api/v1/shopping-cart/change-quantity")
-    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody Map<String, Integer> request) {
-        for (Map.Entry<String, Integer> entry : request.entrySet()) {
-            CartItemDto item = new CartItemDto();
-            item.setProductId(entry.getKey());
-            item.setQuantity(entry.getValue());
-            cartService.updateItem(username, item);
-        }
-        return ResponseEntity.ok(cartService.getCart(username));
+    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
+        return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 }
