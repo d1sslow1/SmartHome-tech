@@ -35,4 +35,9 @@ public class WarehouseController {
     public void addOrUpdateItem(@RequestBody WarehouseItemDto dto) {
         warehouseService.addItem(dto);
     }
+
+    @PutMapping("/api/v1/warehouse/update")
+    public void updateQuantity(@RequestParam String productId, @RequestParam int quantity) {
+        warehouseService.updateQuantity(productId, quantity);
+    }
 }

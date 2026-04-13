@@ -1,4 +1,3 @@
-
 package ru.yandex.practicum.dto;
 
 import java.util.ArrayList;
@@ -7,15 +6,9 @@ import java.util.List;
 public class WarehouseCheckRequestDto {
     private List<CartItemDto> items;
 
-    public List<CartItemDto> getItems() {
-        return items;
-    }
-
-    public void setItems(List<CartItemDto> items) {
-        this.items = items;
-    }
-
-    public void addItem(Long productId, int quantity) {
+    public List<CartItemDto> getItems() { return items; }
+    public void setItems(List<CartItemDto> items) { this.items = items; }
+    public void addItem(String productId, int quantity) {
         if (items == null) items = new ArrayList<>();
         items.add(new CartItemDto(productId, quantity));
     }

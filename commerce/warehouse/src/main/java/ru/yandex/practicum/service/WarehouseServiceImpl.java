@@ -20,11 +20,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Override
     public void addItem(WarehouseItemDto dto) {
         WarehouseItem item = new WarehouseItem();
-        try {
-            item.setProductId(Long.parseLong(dto.getProductId()));
-        } catch (NumberFormatException e) {
-            item.setProductId(0L);
-        }
+        item.setProductId(dto.getProductId());
         item.setQuantity(dto.getQuantity());
         item.setWeight(dto.getWeight());
         if (dto.getDimension() != null) {
@@ -37,7 +33,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     @Override
-    public void updateQuantity(Long productId, int quantity) {
+    public void updateQuantity(String productId, int quantity) {
         WarehouseItem item = repository.findByProductId(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         item.setQuantity(quantity);

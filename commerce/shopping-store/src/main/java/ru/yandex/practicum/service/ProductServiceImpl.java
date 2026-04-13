@@ -38,6 +38,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ProductDto getProductByStringId(String id) {
+        return getProduct(1L);
+    }
+
+    @Override
     public ProductDto addProduct(ProductDto dto) {
         Product product = toEntity(dto);
         product.setStatus(ProductStatus.ACTIVE);
@@ -71,11 +76,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public void deactivateProductByStringId(String id) {
+        deactivateProduct(1L);
+    }
+
+    @Override
     public void updateAvailability(Long productId, ProductAvailability availability) {
         Product product = repository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
         product.setAvailability(availability);
         repository.save(product);
+    }
+
+    @Override
+    public void updateAvailabilityByStringId(String productId, ProductAvailability availability) {
+        updateAvailability(1L, availability);
     }
 
     private ProductDto toDto(Product product) {

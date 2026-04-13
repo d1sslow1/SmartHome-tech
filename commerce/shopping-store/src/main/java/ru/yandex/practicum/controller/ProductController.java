@@ -21,8 +21,15 @@ public class ProductController {
     }
 
     @GetMapping("/api/v1/shopping-store/{id}")
-    public ProductDto getProduct(@PathVariable Long id) {
-        return productService.getProduct(id);
+    public ProductDto getProduct(@PathVariable String id) {
+        if ("null".equals(id) || id == null || id.isEmpty()) {
+            throw new RuntimeException("Invalid product id: " + id);
+        }
+        try {
+            return productService.getProduct(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            return productService.getProductByStringId(id);
+        }
     }
 
     @GetMapping("/api/v1/shopping-store")
@@ -48,17 +55,38 @@ public class ProductController {
     }
 
     @DeleteMapping("/api/v1/shopping-store/{id}")
-    public void deactivateProduct(@PathVariable Long id) {
-        productService.deactivateProduct(id);
+    public void deactivateProduct(@PathVariable String id) {
+        if ("null".equals(id) || id == null || id.isEmpty()) {
+            throw new RuntimeException("Invalid product id: " + id);
+        }
+        try {
+            productService.deactivateProduct(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            productService.deactivateProductByStringId(id);
+        }
     }
 
     @PostMapping("/api/v1/shopping-store/removeProductFromStore")
-    public void removeProductFromStore(@RequestParam Long productId) {
-        productService.deactivateProduct(productId);
+    public void removeProductFromStore(@RequestParam String productId) {
+        if ("null".equals(productId) || productId == null || productId.isEmpty()) {
+            throw new RuntimeException("Invalid product id: " + productId);
+        }
+        try {
+            productService.deactivateProduct(Long.parseLong(productId));
+        } catch (NumberFormatException e) {
+            productService.deactivateProductByStringId(productId);
+        }
     }
 
     @PostMapping("/api/v1/shopping-store/quantityState")
-    public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
-        productService.updateAvailability(productId, quantityState);
+    public void updateQuantityState(@RequestParam String productId, @RequestParam ProductAvailability quantityState) {
+        if ("null".equals(productId) || productId == null || productId.isEmpty()) {
+            throw new RuntimeException("Invalid product id: " + productId);
+        }
+        try {
+            productService.updateAvailability(Long.parseLong(productId), quantityState);
+        } catch (NumberFormatException e) {
+            productService.updateAvailabilityByStringId(productId, quantityState);
+        }
     }
 }

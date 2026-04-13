@@ -10,7 +10,7 @@ public class WarehouseItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long productId;
+    private String productId;
     private int quantity;
     private double weight;
     private double width;
@@ -19,8 +19,8 @@ public class WarehouseItem {
     private boolean fragile;
 
     public Long getId() { return id; }
-    public Long getProductId() { return productId; }
-    public void setProductId(Long productId) { this.productId = productId; }
+    public String getProductId() { return productId; }
+    public void setProductId(String productId) { this.productId = productId; }
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public double getWeight() { return weight; }
