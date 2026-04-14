@@ -46,7 +46,8 @@ public class ProductServiceImpl implements ProductService {
         product.setAvailability(dto.getAvailability());
         product.setImages(dto.getImages());
         product.setStatus(ProductStatus.ACTIVE);
-        return toDto(repository.save(product));
+        Product saved = repository.save(product);
+        return toDto(saved);
     }
 
     @Override
@@ -56,13 +57,16 @@ public class ProductServiceImpl implements ProductService {
         }
         Product existing = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getId()));
-        if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
-        if (dto.getCategory() != null) existing.setCategory(dto.getCategory());
-        if (dto.getAvailability() != null) existing.setAvailability(dto.getAvailability());
-        if (dto.getImages() != null) existing.setImages(dto.getImages());
-        if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
-        return toDto(repository.save(existing));
+
+        existing.setName(dto.getName());
+        existing.setDescription(dto.getDescription());
+        existing.setCategory(dto.getCategory());
+        existing.setAvailability(dto.getAvailability());
+        existing.setImages(dto.getImages());
+        existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
+
+        Product saved = repository.save(existing);
+        return toDto(saved);
     }
 
     @Override

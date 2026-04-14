@@ -21,12 +21,8 @@ public class ProductController {
     }
 
     @GetMapping("/api/v1/shopping-store/{id}")
-    public ProductDto getProduct(@PathVariable String id) {
-        try {
-            return productService.getProduct(Long.parseLong(id));
-        } catch (NumberFormatException e) {
-            return productService.getProduct(1L);
-        }
+    public ProductDto getProduct(@PathVariable Long id) {
+        return productService.getProduct(id);
     }
 
     @GetMapping("/api/v1/shopping-store")
@@ -61,7 +57,7 @@ public class ProductController {
         productService.deactivateProduct(productId);
     }
 
-    @PostMapping("/api/v1/shopping-store/quantityState")
+    @PutMapping("/api/v1/shopping-store/quantityState")
     public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
     }
