@@ -47,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
         product.setImages(dto.getImages());
         product.setStatus(ProductStatus.ACTIVE);
         Product saved = repository.save(product);
+        System.out.println("Saved product: id=" + saved.getId() + ", name=" + saved.getName() + ", category=" + saved.getCategory() + ", availability=" + saved.getAvailability());
         return toDto(saved);
     }
 
@@ -63,7 +64,9 @@ public class ProductServiceImpl implements ProductService {
         existing.setCategory(dto.getCategory());
         existing.setAvailability(dto.getAvailability());
         existing.setImages(dto.getImages());
-        existing.setStatus(dto.getStatus() != null ? dto.getStatus() : existing.getStatus());
+        if (dto.getStatus() != null) {
+            existing.setStatus(dto.getStatus());
+        }
 
         Product saved = repository.save(existing);
         return toDto(saved);
