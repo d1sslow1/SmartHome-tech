@@ -5,7 +5,7 @@ spring:
   application:
     name: warehouse
   datasource:
-    url: jdbc:h2:mem:warehousedb
+    url: jdbc:h2:mem:warehousedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -14,6 +14,7 @@ spring:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
 
 eureka:
   client:
