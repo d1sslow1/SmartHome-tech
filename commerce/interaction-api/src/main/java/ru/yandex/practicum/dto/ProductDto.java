@@ -1,5 +1,6 @@
 package ru.yandex.practicum.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
@@ -8,12 +9,24 @@ import java.util.List;
 
 public class ProductDto {
     private Long id;
+
+    @JsonProperty("productName")
     private String name;
+
     private String description;
+
+    @JsonProperty("productCategory")
     private ProductCategory category;
+
+    @JsonProperty("quantityState")
     private ProductAvailability availability;
+
+    @JsonProperty("productState")
     private ProductStatus status;
+
     private List<String> images;
+
+    private double price;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -29,4 +42,6 @@ public class ProductDto {
     public void setStatus(ProductStatus status) { this.status = status; }
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 }

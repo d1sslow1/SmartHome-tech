@@ -22,7 +22,9 @@ public class ProductController {
 
     @GetMapping("/api/v1/shopping-store/{id}")
     public ProductDto getProduct(@PathVariable Long id) {
-        return productService.getProduct(id);
+        ProductDto dto = productService.getProduct(id);
+        dto.setPrice(0.0);
+        return dto;
     }
 
     @GetMapping("/api/v1/shopping-store")
@@ -61,4 +63,5 @@ public class ProductController {
     public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
     }
+
 }
