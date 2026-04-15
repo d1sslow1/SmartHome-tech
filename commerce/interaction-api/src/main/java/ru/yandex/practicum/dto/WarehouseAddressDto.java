@@ -6,15 +6,17 @@ public class WarehouseAddressDto {
     private String street;
     private String building;
     private String house;
+    private String flat;
 
     public WarehouseAddressDto() {}
 
-    public WarehouseAddressDto(String country, String city, String street, String building, String house) {
+    public WarehouseAddressDto(String country, String city, String street, String building, String house, String flat) {
         this.country = country;
         this.city = city;
         this.street = street;
         this.building = building;
         this.house = house;
+        this.flat = flat;
     }
 
     public String getCountry() { return country; }
@@ -27,4 +29,6 @@ public class WarehouseAddressDto {
     public void setBuilding(String building) { this.building = building; }
     public String getHouse() { return house; }
     public void setHouse(String house) { this.house = house; }
+    public String getFlat() { return flat; }
+    public void setFlat(String flat) { this.flat = flat; }
 }

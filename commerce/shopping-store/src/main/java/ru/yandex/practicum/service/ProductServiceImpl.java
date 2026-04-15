@@ -46,12 +46,13 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
         product.setStatus(ProductStatus.ACTIVE);
+        product.setPrice(dto.getPrice());
 
-        List<String> images = new ArrayList<>();
-        if (dto.getImageSrc() != null) {
+        if (dto.getImageSrc() != null && !dto.getImageSrc().isEmpty()) {
+            List<String> images = new ArrayList<>();
             images.add(dto.getImageSrc());
+            product.setImages(images);
         }
-        product.setImages(images);
 
         Product saved = repository.save(product);
         return toDto(saved);
@@ -65,19 +66,18 @@ public class ProductServiceImpl implements ProductService {
         Product existing = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getId()));
 
-        existing.setName(dto.getName());
-        existing.setDescription(dto.getDescription());
-        existing.setCategory(dto.getCategory());
-        existing.setAvailability(dto.getAvailability());
-        if (dto.getStatus() != null) {
-            existing.setStatus(dto.getStatus());
-        }
+        if (dto.getName() != null) existing.setName(dto.getName());
+        if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
+        if (dto.getCategory() != null) existing.setCategory(dto.getCategory());
+        if (dto.getAvailability() != null) existing.setAvailability(dto.getAvailability());
+        if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
+        if (dto.getPrice() > 0) existing.setPrice(dto.getPrice());
 
-        List<String> images = new ArrayList<>();
-        if (dto.getImageSrc() != null) {
+        if (dto.getImageSrc() != null && !dto.getImageSrc().isEmpty()) {
+            List<String> images = new ArrayList<>();
             images.add(dto.getImageSrc());
+            existing.setImages(images);
         }
-        existing.setImages(images);
 
         Product saved = repository.save(existing);
         return toDto(saved);
@@ -107,11 +107,11 @@ public class ProductServiceImpl implements ProductService {
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
         dto.setStatus(product.getStatus());
-        dto.setPrice(0.0);
+        dto.setPrice(product.getPrice());
+        dto.setImages(product.getImages());
         if (product.getImages() != null && !product.getImages().isEmpty()) {
             dto.setImageSrc(product.getImages().get(0));
         }
-        dto.setImages(product.getImages());
         return dto;
     }
 }

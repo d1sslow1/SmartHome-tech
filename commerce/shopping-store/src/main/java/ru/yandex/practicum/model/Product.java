@@ -12,22 +12,17 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String name;  // убрал nullable=false
-
+    private String name;
     private String description;
-
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
-
     @Enumerated(EnumType.STRING)
     private ProductAvailability availability;
-
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
-
     @ElementCollection
     private List<String> images;
+    private double price;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -43,4 +38,6 @@ public class Product {
     public void setStatus(ProductStatus status) { this.status = status; }
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images; }
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 }

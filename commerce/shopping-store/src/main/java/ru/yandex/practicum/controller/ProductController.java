@@ -22,9 +22,7 @@ public class ProductController {
 
     @GetMapping("/api/v1/shopping-store/{id}")
     public ProductDto getProduct(@PathVariable Long id) {
-        ProductDto dto = productService.getProduct(id);
-        dto.setPrice(0.0);
-        return dto;
+        return productService.getProduct(id);
     }
 
     @GetMapping("/api/v1/shopping-store")
