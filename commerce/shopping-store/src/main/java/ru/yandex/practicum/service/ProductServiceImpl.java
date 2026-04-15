@@ -8,6 +8,7 @@ import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.repository.ProductRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,8 +45,14 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
-        product.setImages(dto.getImages());
         product.setStatus(ProductStatus.ACTIVE);
+
+        List<String> images = new ArrayList<>();
+        if (dto.getImageSrc() != null) {
+            images.add(dto.getImageSrc());
+        }
+        product.setImages(images);
+
         Product saved = repository.save(product);
         return toDto(saved);
     }
@@ -62,10 +69,15 @@ public class ProductServiceImpl implements ProductService {
         existing.setDescription(dto.getDescription());
         existing.setCategory(dto.getCategory());
         existing.setAvailability(dto.getAvailability());
-        existing.setImages(dto.getImages());
         if (dto.getStatus() != null) {
             existing.setStatus(dto.getStatus());
         }
+
+        List<String> images = new ArrayList<>();
+        if (dto.getImageSrc() != null) {
+            images.add(dto.getImageSrc());
+        }
+        existing.setImages(images);
 
         Product saved = repository.save(existing);
         return toDto(saved);
@@ -95,6 +107,10 @@ public class ProductServiceImpl implements ProductService {
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
         dto.setStatus(product.getStatus());
+        dto.setPrice(0.0);
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            dto.setImageSrc(product.getImages().get(0));
+        }
         dto.setImages(product.getImages());
         return dto;
     }

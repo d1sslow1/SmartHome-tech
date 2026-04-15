@@ -24,6 +24,9 @@ public class ProductDto {
     @JsonProperty("productState")
     private ProductStatus status;
 
+    @JsonProperty("imageSrc")
+    private String imageSrc;
+
     private List<String> images;
 
     private double price;
@@ -40,6 +43,8 @@ public class ProductDto {
     public void setAvailability(ProductAvailability availability) { this.availability = availability; }
     public ProductStatus getStatus() { return status; }
     public void setStatus(ProductStatus status) { this.status = status; }
+    public String getImageSrc() { return imageSrc; }
+    public void setImageSrc(String imageSrc) { this.imageSrc = imageSrc; }
     public List<String> getImages() { return images; }
     public void setImages(List<String> images) { this.images = images; }
     public double getPrice() { return price; }

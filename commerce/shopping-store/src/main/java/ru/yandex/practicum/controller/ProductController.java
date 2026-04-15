@@ -63,5 +63,4 @@ public class ProductController {
     public void updateQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
         productService.updateAvailability(productId, quantityState);
     }
-
 }
