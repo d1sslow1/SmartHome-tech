@@ -10,6 +10,7 @@ import ru.yandex.practicum.model.Cart;
 import ru.yandex.practicum.model.CartItem;
 import ru.yandex.practicum.repository.CartRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,7 +26,14 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto getCart(String username) {
-        Cart cart = getOrCreateCart(username);
+        Cart cart = cartRepository.findByUsernameAndActiveTrue(username)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUsername(username);
+                    newCart.setActive(true);
+                    newCart.setItems(new ArrayList<>());
+                    return cartRepository.save(newCart);
+                });
         return toDto(cart);
     }
 
@@ -37,6 +45,7 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Cart is deactivated");
         }
 
+        // Проверяем наличие на складе
         WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
         request.setItems(List.of(itemDto));
 
@@ -46,21 +55,23 @@ public class CartServiceImpl implements CartService {
                 throw new RuntimeException("Product not available");
             }
         } catch (Exception e) {
-
+            // Если склад не отвечает, продолжаем
         }
 
-        cart.getItems().stream()
+        // Добавляем или обновляем товар в корзине
+        CartItem existingItem = cart.getItems().stream()
                 .filter(i -> i.getProductId().equals(itemDto.getProductId()))
                 .findFirst()
-                .ifPresentOrElse(
-                        item -> item.setQuantity(item.getQuantity() + itemDto.getQuantity()),
-                        () -> {
-                            CartItem newItem = new CartItem();
-                            newItem.setProductId(itemDto.getProductId());
-                            newItem.setQuantity(itemDto.getQuantity());
-                            cart.getItems().add(newItem);
-                        }
-                );
+                .orElse(null);
+
+        if (existingItem != null) {
+            existingItem.setQuantity(existingItem.getQuantity() + itemDto.getQuantity());
+        } else {
+            CartItem newItem = new CartItem();
+            newItem.setProductId(itemDto.getProductId());
+            newItem.setQuantity(itemDto.getQuantity());
+            cart.getItems().add(newItem);
+        }
 
         cartRepository.save(cart);
         return toDto(cart);
@@ -109,6 +120,7 @@ public class CartServiceImpl implements CartService {
                     Cart cart = new Cart();
                     cart.setUsername(username);
                     cart.setActive(true);
+                    cart.setItems(new ArrayList<>());
                     return cartRepository.save(cart);
                 });
     }
@@ -117,13 +129,16 @@ public class CartServiceImpl implements CartService {
         CartDto dto = new CartDto();
         dto.setUsername(cart.getUsername());
         dto.setActive(cart.isActive());
-        dto.setItems(cart.getItems().stream()
-                .map(item -> {
-                    CartItemDto i = new CartItemDto();
-                    i.setProductId(item.getProductId());
-                    i.setQuantity(item.getQuantity());
-                    return i;
-                }).toList());
+        List<CartItemDto> items = new ArrayList<>();
+        if (cart.getItems() != null) {
+            for (CartItem item : cart.getItems()) {
+                CartItemDto itemDto = new CartItemDto();
+                itemDto.setProductId(item.getProductId());
+                itemDto.setQuantity(item.getQuantity());
+                items.add(itemDto);
+            }
+        }
+        dto.setItems(items);
         return dto;
     }
 }

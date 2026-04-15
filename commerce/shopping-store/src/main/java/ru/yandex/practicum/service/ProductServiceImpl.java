@@ -47,7 +47,6 @@ public class ProductServiceImpl implements ProductService {
         product.setImages(dto.getImages());
         product.setStatus(ProductStatus.ACTIVE);
         Product saved = repository.save(product);
-        System.out.println("Saved product: id=" + saved.getId() + ", name=" + saved.getName() + ", category=" + saved.getCategory() + ", availability=" + saved.getAvailability());
         return toDto(saved);
     }
 

@@ -52,7 +52,7 @@ public class ProductController {
         productService.deactivateProduct(id);
     }
 
-    @PostMapping("/api/v1/shopping-store/removeProductFromStore")
+    @DeleteMapping("/api/v1/shopping-store/removeProductFromStore")
     public void removeProductFromStore(@RequestParam Long productId) {
         productService.deactivateProduct(productId);
     }
