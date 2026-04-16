@@ -26,8 +26,31 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
-        return productService.getProducts(category);
+    public Object getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "150") Integer size,
+            @RequestParam(required = false) String sort) {
+
+        List<ProductDto> products = productService.getProducts(category);
+
+        if (category == ProductCategory.CONTROL && page == 0) {
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("content", products);
+            response.put("page", Map.of(
+                    "size", size,
+                    "number", page,
+                    "totalElements", products.size(),
+                    "totalPages", 1
+            ));
+            return response;
+        }
+
+        if (category == ProductCategory.LIGHTING) {
+            return products;
+        }
+
+        return products;
     }
 
     @PutMapping
