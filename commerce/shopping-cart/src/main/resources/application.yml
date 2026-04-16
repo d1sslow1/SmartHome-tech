@@ -9,13 +9,15 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   cloud:
     config:
       enabled: false
+      import-check:
+        enabled: false
 
 server:
   port: 0
@@ -28,15 +30,21 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+    status-page-url-path: /actuator/info
+    health-check-url-path: /actuator/health
 
-logging:
-  level:
-    ru.yandex.practicum: DEBUG
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
+      enabled: true
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG
+    org.springframework.web: INFO

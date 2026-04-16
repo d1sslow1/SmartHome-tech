@@ -32,7 +32,6 @@ public class CartController {
 
     @PostMapping("/remove")
     public CartDto removeFromCart(@RequestParam String username, @RequestBody CartItemDto item) {
-        // Устанавливаем количество 0 для удаления
         item.setQuantity(0);
         return cartService.updateItem(username, item);
     }
