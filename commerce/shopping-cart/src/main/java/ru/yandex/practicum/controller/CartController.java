@@ -5,7 +5,6 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,12 +35,33 @@ public class CartController {
     }
 
     @PostMapping("/change-quantity")
-    public CartDto changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
+    public CartDto changeQuantity(@RequestParam String username,
+                                  @RequestParam(required = false) String productId,
+                                  @RequestParam(required = false) Integer quantity,
+                                  @RequestBody(required = false) CartItemDto item) {
+        if (item == null && productId != null && quantity != null) {
+            item = new CartItemDto();
+            item.setProductId(productId);
+            item.setQuantity(quantity);
+        }
+        if (item == null) {
+            throw new RuntimeException("Missing product data");
+        }
         return cartService.updateItem(username, item);
     }
 
     @PostMapping("/remove")
-    public CartDto removeFromCart(@RequestParam String username, @RequestBody CartItemDto item) {
+    public CartDto removeFromCart(@RequestParam String username,
+                                  @RequestParam(required = false) String productId,
+                                  @RequestBody(required = false) CartItemDto item) {
+        if (item == null && productId != null) {
+            item = new CartItemDto();
+            item.setProductId(productId);
+            item.setQuantity(0);
+        }
+        if (item == null) {
+            throw new RuntimeException("Missing product data");
+        }
         item.setQuantity(0);
         return cartService.updateItem(username, item);
     }

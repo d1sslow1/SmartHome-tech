@@ -5,8 +5,6 @@ import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 
-import java.util.List;
-
 public class ProductDto {
 
     @JsonProperty("productId")
@@ -27,9 +25,11 @@ public class ProductDto {
     private ProductStatus status;
 
     @JsonProperty("imageSrc")
-    private String imageSrc;  // Тесты ждут String, а не List!
+    private String imageSrc;
 
     private Double price;
+
+    public ProductDto() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -43,14 +43,21 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody ProductDto product) {
-        productService.deactivateProduct(product.getId());
+    public void removeProductFromStore(@RequestBody(required = false) ProductDto product,
+                                       @RequestParam(required = false) Long productId) {
+        Long id = productId != null ? productId : product.getId();
+        productService.deactivateProduct(id);
     }
 
     @PostMapping("/quantityState")
-    public void setQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
-        ProductDto product = productService.getProduct(productId);
-        product.setAvailability(quantityState);
-        productService.updateProduct(product);
+    public void setQuantityState(@RequestParam(required = false) Long productId,
+                                 @RequestParam(required = false) ProductAvailability quantityState,
+                                 @RequestBody(required = false) ProductDto product) {
+        Long id = productId != null ? productId : product.getId();
+        ProductAvailability state = quantityState != null ? quantityState : product.getAvailability();
+
+        ProductDto dto = productService.getProduct(id);
+        dto.setAvailability(state);
+        productService.updateProduct(dto);
     }
 }

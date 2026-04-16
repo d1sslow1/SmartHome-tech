@@ -82,4 +82,15 @@ public class ProductServiceImpl implements ProductService {
         dto.setPrice(product.getPrice());
         return dto;
     }
+    private Product toEntity(ProductDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setCategory(dto.getCategory());
+        product.setAvailability(dto.getAvailability());
+        product.setImageSrc(dto.getImageSrc());
+        product.setPrice(dto.getPrice());
+        product.setStatus(ProductStatus.ACTIVE);
+        return product;
+    }
 }

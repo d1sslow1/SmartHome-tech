@@ -32,11 +32,6 @@ public class WarehouseController {
         warehouseService.addItem(dto);
     }
 
-    @PostMapping("/update")
-    public void updateQuantity(@RequestParam String productId, @RequestParam int quantity) {
-        warehouseService.updateQuantity(productId, quantity);
-    }
-
     @PostMapping("/check")
     public WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request) {
         return warehouseService.checkAvailability(request);
