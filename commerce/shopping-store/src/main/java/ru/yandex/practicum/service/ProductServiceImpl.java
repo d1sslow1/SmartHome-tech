@@ -26,9 +26,10 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductDto> getProducts(ProductCategory category) {
         List<Product> products;
         if (category != null) {
-            products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE);
+
+            products = repository.findByCategory(category);
         } else {
-            products = repository.findByStatus(ProductStatus.ACTIVE);
+            products = repository.findAll();
         }
         return products.stream().map(this::toDto).toList();
     }
