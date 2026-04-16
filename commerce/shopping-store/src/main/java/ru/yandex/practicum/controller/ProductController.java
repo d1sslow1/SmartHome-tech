@@ -6,6 +6,7 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,8 +26,26 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
-        return productService.getProducts(category);
+    public Object getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
+
+        List<ProductDto> products = productService.getProducts(category);
+
+        if (page != null || size != null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", products);
+            response.put("page", Map.of(
+                    "size", size != null ? size : 150,
+                    "number", page != null ? page : 0,
+                    "totalElements", products.size(),
+                    "totalPages", 1
+            ));
+            return response;
+        }
+
+        return products;
     }
 
     @PutMapping
