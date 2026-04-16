@@ -2,13 +2,11 @@ package ru.yandex.practicum.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.ProductDto;
-import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.repository.ProductRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,79 +21,51 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDto> getProducts(ProductCategory category) {
         List<Product> products;
+
         if (category != null) {
             products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE);
         } else {
             products = repository.findByStatus(ProductStatus.ACTIVE);
         }
+
         return products.stream().map(this::toDto).toList();
     }
 
     @Override
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
         return toDto(product);
     }
 
     @Override
     public ProductDto addProduct(ProductDto dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setAvailability(dto.getAvailability());
+        Product product = toEntity(dto);
         product.setStatus(ProductStatus.ACTIVE);
-        product.setPrice(dto.getPrice());
-
-        if (dto.getImageSrc() != null && !dto.getImageSrc().isEmpty()) {
-            List<String> images = new ArrayList<>();
-            images.add(dto.getImageSrc());
-            product.setImages(images);
-        }
-
-        Product saved = repository.save(product);
-        return toDto(saved);
+        return toDto(repository.save(product));
     }
 
     @Override
     public ProductDto updateProduct(ProductDto dto) {
-        if (dto.getId() == null) {
-            return addProduct(dto);
-        }
-        Product existing = repository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + dto.getId()));
+        Product product = repository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
-        if (dto.getCategory() != null) existing.setCategory(dto.getCategory());
-        if (dto.getAvailability() != null) existing.setAvailability(dto.getAvailability());
-        if (dto.getStatus() != null) existing.setStatus(dto.getStatus());
-        if (dto.getPrice() > 0) existing.setPrice(dto.getPrice());
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setCategory(dto.getCategory());
+        product.setAvailability(dto.getAvailability());
+        product.setImages(dto.getImages());
 
-        if (dto.getImageSrc() != null && !dto.getImageSrc().isEmpty()) {
-            List<String> images = new ArrayList<>();
-            images.add(dto.getImageSrc());
-            existing.setImages(images);
-        }
-
-        Product saved = repository.save(existing);
-        return toDto(saved);
+        return toDto(repository.save(product));
     }
 
     @Override
     public void deactivateProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-        product.setStatus(ProductStatus.DEACTIVATE);
-        repository.save(product);
-    }
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    @Override
-    public void updateAvailability(Long productId, ProductAvailability availability) {
-        Product product = repository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        product.setAvailability(availability);
+        product.setStatus(ProductStatus.DEACTIVATE);
         repository.save(product);
     }
 
@@ -107,11 +77,17 @@ public class ProductServiceImpl implements ProductService {
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
         dto.setStatus(product.getStatus());
-        dto.setPrice(product.getPrice());
         dto.setImages(product.getImages());
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            dto.setImageSrc(product.getImages().get(0));
-        }
         return dto;
+    }
+
+    private Product toEntity(ProductDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setCategory(dto.getCategory());
+        product.setAvailability(dto.getAvailability());
+        product.setImages(dto.getImages());
+        return product;
     }
 }

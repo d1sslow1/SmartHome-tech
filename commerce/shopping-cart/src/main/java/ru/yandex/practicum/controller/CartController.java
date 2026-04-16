@@ -6,10 +6,8 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
-import java.util.List;
-import java.util.Map;
-
 @RestController
+@RequestMapping("/cart")
 public class CartController {
 
     private final CartService cartService;
@@ -18,50 +16,26 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/api/v1/shopping-cart/add")
+    @PostMapping("/add")
     public ResponseEntity<CartDto> addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
+
         return ResponseEntity.ok(cartService.addItem(username, item));
     }
 
-    @GetMapping("/api/v1/shopping-cart")
-    public ResponseEntity<CartDto> getCart(@RequestParam String username) {
+    @GetMapping("/{username}")
+    public ResponseEntity<CartDto> getCart(@PathVariable String username) {
         return ResponseEntity.ok(cartService.getCart(username));
     }
 
-    @PutMapping("/api/v1/shopping-cart")
-    public ResponseEntity<CartDto> updateCart(@RequestParam String username, @RequestBody Map<String, Integer> items) {
-        for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            CartItemDto item = new CartItemDto();
-            item.setProductId(entry.getKey());
-            item.setQuantity(entry.getValue());
-            cartService.updateItem(username, item);
-        }
-        return ResponseEntity.ok(cartService.getCart(username));
-    }
-
-    @PostMapping("/api/v1/shopping-cart/update")
+    @PutMapping("/update")
     public ResponseEntity<CartDto> updateItem(@RequestParam String username, @RequestBody CartItemDto item) {
+
         return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 
-    @DeleteMapping("/api/v1/shopping-cart")
+    @PostMapping("/deactivate")
     public ResponseEntity<Void> deactivateCart(@RequestParam String username) {
         cartService.deactivateCart(username);
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/api/v1/shopping-cart/remove")
-    public ResponseEntity<CartDto> removeItem(@RequestParam String username, @RequestBody List<String> productIds) {
-        for (String productId : productIds) {
-            CartItemDto item = new CartItemDto();
-            item.setProductId(productId);
-            cartService.removeItem(username, item);
-        }
-        return ResponseEntity.ok(cartService.getCart(username));
-    }
-
-    @PostMapping("/api/v1/shopping-cart/change-quantity")
-    public ResponseEntity<CartDto> changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
-        return ResponseEntity.ok(cartService.updateItem(username, item));
     }
 }

@@ -1,4 +1,3 @@
-
 package ru.yandex.practicum.dto;
 
 import java.util.List;

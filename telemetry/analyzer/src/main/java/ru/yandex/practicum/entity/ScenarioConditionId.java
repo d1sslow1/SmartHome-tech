@@ -1,16 +1,17 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
 @Getter
 @Setter
-public class ScenarioActionId implements Serializable {
+public class ScenarioConditionId implements Serializable {
 
     @Column(name = "scenario_id")
     private Long scenarioId;
@@ -18,21 +19,19 @@ public class ScenarioActionId implements Serializable {
     @Column(name = "sensor_id")
     private String sensorId;
 
-    @Column(name = "action_id")
-    private Long actionId;
+    @Column(name = "condition_id")
+    private Long conditionId;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ScenarioActionId that = (ScenarioActionId) o;
-        return Objects.equals(scenarioId, that.scenarioId) &&
-                Objects.equals(sensorId, that.sensorId) &&
-                Objects.equals(actionId, that.actionId);
+        ScenarioConditionId that = (ScenarioConditionId) o;
+        return Objects.equals(scenarioId, that.scenarioId) && Objects.equals(sensorId, that.sensorId) && Objects.equals(conditionId, that.conditionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scenarioId, sensorId, actionId);
+        return Objects.hash(scenarioId, sensorId, conditionId);
     }
 }

@@ -1,6 +1,7 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.api.WarehouseApi;
 import ru.yandex.practicum.dto.WarehouseAddressDto;
 import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
 import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
@@ -8,7 +9,8 @@ import ru.yandex.practicum.dto.WarehouseItemDto;
 import ru.yandex.practicum.service.WarehouseService;
 
 @RestController
-public class WarehouseController {
+@RequestMapping("/warehouse")
+public class WarehouseController implements WarehouseApi {
 
     private final WarehouseService warehouseService;
 
@@ -16,28 +18,23 @@ public class WarehouseController {
         this.warehouseService = warehouseService;
     }
 
-    @GetMapping("/api/v1/warehouse/address")
-    public WarehouseAddressDto getCurrentAddress() {
-        return warehouseService.getCurrentAddress();
+    @Override
+    public void addItem(WarehouseItemDto dto) {
+        warehouseService.addItem(dto);
     }
 
-    @PostMapping("/api/v1/warehouse/check")
-    public WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request) {
+    @Override
+    public void updateQuantity(Long productId, int quantity) {
+        warehouseService.updateQuantity(productId, quantity);
+    }
+
+    @Override
+    public WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request) {
         return warehouseService.checkAvailability(request);
     }
 
-    @PostMapping("/api/v1/warehouse/add")
-    public void addItem(@RequestBody WarehouseItemDto dto) {
-        warehouseService.addItem(dto);
-    }
-
-    @PutMapping("/api/v1/warehouse")
-    public void addOrUpdateItem(@RequestBody WarehouseItemDto dto) {
-        warehouseService.addItem(dto);
-    }
-
-    @PutMapping("/api/v1/warehouse/update")
-    public void updateQuantity(@RequestParam String productId, @RequestParam int quantity) {
-        warehouseService.updateQuantity(productId, quantity);
+    @Override
+    public WarehouseAddressDto getCurrentAddress() {
+        return warehouseService.getCurrentAddress();
     }
 }

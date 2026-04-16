@@ -1,7 +1,9 @@
 package ru.yandex.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.yandex.practicum.model.Scenario;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import ru.yandex.practicum.entity.Scenario;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,5 +14,12 @@ public interface ScenarioRepository extends JpaRepository<Scenario, Long> {
 
     Optional<Scenario> findByHubIdAndName(String hubId, String name);
 
-    void deleteByName(String name);
+    @Query("""
+                SELECT DISTINCT s
+                FROM Scenario s
+                LEFT JOIN FETCH s.scenarioConditions
+                LEFT JOIN FETCH s.scenarioActions
+                WHERE s.hubId = :hubId
+            """)
+    List<Scenario> findByHubIdWithConditionsAndActions(@Param("hubId") String hubId);
 }

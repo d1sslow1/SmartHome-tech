@@ -1,8 +1,14 @@
 package ru.yandex.practicum.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import ru.yandex.practicum.api.WarehouseApi;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
+import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
 
-@FeignClient(name = "warehouse")
-public interface WarehouseClient extends WarehouseApi {
+@FeignClient(name = "warehouse", path = "/warehouse")
+public interface WarehouseClient {
+
+    @PostMapping("/check")
+    WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request);
 }

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,6 +24,7 @@ public class ScenarioAction {
     private Sensor sensor;
 
     @ManyToOne
-    @JoinColumn(name = "action_id", insertable = false, updatable = false)
+    @MapsId("actionId")
+    @JoinColumn(name = "action_id")
     private Action action;
 }

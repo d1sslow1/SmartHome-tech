@@ -2,73 +2,62 @@ package ru.yandex.practicum.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.entity.Condition;
+import ru.yandex.practicum.entity.Scenario;
+import ru.yandex.practicum.entity.ScenarioCondition;
+import ru.yandex.practicum.enums.ConditionOperation;
+import ru.yandex.practicum.enums.ConditionType;
 import ru.yandex.practicum.kafka.telemetry.event.*;
-import ru.yandex.practicum.model.*;
 
 @Slf4j
 @Service
 public class ScenarioAnalyzerService {
 
     public boolean checkScenario(Scenario scenario, SensorsSnapshotAvro snapshot) {
-        log.debug("Checking scenario '{}' with {} conditions", scenario.getName(), scenario.getConditions().size());
+        log.info("========== CHECKING SCENARIO '{}' ==========", scenario.getName());
 
-        boolean result = scenario.getConditions().stream()
-                .allMatch(condition -> {
-                    boolean conditionResult = checkCondition(condition, snapshot);
-                    log.debug("Condition for sensor {}: {}", condition.getSensor().getId(), conditionResult);
-                    return conditionResult;
-                });
+        boolean result = true;
+        for (ScenarioCondition scenarioCondition : scenario.getScenarioConditions()) {
+            boolean conditionResult = checkCondition(scenarioCondition, snapshot);
+            log.info("Condition for sensor {}: {}",
+                    scenarioCondition.getSensor().getId(), conditionResult);
 
-        log.debug("Scenario '{}' result: {}", scenario.getName(), result);
+            if (!conditionResult) {
+                result = false;
+                break;
+            }
+        }
+
+        log.info("Scenario '{}' final result: {}", scenario.getName(), result);
         return result;
     }
 
     private boolean checkCondition(ScenarioCondition scenarioCondition, SensorsSnapshotAvro snapshot) {
-        if (scenarioCondition.getSensor() == null) {
-            log.error("Sensor is null in scenario condition");
-            return false;
-        }
-
         String sensorId = scenarioCondition.getSensor().getId();
         Condition condition = scenarioCondition.getCondition();
 
-        if (condition == null) {
-            log.error("Condition is null for sensor {}", sensorId);
-            return false;
-        }
+        log.info("  Checking sensor {}: type={}, op={}, expected={}",
+                sensorId, condition.getType(), condition.getOperation(), condition.getValue());
 
         SensorStateAvro sensorState = snapshot.getSensorsState().get(sensorId);
         if (sensorState == null) {
-            log.debug("Sensor {} not found in snapshot", sensorId);
+            log.warn("  Sensor {} not found in snapshot", sensorId);
+            log.info("  Available sensors: {}", snapshot.getSensorsState().keySet());
             return false;
         }
+
+        log.info("  Sensor data: {}", sensorState.getData());
 
         Object actualValue = extractValue(sensorState.getData(), condition.getType());
+        log.info("  Extracted value: {} ({})", actualValue,
+                actualValue != null ? actualValue.getClass().getSimpleName() : "null");
+
         if (actualValue == null) {
-            log.debug("Could not extract value for sensor {} of type {}", sensorId, condition.getType());
             return false;
         }
 
-        int expectedValue = condition.getValue();
-        boolean result;
-
-        switch (condition.getOperation()) {
-            case EQUALS:
-                result = compareEquals(actualValue, expectedValue);
-                log.debug("Sensor {}: actual={} == expected={} ? {}", sensorId, actualValue, expectedValue, result);
-                break;
-            case GREATER_THAN:
-                result = compareGreaterThan(actualValue, expectedValue);
-                log.debug("Sensor {}: actual={} > expected={} ? {}", sensorId, actualValue, expectedValue, result);
-                break;
-            case LOWER_THAN:
-                result = compareLessThan(actualValue, expectedValue);
-                log.debug("Sensor {}: actual={} < expected={} ? {}", sensorId, actualValue, expectedValue, result);
-                break;
-            default:
-                log.warn("Unknown operation: {}", condition.getOperation());
-                result = false;
-        }
+        boolean result = compare(actualValue, condition.getOperation(), condition.getValue());
+        log.info("  Comparison result: {}", result);
 
         return result;
     }
@@ -111,30 +100,36 @@ public class ScenarioAnalyzerService {
                 }
                 break;
         }
-        log.warn("Could not extract value from {} for type {}", sensorData.getClass().getSimpleName(), type);
         return null;
     }
 
-    private boolean compareEquals(Object actual, int expected) {
+
+    private boolean compare(Object actual, ConditionOperation op, int expected) {
         if (actual instanceof Boolean) {
-            return ((Boolean) actual) == (expected == 1);
-        }
-        if (actual instanceof Integer) {
-            return ((Integer) actual) == expected;
-        }
-        return false;
-    }
+            boolean boolVal = (Boolean) actual;
+            boolean expectedBool = expected == 1;
 
-    private boolean compareGreaterThan(Object actual, int expected) {
-        if (actual instanceof Integer) {
-            return ((Integer) actual) > expected;
+            switch (op) {
+                case EQUALS:
+                    return boolVal == expectedBool;
+                default:
+                    return false;
+            }
         }
-        return false;
-    }
 
-    private boolean compareLessThan(Object actual, int expected) {
         if (actual instanceof Integer) {
-            return ((Integer) actual) < expected;
+            int intVal = (Integer) actual;
+
+            switch (op) {
+                case EQUALS:
+                    return intVal == expected;
+                case GREATER_THAN:
+                    return intVal > expected;
+                case LOWER_THAN:
+                    return intVal < expected;
+                default:
+                    return false;
+            }
         }
         return false;
     }

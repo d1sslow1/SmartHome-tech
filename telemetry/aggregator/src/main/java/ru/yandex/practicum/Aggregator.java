@@ -10,14 +10,14 @@ import ru.yandex.practicum.service.AggregationStarter;
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableDiscoveryClient
-public class AggregatorApplication {
+public class Aggregator {
 
     public static void main(String[] args) {
         System.out.println("========================================");
         System.out.println("=== AGGREGATOR APPLICATION STARTING ===");
         System.out.println("========================================");
 
-        ConfigurableApplicationContext context = SpringApplication.run(AggregatorApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(Aggregator.class, args);
 
         System.out.println("========================================");
         System.out.println("=== AGGREGATOR CONTEXT LOADED ===");

@@ -1,8 +1,11 @@
-package ru.yandex.practicum.model;
+package ru.yandex.practicum.entity;
 
 import jakarta.persistence.*;
+import ru.yandex.practicum.enums.ConditionOperation;
+import ru.yandex.practicum.enums.ConditionType;
 import lombok.Getter;
 import lombok.Setter;
+
 
 @Entity
 @Table(name = "conditions")

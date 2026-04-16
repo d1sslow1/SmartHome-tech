@@ -16,6 +16,6 @@ service HubRouterController {
 message DeviceActionRequest {
   string hub_id = 1;
   string scenario_name = 2;
-  telemetry.messages.DeviceActionProto action = 3;  // полный путь
+  telemetry.messages.DeviceActionProto action = 3;
   google.protobuf.Timestamp timestamp = 4;
 }

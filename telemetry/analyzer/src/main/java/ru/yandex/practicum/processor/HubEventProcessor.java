@@ -7,9 +7,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.entity.*;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 import ru.yandex.practicum.config.KafkaConfig;
-import ru.yandex.practicum.model.*;
+import ru.yandex.practicum.enums.*;
 import ru.yandex.practicum.repository.*;
 
 import java.time.Duration;
@@ -37,7 +38,7 @@ public class HubEventProcessor implements Runnable {
                              ScenarioConditionRepository scenarioConditionRepository,
                              ScenarioActionRepository scenarioActionRepository) {
         this.kafkaConfig = kafkaConfig;
-        this.hubConsumer = new KafkaConsumer<>(kafkaConfig.hubConsumerProperties());
+        this.hubConsumer = kafkaConfig.createHubEventConsumer("hub-group");
         this.sensorRepository = sensorRepository;
         this.scenarioRepository = scenarioRepository;
         this.conditionRepository = conditionRepository;
@@ -51,7 +52,7 @@ public class HubEventProcessor implements Runnable {
         log.info("HubEventProcessor started");
         log.info("Subscribing to topic: {}", kafkaConfig.getHubsTopic());
 
-        try {
+        try (hubConsumer) {
             Runtime.getRuntime().addShutdownHook(new Thread(hubConsumer::wakeup));
             hubConsumer.subscribe(List.of(kafkaConfig.getHubsTopic()));
             log.info("Successfully subscribed to topic: {}", kafkaConfig.getHubsTopic());
@@ -142,13 +143,13 @@ public class HubEventProcessor implements Runnable {
                 condition.setValue(extractValue(conditionAvro.getValue()));
                 Condition savedCondition = conditionRepository.save(condition);
 
-                ScenarioConditionId scenarioConditionId = new ScenarioConditionId();
-                scenarioConditionId.setScenarioId(savedScenario.getId());
-                scenarioConditionId.setSensorId(sensorId);
-                scenarioConditionId.setConditionId(savedCondition.getId());
+                ScenarioConditionId id = new ScenarioConditionId();
+                id.setScenarioId(savedScenario.getId());
+                id.setSensorId(sensorId);
+                id.setConditionId(savedCondition.getId());
 
                 ScenarioCondition scenarioCondition = new ScenarioCondition();
-                scenarioCondition.setId(scenarioConditionId);
+                scenarioCondition.setId(id);
                 scenarioCondition.setScenario(savedScenario);
                 scenarioCondition.setSensor(sensor);
                 scenarioCondition.setCondition(savedCondition);
@@ -172,13 +173,13 @@ public class HubEventProcessor implements Runnable {
                 action.setValue((Integer) actionAvro.getValue());
                 Action savedAction = actionRepository.save(action);
 
-                ScenarioActionId scenarioActionId = new ScenarioActionId();
-                scenarioActionId.setScenarioId(savedScenario.getId());
-                scenarioActionId.setSensorId(sensorId);
-                scenarioActionId.setActionId(savedAction.getId());
+                ScenarioActionId id = new ScenarioActionId();
+                id.setScenarioId(savedScenario.getId());
+                id.setSensorId(sensorId);
+                id.setActionId(savedAction.getId());
 
                 ScenarioAction scenarioAction = new ScenarioAction();
-                scenarioAction.setId(scenarioActionId);
+                scenarioAction.setId(id);
                 scenarioAction.setScenario(savedScenario);
                 scenarioAction.setSensor(sensor);
                 scenarioAction.setAction(savedAction);

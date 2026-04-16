@@ -1,7 +1,6 @@
 package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.dto.ProductDto;
-import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 
 import java.util.List;
@@ -12,5 +11,4 @@ public interface ProductService {
     ProductDto addProduct(ProductDto product);
     ProductDto updateProduct(ProductDto product);
     void deactivateProduct(Long id);
-    void updateAvailability(Long productId, ProductAvailability availability);
 }

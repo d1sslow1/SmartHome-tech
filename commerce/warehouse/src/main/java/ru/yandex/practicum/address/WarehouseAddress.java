@@ -22,7 +22,6 @@ public class WarehouseAddress {
                 currentAddress,
                 currentAddress,
                 currentAddress,
-                currentAddress,
                 currentAddress
         );
     }
