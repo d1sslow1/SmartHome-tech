@@ -5,6 +5,7 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -46,12 +47,23 @@ public class CartController {
     }
 
     @PostMapping("/remove")
-    public CartDto removeFromCart(@RequestParam String username, @RequestBody Map<String, Object> body) {
-        String productId = (String) body.get("productId");
-        CartItemDto item = new CartItemDto();
-        item.setProductId(productId);
-        item.setQuantity(0);
-        cartService.updateItem(username, item);
+    public CartDto removeFromCart(@RequestParam String username, @RequestBody Object body) {
+        if (body instanceof List) {
+            List<String> productIds = (List<String>) body;
+            for (String productId : productIds) {
+                CartItemDto item = new CartItemDto();
+                item.setProductId(productId);
+                item.setQuantity(0);
+                cartService.updateItem(username, item);
+            }
+        } else if (body instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) body;
+            String productId = (String) map.get("productId");
+            CartItemDto item = new CartItemDto();
+            item.setProductId(productId);
+            item.setQuantity(0);
+            cartService.updateItem(username, item);
+        }
         return cartService.getCart(username);
     }
 
