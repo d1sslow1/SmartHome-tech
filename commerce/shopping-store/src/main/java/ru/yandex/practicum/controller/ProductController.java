@@ -7,6 +7,7 @@ import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ public class ProductController {
         List<ProductDto> products = productService.getProducts(category);
 
         if (page != null || size != null) {
-            Map<String, Object> response = new HashMap<>();
+            Map<String, Object> response = new LinkedHashMap<>();
             response.put("content", products);
             response.put("page", Map.of(
                     "size", size != null ? size : 150,
@@ -44,9 +45,9 @@ public class ProductController {
             ));
             return response;
         }
+
         return products;
     }
-
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
