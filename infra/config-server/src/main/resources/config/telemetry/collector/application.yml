@@ -2,12 +2,19 @@ spring:
   application:
     name: collector
 
-kafka:
-  bootstrap-servers: localhost:9092
-  topics:
-    sensors: telemetry.sensors.v1
-    hubs: telemetry.hubs.v1
+server:
+  port: 8080
 
 grpc:
   server:
     port: 59091
+    in-process-name: collector-server
+
+logging:
+  level:
+    ru.yandex.practicum: DEBUG
+    io.grpc: DEBUG
+    net.devh.boot.grpc: DEBUG
+    org.springframework.kafka: DEBUG
+    org.apache.kafka: DEBUG
+    org.springframework.web: DEBUG
