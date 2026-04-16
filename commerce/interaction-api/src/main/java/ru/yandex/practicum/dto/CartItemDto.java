@@ -1,30 +1,19 @@
 package ru.yandex.practicum.dto;
 
 public class CartItemDto {
-    private String productId;  // Было Long
+    private String productId;  // Всегда String (UUID)
     private int quantity;
 
-    public CartItemDto() {
-    }
+    public CartItemDto() {}
 
     public CartItemDto(String productId, int quantity) {
         this.productId = productId;
         this.quantity = quantity;
     }
 
-    public String getProductId() {
-        return productId;
-    }
+    public String getProductId() { return productId; }
+    public void setProductId(String productId) { this.productId = productId; }
 
-    public void setProductId(String productId) {
-        this.productId = productId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

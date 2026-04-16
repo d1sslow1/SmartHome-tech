@@ -13,9 +13,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-  cloud:
-    config:
-      enabled: false
 
 server:
   port: 0
@@ -34,12 +31,11 @@ eureka:
 management:
   server:
     port: 8083
-    base-path: /actuator
   endpoints:
     web:
       exposure:
         include: health,info
-      base-path: /
+      base-path: /actuator
   endpoint:
     health:
       show-details: always

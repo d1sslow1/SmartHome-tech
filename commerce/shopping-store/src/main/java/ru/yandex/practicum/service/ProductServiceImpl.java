@@ -1,7 +1,5 @@
 package ru.yandex.practicum.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductAvailability;
@@ -19,17 +17,6 @@ public class ProductServiceImpl implements ProductService {
 
     public ProductServiceImpl(ProductRepository repository) {
         this.repository = repository;
-    }
-
-    @Override
-    public Page<ProductDto> getProductsPage(ProductCategory category, Pageable pageable) {
-        Page<Product> products;
-        if (category != null) {
-            products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE, pageable);
-        } else {
-            products = repository.findByStatus(ProductStatus.ACTIVE, pageable);
-        }
-        return products.map(this::toDto);
     }
 
     @Override

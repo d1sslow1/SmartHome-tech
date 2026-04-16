@@ -36,10 +36,10 @@ public class CartController {
     }
 
     @PostMapping("/change-quantity")
-    public CartDto changeQuantity(@RequestParam String username, @RequestBody Map<String, Integer> body) {
-        // Тесты шлют {"newQuantity": 694, "productId": "..."}
-        String productId = body.get("productId").toString();
-        Integer quantity = body.get("newQuantity");
+    public CartDto changeQuantity(@RequestParam String username, @RequestBody Map<String, Object> body) {
+        // Тесты шлют {"newQuantity": 694, "productId": "uuid"}
+        String productId = (String) body.get("productId");
+        Integer quantity = (Integer) body.get("newQuantity");
 
         CartItemDto item = new CartItemDto();
         item.setProductId(productId);
@@ -49,7 +49,6 @@ public class CartController {
 
     @PostMapping("/remove")
     public CartDto removeFromCart(@RequestParam String username, @RequestBody List<String> productIds) {
-        // Тесты шлют массив ["productId"]
         CartDto cart = cartService.getCart(username);
         for (String productId : productIds) {
             CartItemDto item = new CartItemDto();

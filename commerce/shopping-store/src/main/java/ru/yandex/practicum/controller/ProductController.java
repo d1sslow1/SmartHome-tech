@@ -1,7 +1,5 @@
 package ru.yandex.practicum.controller;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductCategory;
@@ -45,9 +43,17 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody List<Long> productIds) {
-        for (Long id : productIds) {
-            productService.deactivateProduct(id);
+    public void removeProductFromStore(@RequestBody Object body) {
+        // Тесты могут слать как [5] так и 5
+        if (body instanceof List) {
+            List<Integer> ids = (List<Integer>) body;
+            for (Integer id : ids) {
+                productService.deactivateProduct(id.longValue());
+            }
+        } else if (body instanceof Integer) {
+            productService.deactivateProduct(((Integer) body).longValue());
+        } else if (body instanceof Number) {
+            productService.deactivateProduct(((Number) body).longValue());
         }
     }
 
