@@ -35,33 +35,12 @@ public class CartController {
     }
 
     @PostMapping("/change-quantity")
-    public CartDto changeQuantity(@RequestParam String username,
-                                  @RequestParam(required = false) String productId,
-                                  @RequestParam(required = false) Integer quantity,
-                                  @RequestBody(required = false) CartItemDto item) {
-        if (item == null && productId != null && quantity != null) {
-            item = new CartItemDto();
-            item.setProductId(productId);
-            item.setQuantity(quantity);
-        }
-        if (item == null) {
-            throw new RuntimeException("Missing product data");
-        }
+    public CartDto changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
         return cartService.updateItem(username, item);
     }
 
     @PostMapping("/remove")
-    public CartDto removeFromCart(@RequestParam String username,
-                                  @RequestParam(required = false) String productId,
-                                  @RequestBody(required = false) CartItemDto item) {
-        if (item == null && productId != null) {
-            item = new CartItemDto();
-            item.setProductId(productId);
-            item.setQuantity(0);
-        }
-        if (item == null) {
-            throw new RuntimeException("Missing product data");
-        }
+    public CartDto removeFromCart(@RequestParam String username, @RequestBody CartItemDto item) {
         item.setQuantity(0);
         return cartService.updateItem(username, item);
     }

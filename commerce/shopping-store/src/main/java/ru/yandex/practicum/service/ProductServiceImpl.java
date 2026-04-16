@@ -1,7 +1,10 @@
 package ru.yandex.practicum.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
@@ -16,6 +19,17 @@ public class ProductServiceImpl implements ProductService {
 
     public ProductServiceImpl(ProductRepository repository) {
         this.repository = repository;
+    }
+
+    @Override
+    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+        Page<Product> products;
+        if (category != null) {
+            products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE, pageable);
+        } else {
+            products = repository.findByStatus(ProductStatus.ACTIVE, pageable);
+        }
+        return products.map(this::toDto);
     }
 
     @Override
@@ -70,6 +84,14 @@ public class ProductServiceImpl implements ProductService {
         repository.save(product);
     }
 
+    @Override
+    public void updateQuantityState(Long id, ProductAvailability availability) {
+        Product product = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        product.setAvailability(availability);
+        repository.save(product);
+    }
+
     private ProductDto toDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setId(product.getId());
@@ -81,16 +103,5 @@ public class ProductServiceImpl implements ProductService {
         dto.setImageSrc(product.getImageSrc());
         dto.setPrice(product.getPrice());
         return dto;
-    }
-    private Product toEntity(ProductDto dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setAvailability(dto.getAvailability());
-        product.setImageSrc(dto.getImageSrc());
-        product.setPrice(dto.getPrice());
-        product.setStatus(ProductStatus.ACTIVE);
-        return product;
     }
 }

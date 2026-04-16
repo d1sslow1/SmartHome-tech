@@ -1,5 +1,7 @@
 package ru.yandex.practicum.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductCategory;
@@ -24,8 +26,13 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
-        return productService.getProducts(category);
+    public Page<ProductDto> getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "150") int size,
+            @RequestParam(defaultValue = "productName") String sort,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        return productService.getProducts(category, PageRequest.of(page, size));
     }
 
     @PutMapping
@@ -48,14 +55,7 @@ public class ProductController {
     }
 
     @PostMapping("/quantityState")
-    public void setQuantityState(@RequestParam(required = false) Long productId,
-                                 @RequestParam(required = false) ProductAvailability quantityState,
-                                 @RequestBody(required = false) ProductDto product) {
-        Long id = productId != null ? productId : product.getId();
-        ProductAvailability state = quantityState != null ? quantityState : product.getAvailability();
-
-        ProductDto dto = productService.getProduct(id);
-        dto.setAvailability(state);
-        productService.updateProduct(dto);
+    public void setQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
+        productService.updateQuantityState(productId, quantityState);
     }
 }

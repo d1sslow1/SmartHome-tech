@@ -76,23 +76,23 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Корзина деактивирована");
         }
 
-        if (itemDto.getQuantity() > 0) {
-            WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-            request.setItems(List.of(itemDto));
-            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
-            if (!response.isAvailable(itemDto.getProductId())) {
-                throw new RuntimeException("Недостаточно товара на складе");
-            }
-        }
-
         if (itemDto.getQuantity() == 0) {
             cart.getItems().removeIf(item -> item.getProductId().equals(itemDto.getProductId()));
         } else {
-            cart.getItems().forEach(item -> {
+            boolean found = false;
+            for (CartItem item : cart.getItems()) {
                 if (item.getProductId().equals(itemDto.getProductId())) {
                     item.setQuantity(itemDto.getQuantity());
+                    found = true;
+                    break;
                 }
-            });
+            }
+            if (!found) {
+                CartItem newItem = new CartItem();
+                newItem.setProductId(itemDto.getProductId());
+                newItem.setQuantity(itemDto.getQuantity());
+                cart.getItems().add(newItem);
+            }
         }
 
         cartRepository.save(cart);
@@ -128,4 +128,5 @@ public class CartServiceImpl implements CartService {
 
         return dto;
     }
+
 }
