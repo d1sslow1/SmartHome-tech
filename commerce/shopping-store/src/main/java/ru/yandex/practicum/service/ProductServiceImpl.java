@@ -69,6 +69,17 @@ public class ProductServiceImpl implements ProductService {
         repository.save(product);
     }
 
+    private Product toEntity(ProductDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setCategory(dto.getCategory());
+        product.setAvailability(dto.getAvailability());
+        product.setImages(dto.getImages());
+        product.setPrice(dto.getPrice());
+        return product;
+    }
+
     private ProductDto toDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setId(product.getId());
@@ -78,16 +89,7 @@ public class ProductServiceImpl implements ProductService {
         dto.setAvailability(product.getAvailability());
         dto.setStatus(product.getStatus());
         dto.setImages(product.getImages());
+        dto.setPrice(product.getPrice());
         return dto;
-    }
-
-    private Product toEntity(ProductDto dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setAvailability(dto.getAvailability());
-        product.setImages(dto.getImages());
-        return product;
     }
 }

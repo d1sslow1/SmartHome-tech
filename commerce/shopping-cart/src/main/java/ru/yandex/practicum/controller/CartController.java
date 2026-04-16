@@ -5,6 +5,9 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/shopping-cart")
 public class CartController {
@@ -21,8 +24,15 @@ public class CartController {
     }
 
     @PutMapping
-    public CartDto addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
-        return cartService.addItem(username, item);
+    public CartDto addProductsToCart(@RequestParam String username, @RequestBody Map<String, Integer> products) {
+        CartDto cart = cartService.getCart(username);
+        for (Map.Entry<String, Integer> entry : products.entrySet()) {
+            CartItemDto item = new CartItemDto();
+            item.setProductId(entry.getKey());
+            item.setQuantity(entry.getValue());
+            cart = cartService.addItem(username, item);
+        }
+        return cart;
     }
 
     @PostMapping("/change-quantity")

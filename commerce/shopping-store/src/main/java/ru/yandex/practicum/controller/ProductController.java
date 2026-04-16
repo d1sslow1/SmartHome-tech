@@ -37,6 +37,11 @@ public class ProductController {
         }
     }
 
+    @PostMapping
+    public ProductDto addProductPost(@RequestBody ProductDto product) {
+        return productService.addProduct(product);
+    }
+
     @PostMapping("/removeProductFromStore")
     public void removeProductFromStore(@RequestBody ProductDto product) {
         productService.deactivateProduct(product.getId());
