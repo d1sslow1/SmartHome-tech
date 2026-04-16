@@ -21,13 +21,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDto> getProducts(ProductCategory category) {
         List<Product> products;
-
         if (category != null) {
             products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE);
         } else {
             products = repository.findByStatus(ProductStatus.ACTIVE);
         }
-
         return products.stream().map(this::toDto).toList();
     }
 
@@ -35,13 +33,18 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         return toDto(product);
     }
 
     @Override
     public ProductDto addProduct(ProductDto dto) {
-        Product product = toEntity(dto);
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setCategory(dto.getCategory());
+        product.setAvailability(dto.getAvailability());
+        product.setImageSrc(dto.getImageSrc());
+        product.setPrice(dto.getPrice());
         product.setStatus(ProductStatus.ACTIVE);
         return toDto(repository.save(product));
     }
@@ -50,13 +53,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
-        product.setImages(dto.getImages());
-
+        product.setImageSrc(dto.getImageSrc());
+        product.setPrice(dto.getPrice());
         return toDto(repository.save(product));
     }
 
@@ -64,20 +66,8 @@ public class ProductServiceImpl implements ProductService {
     public void deactivateProduct(Long id) {
         Product product = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
         product.setStatus(ProductStatus.DEACTIVATE);
         repository.save(product);
-    }
-
-    private Product toEntity(ProductDto dto) {
-        Product product = new Product();
-        product.setName(dto.getName());
-        product.setDescription(dto.getDescription());
-        product.setCategory(dto.getCategory());
-        product.setAvailability(dto.getAvailability());
-        product.setImages(dto.getImages());
-        product.setPrice(dto.getPrice());
-        return product;
     }
 
     private ProductDto toDto(Product product) {
@@ -88,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
         dto.setStatus(product.getStatus());
-        dto.setImages(product.getImages());
+        dto.setImageSrc(product.getImageSrc());
         dto.setPrice(product.getPrice());
         return dto;
     }

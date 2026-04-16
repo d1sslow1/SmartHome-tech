@@ -1,5 +1,6 @@
 package ru.yandex.practicum.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
@@ -7,26 +8,28 @@ import ru.yandex.practicum.enums.ProductStatus;
 import java.util.List;
 
 public class ProductDto {
+
+    @JsonProperty("productId")
     private Long id;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("productName")
+    @JsonProperty("productName")
     private String name;
 
     private String description;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("productCategory")
+    @JsonProperty("productCategory")
     private ProductCategory category;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("quantityState")
+    @JsonProperty("quantityState")
     private ProductAvailability availability;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("productState")
+    @JsonProperty("productState")
     private ProductStatus status;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("imageSrc")
-    private List<String> images;
+    @JsonProperty("imageSrc")
+    private String imageSrc;  // Тесты ждут String, а не List!
 
-    private Double price;  // Добавляем price
+    private Double price;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -46,8 +49,8 @@ public class ProductDto {
     public ProductStatus getStatus() { return status; }
     public void setStatus(ProductStatus status) { this.status = status; }
 
-    public List<String> getImages() { return images; }
-    public void setImages(List<String> images) { this.images = images; }
+    public String getImageSrc() { return imageSrc; }
+    public void setImageSrc(String imageSrc) { this.imageSrc = imageSrc; }
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }

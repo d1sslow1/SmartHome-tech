@@ -5,8 +5,6 @@ import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 
-import java.util.List;
-
 @Entity
 public class Product {
 
@@ -17,6 +15,7 @@ public class Product {
     private String name;
     private String description;
     private Double price;
+    private String imageSrc;  // Меняем на String
 
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
@@ -27,10 +26,6 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    @ElementCollection
-    private List<String> images;
-
-    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -49,8 +44,8 @@ public class Product {
     public ProductStatus getStatus() { return status; }
     public void setStatus(ProductStatus status) { this.status = status; }
 
-    public List<String> getImages() { return images; }
-    public void setImages(List<String> images) { this.images = images; }
+    public String getImageSrc() { return imageSrc; }
+    public void setImageSrc(String imageSrc) { this.imageSrc = imageSrc; }
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }

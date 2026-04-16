@@ -8,8 +8,6 @@ import ru.yandex.practicum.model.Product;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
     List<Product> findByCategoryAndStatus(ProductCategory category, ProductStatus status);
-
     List<Product> findByStatus(ProductStatus status);
 }
