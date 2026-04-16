@@ -13,13 +13,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
   cloud:
     config:
       enabled: false
 
 server:
   port: 0
+  servlet:
+    context-path: /api/v1
 
 eureka:
   client:
@@ -31,3 +32,11 @@ eureka:
 logging:
   level:
     ru.yandex.practicum: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

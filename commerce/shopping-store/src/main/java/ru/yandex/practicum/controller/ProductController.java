@@ -3,12 +3,13 @@ package ru.yandex.practicum.controller;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductCategory;
+import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/shopping-store")
 public class ProductController {
 
     private final ProductService productService;
@@ -27,18 +28,24 @@ public class ProductController {
         return productService.getProducts(category);
     }
 
-    @PostMapping
-    public ProductDto addProduct(@RequestBody ProductDto product) {
-        return productService.addProduct(product);
-    }
-
     @PutMapping
-    public ProductDto updateProduct(@RequestBody ProductDto product) {
-        return productService.updateProduct(product);
+    public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
+        if (product.getId() == null) {
+            return productService.addProduct(product);
+        } else {
+            return productService.updateProduct(product);
+        }
     }
 
-    @DeleteMapping("/{id}")
-    public void deactivateProduct(@PathVariable Long id) {
-        productService.deactivateProduct(id);
+    @PostMapping("/removeProductFromStore")
+    public void removeProductFromStore(@RequestBody ProductDto product) {
+        productService.deactivateProduct(product.getId());
+    }
+
+    @PostMapping("/quantityState")
+    public void setQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
+        ProductDto product = productService.getProduct(productId);
+        product.setAvailability(quantityState);
+        productService.updateProduct(product);
     }
 }

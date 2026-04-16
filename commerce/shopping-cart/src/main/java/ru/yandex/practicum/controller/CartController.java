@@ -1,13 +1,12 @@
 package ru.yandex.practicum.controller;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/shopping-cart")
 public class CartController {
 
     private final CartService cartService;
@@ -16,26 +15,30 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<CartDto> addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
-
-        return ResponseEntity.ok(cartService.addItem(username, item));
+    @GetMapping
+    public CartDto getCart(@RequestParam String username) {
+        return cartService.getCart(username);
     }
 
-    @GetMapping("/{username}")
-    public ResponseEntity<CartDto> getCart(@PathVariable String username) {
-        return ResponseEntity.ok(cartService.getCart(username));
+    @PutMapping
+    public CartDto addProductToCart(@RequestParam String username, @RequestBody CartItemDto item) {
+        return cartService.addItem(username, item);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<CartDto> updateItem(@RequestParam String username, @RequestBody CartItemDto item) {
-
-        return ResponseEntity.ok(cartService.updateItem(username, item));
+    @PostMapping("/change-quantity")
+    public CartDto changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
+        return cartService.updateItem(username, item);
     }
 
-    @PostMapping("/deactivate")
-    public ResponseEntity<Void> deactivateCart(@RequestParam String username) {
+    @PostMapping("/remove")
+    public CartDto removeFromCart(@RequestParam String username, @RequestBody CartItemDto item) {
+        // Устанавливаем количество 0 для удаления
+        item.setQuantity(0);
+        return cartService.updateItem(username, item);
+    }
+
+    @DeleteMapping
+    public void deactivateCart(@RequestParam String username) {
         cartService.deactivateCart(username);
-        return ResponseEntity.ok().build();
     }
 }
