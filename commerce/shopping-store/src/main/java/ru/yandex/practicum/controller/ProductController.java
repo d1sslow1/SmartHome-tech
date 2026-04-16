@@ -26,28 +26,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public Object getProducts(
-            @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) {
-
-        List<ProductDto> products = productService.getProducts(category);
-
-        // Для теста get Products с пагинацией - возвращаем объект с content и page
-        if (page != null) {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("content", products);
-            response.put("page", Map.of(
-                    "size", size != null ? size : 150,
-                    "number", page,
-                    "totalElements", products.size(),
-                    "totalPages", products.isEmpty() ? 0 : 1
-            ));
-            return response;
-        }
-
-        // Для остальных тестов - возвращаем простой массив
-        return products;
+    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
+        return productService.getProducts(category);
     }
 
     @PutMapping
