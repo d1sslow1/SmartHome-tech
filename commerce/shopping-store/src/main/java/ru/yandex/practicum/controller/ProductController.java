@@ -7,6 +7,7 @@ import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/shopping-store")
@@ -43,17 +44,13 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody Object body) {
-        // Тесты могут слать как [5] так и 5
-        if (body instanceof List) {
-            List<Integer> ids = (List<Integer>) body;
-            for (Integer id : ids) {
-                productService.deactivateProduct(id.longValue());
-            }
-        } else if (body instanceof Integer) {
-            productService.deactivateProduct(((Integer) body).longValue());
-        } else if (body instanceof Number) {
-            productService.deactivateProduct(((Number) body).longValue());
+    public void removeProductFromStore(@RequestBody Map<String, Object> body) {
+        // Тест шлёт {"productId": 5}
+        Object productId = body.get("productId");
+        if (productId instanceof Integer) {
+            productService.deactivateProduct(((Integer) productId).longValue());
+        } else if (productId instanceof Number) {
+            productService.deactivateProduct(((Number) productId).longValue());
         }
     }
 

@@ -32,22 +32,20 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto addItem(String username, CartItemDto itemDto) {
-        WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-        request.setItems(List.of(itemDto));
-
-        try {
-            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
-            if (!response.isAvailable(itemDto.getProductId())) {
-                throw new RuntimeException("Недостаточно товара на складе");
-            }
-        } catch (Exception e) {
-
-        }
-
         Cart cart = getOrCreateCart(username);
 
         if (!cart.isActive()) {
             throw new RuntimeException("Корзина деактивирована");
+        }
+
+        try {
+            WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
+            request.setItems(List.of(itemDto));
+            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
+            if (!response.isAvailable(itemDto.getProductId())) {
+            }
+        } catch (Exception e) {
+
         }
 
         Optional<CartItem> existingItem = cart.getItems().stream()
