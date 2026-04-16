@@ -46,7 +46,8 @@ public class ProductServiceImpl implements ProductService {
         product.setAvailability(dto.getAvailability());
         product.setImageSrc(dto.getImageSrc());
         product.setPrice(dto.getPrice());
-        product.setStatus(ProductStatus.ACTIVE);
+        // Берём статус из DTO, если он есть, иначе ACTIVE
+        product.setStatus(dto.getStatus() != null ? dto.getStatus() : ProductStatus.ACTIVE);
         return toDto(repository.save(product));
     }
 
@@ -60,6 +61,10 @@ public class ProductServiceImpl implements ProductService {
         product.setAvailability(dto.getAvailability());
         product.setImageSrc(dto.getImageSrc());
         product.setPrice(dto.getPrice());
+        // Обновляем статус если он передан
+        if (dto.getStatus() != null) {
+            product.setStatus(dto.getStatus());
+        }
         return toDto(repository.save(product));
     }
 

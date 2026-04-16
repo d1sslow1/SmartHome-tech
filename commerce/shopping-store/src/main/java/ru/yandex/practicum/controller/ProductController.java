@@ -44,7 +44,6 @@ public class ProductController {
             ));
             return response;
         }
-
         return products;
     }
 
@@ -73,6 +72,17 @@ public class ProductController {
             Object productId = map.get("productId");
             if (productId instanceof Integer) {
                 productService.deactivateProduct(((Integer) productId).longValue());
+            } else if (productId instanceof Number) {
+                productService.deactivateProduct(((Number) productId).longValue());
+            }
+        } else if (body instanceof List) {
+            List<?> list = (List<?>) body;
+            for (Object id : list) {
+                if (id instanceof Integer) {
+                    productService.deactivateProduct(((Integer) id).longValue());
+                } else if (id instanceof Number) {
+                    productService.deactivateProduct(((Number) id).longValue());
+                }
             }
         }
     }

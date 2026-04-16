@@ -15,7 +15,7 @@ public class Product {
     private String name;
     private String description;
     private Double price;
-    private String imageSrc;  // Меняем на String
+    private String imageSrc;
 
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
@@ -25,6 +25,8 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
+
+    public Product() {}
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -49,6 +51,4 @@ public class Product {
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
-
-    public Product() {}
 }
