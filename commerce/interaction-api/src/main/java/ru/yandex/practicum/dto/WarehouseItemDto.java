@@ -2,21 +2,19 @@ package ru.yandex.practicum.dto;
 
 public class WarehouseItemDto {
 
-    private Long productId;
+    private String productId;  // Было Long
     private int quantity;
-
     private double weight;
     private double width;
     private double height;
     private double depth;
-
     private boolean fragile;
 
-    public Long getProductId() {
+    public String getProductId() {
         return productId;
     }
 
-    public void setProductId(Long productId) {
+    public void setProductId(String productId) {
         this.productId = productId;
     }
 

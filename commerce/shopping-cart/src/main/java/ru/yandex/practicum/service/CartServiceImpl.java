@@ -17,7 +17,6 @@ import java.util.Optional;
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
-    ;
     private final WarehouseClient warehouseClient;
 
     public CartServiceImpl(CartRepository cartRepository, WarehouseClient warehouseClient) {
@@ -33,7 +32,6 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto addItem(String username, CartItemDto itemDto) {
-
         WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
         request.setItems(List.of(itemDto));
 
@@ -49,7 +47,9 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Корзина деактивирована");
         }
 
-        Optional<CartItem> existingItem = cart.getItems().stream().filter(i -> i.getProductId().equals(itemDto.getProductId())).findFirst();
+        Optional<CartItem> existingItem = cart.getItems().stream()
+                .filter(i -> i.getProductId().equals(itemDto.getProductId()))
+                .findFirst();
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
@@ -67,27 +67,30 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto updateItem(String username, CartItemDto itemDto) {
-
         Cart cart = getOrCreateCart(username);
 
         if (!cart.isActive()) {
             throw new RuntimeException("Корзина деактивирована");
         }
 
-        WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-        request.setItems(List.of(itemDto));
-
-        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
-
-        if (!response.isAvailable(itemDto.getProductId())) {
-            throw new RuntimeException("Недостаточно товара на складе");
+        if (itemDto.getQuantity() > 0) {
+            WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
+            request.setItems(List.of(itemDto));
+            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
+            if (!response.isAvailable(itemDto.getProductId())) {
+                throw new RuntimeException("Недостаточно товара на складе");
+            }
         }
 
-        cart.getItems().forEach(item -> {
-            if (item.getProductId().equals(itemDto.getProductId())) {
-                item.setQuantity(itemDto.getQuantity());
-            }
-        });
+        if (itemDto.getQuantity() == 0) {
+            cart.getItems().removeIf(item -> item.getProductId().equals(itemDto.getProductId()));
+        } else {
+            cart.getItems().forEach(item -> {
+                if (item.getProductId().equals(itemDto.getProductId())) {
+                    item.setQuantity(itemDto.getQuantity());
+                }
+            });
+        }
 
         cartRepository.save(cart);
         return toDto(cart);

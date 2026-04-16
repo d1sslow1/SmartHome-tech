@@ -14,7 +14,7 @@ public class WarehouseCheckRequestDto {
         this.items = items;
     }
 
-    public void addItem(Long productId, int quantity) {
+    public void addItem(String productId, int quantity) {
         if (items == null) items = new ArrayList<>();
         items.add(new CartItemDto(productId, quantity));
     }

@@ -9,7 +9,7 @@ public interface WarehouseService {
 
     void addItem(WarehouseItemDto dto);
 
-    void updateQuantity(Long productId, int quantity);
+    void updateQuantity(String productId, int quantity);
 
     WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request);
 
