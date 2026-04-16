@@ -22,7 +22,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+    public Page<ProductDto> getProductsPage(ProductCategory category, Pageable pageable) {
         Page<Product> products;
         if (category != null) {
             products = repository.findByCategoryAndStatus(category, ProductStatus.ACTIVE, pageable);

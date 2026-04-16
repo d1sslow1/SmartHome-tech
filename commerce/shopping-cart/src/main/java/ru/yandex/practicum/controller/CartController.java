@@ -5,6 +5,7 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,14 +36,28 @@ public class CartController {
     }
 
     @PostMapping("/change-quantity")
-    public CartDto changeQuantity(@RequestParam String username, @RequestBody CartItemDto item) {
+    public CartDto changeQuantity(@RequestParam String username, @RequestBody Map<String, Integer> body) {
+        // Тесты шлют {"newQuantity": 694, "productId": "..."}
+        String productId = body.get("productId").toString();
+        Integer quantity = body.get("newQuantity");
+
+        CartItemDto item = new CartItemDto();
+        item.setProductId(productId);
+        item.setQuantity(quantity);
         return cartService.updateItem(username, item);
     }
 
     @PostMapping("/remove")
-    public CartDto removeFromCart(@RequestParam String username, @RequestBody CartItemDto item) {
-        item.setQuantity(0);
-        return cartService.updateItem(username, item);
+    public CartDto removeFromCart(@RequestParam String username, @RequestBody List<String> productIds) {
+        // Тесты шлют массив ["productId"]
+        CartDto cart = cartService.getCart(username);
+        for (String productId : productIds) {
+            CartItemDto item = new CartItemDto();
+            item.setProductId(productId);
+            item.setQuantity(0);
+            cart = cartService.updateItem(username, item);
+        }
+        return cart;
     }
 
     @DeleteMapping

@@ -26,12 +26,10 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<ProductDto> getProducts(
-            @RequestParam(required = false) ProductCategory category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "150") int size) {
-        return productService.getProducts(category, PageRequest.of(page, size));
+    public List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category) {
+        return productService.getProducts(category);
     }
+
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
@@ -47,8 +45,10 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody ProductDto product) {
-        productService.deactivateProduct(product.getId());
+    public void removeProductFromStore(@RequestBody List<Long> productIds) {
+        for (Long id : productIds) {
+            productService.deactivateProduct(id);
+        }
     }
 
     @PostMapping("/quantityState")

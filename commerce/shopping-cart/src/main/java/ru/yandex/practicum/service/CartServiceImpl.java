@@ -76,7 +76,7 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Корзина деактивирована");
         }
 
-        if (itemDto.getQuantity() == 0) {
+        if (itemDto.getQuantity() <= 0) {
             cart.getItems().removeIf(item -> item.getProductId().equals(itemDto.getProductId()));
         } else {
             boolean found = false;

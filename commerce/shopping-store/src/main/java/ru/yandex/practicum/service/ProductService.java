@@ -9,8 +9,8 @@ import ru.yandex.practicum.enums.ProductCategory;
 import java.util.List;
 
 public interface ProductService {
-    Page<ProductDto> getProducts(ProductCategory category, Pageable pageable);
-    List<ProductDto> getProducts(ProductCategory category);
+    Page<ProductDto> getProductsPage(ProductCategory category, Pageable pageable);
+    List<ProductDto> getProducts(ProductCategory category);  //
     ProductDto getProduct(Long id);
     ProductDto addProduct(ProductDto product);
     ProductDto updateProduct(ProductDto product);
