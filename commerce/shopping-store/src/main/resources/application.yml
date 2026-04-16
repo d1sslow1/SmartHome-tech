@@ -16,8 +16,6 @@ spring:
   cloud:
     config:
       enabled: false
-      import-check:
-        enabled: false
 
 server:
   port: 0
@@ -34,17 +32,18 @@ eureka:
     health-check-url-path: /actuator/health
 
 management:
+  server:
+    port: 8083
+    base-path: /actuator
   endpoints:
     web:
       exposure:
         include: health,info
-      base-path: /actuator
+      base-path: /
   endpoint:
     health:
       show-details: always
-      enabled: true
 
 logging:
   level:
     ru.yandex.practicum: DEBUG
-    org.springframework.web: INFO

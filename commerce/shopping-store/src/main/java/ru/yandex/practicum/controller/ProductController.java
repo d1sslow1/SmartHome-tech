@@ -29,12 +29,9 @@ public class ProductController {
     public Page<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "150") int size,
-            @RequestParam(defaultValue = "productName") String sort,
-            @RequestParam(defaultValue = "DESC") String direction) {
+            @RequestParam(defaultValue = "150") int size) {
         return productService.getProducts(category, PageRequest.of(page, size));
     }
-
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
