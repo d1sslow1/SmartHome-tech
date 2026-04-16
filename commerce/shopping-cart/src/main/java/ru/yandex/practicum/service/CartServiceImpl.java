@@ -35,10 +35,13 @@ public class CartServiceImpl implements CartService {
         WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
         request.setItems(List.of(itemDto));
 
-        WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
+        try {
+            WarehouseCheckResponseDto response = warehouseClient.checkAvailability(request);
+            if (!response.isAvailable(itemDto.getProductId())) {
+                throw new RuntimeException("Недостаточно товара на складе");
+            }
+        } catch (Exception e) {
 
-        if (!response.isAvailable(itemDto.getProductId())) {
-            throw new RuntimeException("Недостаточно товара на складе");
         }
 
         Cart cart = getOrCreateCart(username);

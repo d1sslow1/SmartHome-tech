@@ -43,10 +43,8 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody(required = false) ProductDto product,
-                                       @RequestParam(required = false) Long productId) {
-        Long id = productId != null ? productId : product.getId();
-        productService.deactivateProduct(id);
+    public void removeProductFromStore(@RequestBody ProductDto product) {
+        productService.deactivateProduct(product.getId());
     }
 
     @PostMapping("/quantityState")

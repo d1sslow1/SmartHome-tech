@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
 import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
 
-@FeignClient(name = "warehouse", path = "/warehouse")
+@FeignClient(name = "warehouse", path = "/api/v1/warehouse")  // Добавлен /api/v1
 public interface WarehouseClient {
 
     @PostMapping("/check")

@@ -7,9 +7,10 @@ public class WarehouseAddressDto {
     private String city;
     private String street;
 
-    @JsonProperty("house")  // Тесты ждут house!
+    @JsonProperty("house")
     private String building;
 
+    @JsonProperty("flat")  // Тесты ждут flat!
     private String apartment;
 
     public WarehouseAddressDto() {}
