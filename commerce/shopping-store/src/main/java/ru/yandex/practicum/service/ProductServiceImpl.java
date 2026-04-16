@@ -1,5 +1,7 @@
 package ru.yandex.practicum.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.dto.ProductDto;
@@ -15,6 +17,7 @@ import java.util.List;
 @Transactional
 public class ProductServiceImpl implements ProductService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
 
     public ProductServiceImpl(ProductRepository repository) {
@@ -24,12 +27,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductDto> getProducts(ProductCategory category) {
+        log.info("=== ProductServiceImpl.getProducts called with category: {} ===", category);
         List<Product> products;
         if (category != null) {
-
             products = repository.findByCategory(category);
+            log.info("Found {} products for category {}", products.size(), category);
         } else {
             products = repository.findAll();
+            log.info("Found {} total products", products.size());
+        }
+        // Логируем статусы найденных продуктов
+        for (Product p : products) {
+            log.info("Product: id={}, name={}, status={}", p.getId(), p.getName(), p.getStatus());
         }
         return products.stream().map(this::toDto).toList();
     }

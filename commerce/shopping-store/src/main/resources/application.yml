@@ -43,3 +43,4 @@ management:
 logging:
   level:
     ru.yandex.practicum: DEBUG
+    org.springframework.web: DEBUG
