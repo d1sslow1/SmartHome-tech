@@ -5,8 +5,10 @@ import ru.yandex.practicum.dto.CartDto;
 import ru.yandex.practicum.dto.CartItemDto;
 import ru.yandex.practicum.service.CartService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/shopping-cart")
@@ -19,23 +21,25 @@ public class CartController {
     }
 
     @GetMapping
-    public CartDto getCart(@RequestParam String username) {
-        return cartService.getCart(username);
+    public Map<String, Object> getCart(@RequestParam String username) {
+        CartDto cart = cartService.getCart(username);
+        return formatCartResponse(cart);
     }
 
     @PutMapping
-    public CartDto addProductsToCart(@RequestParam String username, @RequestBody Map<String, Integer> products) {
+    public Map<String, Object> addProductsToCart(@RequestParam String username, @RequestBody Map<String, Integer> products) {
         for (Map.Entry<String, Integer> entry : products.entrySet()) {
             CartItemDto item = new CartItemDto();
             item.setProductId(entry.getKey());
             item.setQuantity(entry.getValue());
             cartService.addItem(username, item);
         }
-        return cartService.getCart(username);
+        CartDto cart = cartService.getCart(username);
+        return formatCartResponse(cart);
     }
 
     @PostMapping("/change-quantity")
-    public CartDto changeQuantity(@RequestParam String username, @RequestBody Map<String, Object> body) {
+    public Map<String, Object> changeQuantity(@RequestParam String username, @RequestBody Map<String, Object> body) {
         String productId = (String) body.get("productId");
         Integer quantity = (Integer) body.get("newQuantity");
 
@@ -43,11 +47,12 @@ public class CartController {
         item.setProductId(productId);
         item.setQuantity(quantity);
         cartService.updateItem(username, item);
-        return cartService.getCart(username);
+        CartDto cart = cartService.getCart(username);
+        return formatCartResponse(cart);
     }
 
     @PostMapping("/remove")
-    public CartDto removeFromCart(@RequestParam String username, @RequestBody Object body) {
+    public Map<String, Object> removeFromCart(@RequestParam String username, @RequestBody Object body) {
         if (body instanceof List) {
             List<String> productIds = (List<String>) body;
             for (String productId : productIds) {
@@ -64,11 +69,24 @@ public class CartController {
             item.setQuantity(0);
             cartService.updateItem(username, item);
         }
-        return cartService.getCart(username);
+        CartDto cart = cartService.getCart(username);
+        return formatCartResponse(cart);
     }
 
     @DeleteMapping
     public void deactivateCart(@RequestParam String username) {
         cartService.deactivateCart(username);
+    }
+
+    private Map<String, Object> formatCartResponse(CartDto cart) {
+        Map<String, Object> response = new HashMap<>();
+        Map<String, Integer> products = cart.getItems().stream()
+                .collect(Collectors.toMap(
+                        CartItemDto::getProductId,
+                        CartItemDto::getQuantity
+                ));
+        response.put("products", products);
+        response.put("shoppingCartId", cart.getUsername() + "_cart");
+        return response;
     }
 }
