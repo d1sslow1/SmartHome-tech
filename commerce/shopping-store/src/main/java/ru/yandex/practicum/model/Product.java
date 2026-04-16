@@ -6,24 +6,35 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 
 @Entity
+@Table(name = "product")
 public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "price")
     private Double price;
+
+    @Column(name = "image_src")
     private String imageSrc;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "category")
     private ProductCategory category;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "availability")
     private ProductAvailability availability;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private ProductStatus status;
 
     public Product() {}

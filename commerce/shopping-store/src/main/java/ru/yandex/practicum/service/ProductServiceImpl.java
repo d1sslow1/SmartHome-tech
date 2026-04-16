@@ -1,6 +1,7 @@
 package ru.yandex.practicum.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.enums.ProductCategory;
@@ -11,6 +12,7 @@ import ru.yandex.practicum.repository.ProductRepository;
 import java.util.List;
 
 @Service
+@Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository repository;
@@ -20,6 +22,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductDto> getProducts(ProductCategory category) {
         List<Product> products;
         if (category != null) {
@@ -31,9 +34,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + id));
         return toDto(product);
     }
 
@@ -46,7 +50,6 @@ public class ProductServiceImpl implements ProductService {
         product.setAvailability(dto.getAvailability());
         product.setImageSrc(dto.getImageSrc());
         product.setPrice(dto.getPrice());
-        // Берём статус из DTO, если он есть, иначе ACTIVE
         product.setStatus(dto.getStatus() != null ? dto.getStatus() : ProductStatus.ACTIVE);
         return toDto(repository.save(product));
     }
@@ -54,14 +57,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getId()));
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
         product.setImageSrc(dto.getImageSrc());
         product.setPrice(dto.getPrice());
-        // Обновляем статус если он передан
         if (dto.getStatus() != null) {
             product.setStatus(dto.getStatus());
         }
@@ -71,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deactivateProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + id));
         product.setStatus(ProductStatus.DEACTIVATE);
         repository.save(product);
     }
@@ -79,7 +81,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void updateQuantityState(Long id, ProductAvailability availability) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + id));
         product.setAvailability(availability);
         repository.save(product);
     }
