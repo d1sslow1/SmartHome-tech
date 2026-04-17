@@ -11,6 +11,8 @@ import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.repository.ProductRepository;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
@@ -97,5 +99,16 @@ public class ProductServiceImpl implements ProductService {
         dto.setImageSrc(product.getImageSrc());
         dto.setPrice(product.getPrice());
         return dto;
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDto> getProductsList(ProductCategory category) {
+        List<Product> products;
+        if (category != null) {
+            products = repository.findByCategory(category);
+        } else {
+            products = repository.findAll();
+        }
+        return products.stream().map(this::toDto).toList();
     }
 }

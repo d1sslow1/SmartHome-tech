@@ -10,6 +10,8 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/shopping-store")
 public class ProductController {
@@ -26,17 +28,26 @@ public class ProductController {
     }
 
     @GetMapping
-    public Page<ProductDto> getProducts(
+    public Object getProducts(
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "150") int size,
-            @RequestParam(defaultValue = "productName,ASC") String sort) {
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sort) {
 
-        String[] sortParts = sort.split(",");
-        String sortField = sortParts[0];  // "productName" - теперь совпадает с полем в Product!
-        Sort.Direction direction = Sort.Direction.fromString(sortParts[1]);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
+        if (page == null) {
+            return productService.getProductsList(category);
+        }
+
+        String sortField = "productName";
+        Sort.Direction direction = Sort.Direction.ASC;
+        if (sort != null) {
+            String[] sortParts = sort.split(",");
+            sortField = sortParts[0];
+            direction = Sort.Direction.fromString(sortParts[1]);
+        }
+
+        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
         return productService.getProducts(category, pageable);
     }
 
