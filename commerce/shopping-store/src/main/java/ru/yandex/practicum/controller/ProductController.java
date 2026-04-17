@@ -1,22 +1,19 @@
 package ru.yandex.practicum.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/shopping-store")
 public class ProductController {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -29,30 +26,19 @@ public class ProductController {
     }
 
     @GetMapping
-    public Object getProducts(
+    public Page<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "150") int size,
+            @RequestParam(defaultValue = "productName,ASC") String sort) {
 
-        List<ProductDto> products = productService.getProducts(category);
+        String[] sortParts = sort.split(",");
+        Sort.Direction direction = Sort.Direction.fromString(sortParts[1]);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortParts[0]));
 
-        // ВСЕГДА возвращаем массив, если нет page!
-        if (page == null) {
-            return products;
-        }
-
-        // Только если есть page - возвращаем объект с content
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", products);
-        response.put("page", Map.of(
-                "size", size != null ? size : 150,
-                "number", page,
-                "totalElements", products.size(),
-                "totalPages", products.isEmpty() ? 0 : 1
-        ));
-        return response;
+        return productService.getProducts(category, pageable);
     }
+
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
@@ -69,25 +55,15 @@ public class ProductController {
 
     @PostMapping("/removeProductFromStore")
     public void removeProductFromStore(@RequestBody Object body) {
-        log.info("removeProductFromStore body: {}", body);
-        log.info("body class: {}", body.getClass().getName());
-
         if (body instanceof Integer) {
             productService.deactivateProduct(((Integer) body).longValue());
         } else if (body instanceof Number) {
             productService.deactivateProduct(((Number) body).longValue());
-        } else if (body instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) body;
+        } else if (body instanceof java.util.Map) {
+            java.util.Map<String, Object> map = (java.util.Map<String, Object>) body;
             Object productId = map.get("productId");
             if (productId instanceof Integer) {
                 productService.deactivateProduct(((Integer) productId).longValue());
-            }
-        } else if (body instanceof List) {
-            List<?> list = (List<?>) body;
-            for (Object id : list) {
-                if (id instanceof Integer) {
-                    productService.deactivateProduct(((Integer) id).longValue());
-                }
             }
         }
     }

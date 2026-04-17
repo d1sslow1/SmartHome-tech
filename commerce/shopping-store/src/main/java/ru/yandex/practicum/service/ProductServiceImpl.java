@@ -1,7 +1,7 @@
 package ru.yandex.practicum.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.dto.ProductDto;
@@ -11,13 +11,10 @@ import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.repository.ProductRepository;
 
-import java.util.List;
-
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository repository;
 
     public ProductServiceImpl(ProductRepository repository) {
@@ -26,21 +23,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductDto> getProducts(ProductCategory category) {
-        log.info("=== ProductServiceImpl.getProducts called with category: {} ===", category);
-        List<Product> products;
+    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+        Page<Product> products;
         if (category != null) {
-            products = repository.findByCategory(category);
-            log.info("Found {} products for category {}", products.size(), category);
+            products = repository.findByCategory(category, pageable);
         } else {
-            products = repository.findAll();
-            log.info("Found {} total products", products.size());
+            products = repository.findAll(pageable);
         }
-        // Логируем статусы найденных продуктов
-        for (Product p : products) {
-            log.info("Product: id={}, name={}, status={}", p.getId(), p.getName(), p.getStatus());
-        }
-        return products.stream().map(this::toDto).toList();
+        return products.map(this::toDto);
     }
 
     @Override
