@@ -35,31 +35,23 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        log.info("=== GET PRODUCTS CALLED ===");
-        log.info("category: {}", category);
-        log.info("page: {}", page);
-        log.info("size: {}", size);
-        log.info("sort: {}", sort);
-
         List<ProductDto> products = productService.getProducts(category);
-        log.info("Found {} products", products.size());
 
-        // Для теста с пагинацией (CONTROL + page=0) - возвращаем объект с content
-        if (category == ProductCategory.CONTROL && page != null && page == 0) {
-            log.info("Returning PAGE format with content for CONTROL test");
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("content", products);
-            response.put("page", Map.of(
-                    "size", size != null ? size : 150,
-                    "number", page,
-                    "totalElements", products.size(),
-                    "totalPages", 1
-            ));
-            return response;
+        // ВСЕГДА возвращаем массив, если нет page!
+        if (page == null) {
+            return products;
         }
 
-        log.info("Returning ARRAY format");
-        return products;
+        // Только если есть page - возвращаем объект с content
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("content", products);
+        response.put("page", Map.of(
+                "size", size != null ? size : 150,
+                "number", page,
+                "totalElements", products.size(),
+                "totalPages", products.isEmpty() ? 0 : 1
+        ));
+        return response;
     }
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
