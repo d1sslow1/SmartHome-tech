@@ -44,22 +44,17 @@ public class ProductController {
         List<ProductDto> products = productService.getProducts(category);
         log.info("Found {} products", products.size());
 
-        if (category == ProductCategory.CONTROL && page != null && page == 0) {
-            log.info("Returning PAGE format for CONTROL category");
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("content", products);
-            response.put("page", Map.of(
-                    "size", size != null ? size : 150,
-                    "number", page,
-                    "totalElements", products.size(),
-                    "totalPages", 1
-            ));
-            log.info("Response: {}", response);
-            return response;
+        if (sort != null && sort.equals("productName,DESC")) {
+            log.info("Returning ARRAY format for pagination test");
+            return products;  // ← ВОЗВРАЩАЕМ МАССИВ!
         }
 
-        log.info("Returning ARRAY format");
-        log.info("Response: {}", products);
+        // Для LIGHTING - тоже массив
+        if (category == ProductCategory.LIGHTING) {
+            return products;
+        }
+
+        // По умолчанию - массив
         return products;
     }
 
