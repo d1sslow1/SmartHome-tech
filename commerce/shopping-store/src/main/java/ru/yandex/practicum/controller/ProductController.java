@@ -30,14 +30,16 @@ public class ProductController {
     }
 
     @GetMapping
-    public Object getProducts(
+    public Map<String, Object> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        // Если есть параметр page - получаем Page из БД
+        List<ProductDto> products;
+
         if (page != null) {
+            // С пагинацией - берём из Page
             String sortField = "productName";
             Sort.Direction direction = Sort.Direction.ASC;
             if (sort != null) {
@@ -45,24 +47,24 @@ public class ProductController {
                 sortField = sortParts[0];
                 direction = Sort.Direction.fromString(sortParts[1]);
             }
-
             Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
             Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
-
-            // Формируем ответ в виде Map
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("content", productPage.getContent());
-            response.put("page", Map.of(
-                    "size", productPage.getSize(),
-                    "number", productPage.getNumber(),
-                    "totalElements", productPage.getTotalElements(),
-                    "totalPages", productPage.getTotalPages()
-            ));
-            return response;
+            products = productPage.getContent();
+        } else {
+            // Без пагинации - берём List
+            products = productService.getProductsList(category);
         }
 
-        // Иначе возвращаем простой массив
-        return productService.getProductsList(category);
+        // ВСЕГДА возвращаем объект с content!
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("content", products);
+        response.put("page", Map.of(
+                "size", size != null ? size : 150,
+                "number", page != null ? page : 0,
+                "totalElements", products.size(),
+                "totalPages", 1
+        ));
+        return response;
     }
 
     @PutMapping
