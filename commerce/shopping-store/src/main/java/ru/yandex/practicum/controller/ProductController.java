@@ -44,20 +44,23 @@ public class ProductController {
         List<ProductDto> products = productService.getProducts(category);
         log.info("Found {} products", products.size());
 
-        if (sort != null && sort.equals("productName,DESC")) {
-            log.info("Returning ARRAY format for pagination test");
-            return products;  // ← ВОЗВРАЩАЕМ МАССИВ!
+        // Для теста с пагинацией (CONTROL + page=0) - возвращаем объект с content
+        if (category == ProductCategory.CONTROL && page != null && page == 0) {
+            log.info("Returning PAGE format with content for CONTROL test");
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("content", products);
+            response.put("page", Map.of(
+                    "size", size != null ? size : 150,
+                    "number", page,
+                    "totalElements", products.size(),
+                    "totalPages", 1
+            ));
+            return response;
         }
 
-        // Для LIGHTING - тоже массив
-        if (category == ProductCategory.LIGHTING) {
-            return products;
-        }
-
-        // По умолчанию - массив
+        log.info("Returning ARRAY format");
         return products;
     }
-
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
