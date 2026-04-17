@@ -13,28 +13,20 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "product_name")  // в БД product_name
+    private String productName;      // в Java productName
 
-    @Column(name = "description")
     private String description;
-
-    @Column(name = "price")
     private Double price;
-
-    @Column(name = "image_src")
     private String imageSrc;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "category")
     private ProductCategory category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "availability")
     private ProductAvailability availability;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private ProductStatus status;
 
     public Product() {}
@@ -42,8 +34,8 @@ public class Product {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getProductName() { return productName; }
+    public void setProductName(String productName) { this.productName = productName; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

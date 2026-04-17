@@ -33,7 +33,7 @@ public class ProductController {
             @RequestParam(defaultValue = "productName,ASC") String sort) {
 
         String[] sortParts = sort.split(",");
-        String sortField = sortParts[0];
+        String sortField = sortParts[0];  // "productName" - теперь совпадает с полем в Product!
         Sort.Direction direction = Sort.Direction.fromString(sortParts[1]);
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 

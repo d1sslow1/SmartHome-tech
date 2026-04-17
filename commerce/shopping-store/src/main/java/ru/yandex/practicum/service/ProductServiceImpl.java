@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto addProduct(ProductDto dto) {
         Product product = new Product();
-        product.setName(dto.getName());
+        product.setProductName(dto.getName());  // ← меняем на setProductName()
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
@@ -58,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getId()));
-        product.setName(dto.getName());
+        product.setProductName(dto.getName());  // ← меняем на setProductName()
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
@@ -89,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductDto toDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setId(product.getId());
-        dto.setName(product.getName());
+        dto.setName(product.getProductName());  // ← меняем на getProductName()
         dto.setDescription(product.getDescription());
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
