@@ -6,11 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.dto.ProductsPageResponse;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,16 +30,14 @@ public class ProductController {
     }
 
     @GetMapping
-    public Map<String, Object> getProducts(
+    public Object getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        List<ProductDto> products;
-
+        // Если есть параметр page - возвращаем объект с content
         if (page != null) {
-            // С пагинацией - берём из Page
             String sortField = "productName";
             Sort.Direction direction = Sort.Direction.ASC;
             if (sort != null) {
@@ -47,24 +45,19 @@ public class ProductController {
                 sortField = sortParts[0];
                 direction = Sort.Direction.fromString(sortParts[1]);
             }
+
             Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
             Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
-            products = productPage.getContent();
-        } else {
-            // Без пагинации - берём List
-            products = productService.getProductsList(category);
-        }
 
-        // ВСЕГДА возвращаем объект с content!
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", products);
-        response.put("page", Map.of(
-                "size", size != null ? size : 150,
-                "number", page != null ? page : 0,
-                "totalElements", products.size(),
-                "totalPages", 1
-        ));
-        return response;
+            return new ProductsPageResponse(
+                    productPage.getContent(),
+                    productPage.getNumber(),
+                    productPage.getSize(),
+                    productPage.getTotalElements(),
+                    productPage.getTotalPages()
+            );
+        }
+        return productService.getProductsList(category);
     }
 
     @PutMapping
