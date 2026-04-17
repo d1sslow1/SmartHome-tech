@@ -33,8 +33,9 @@ public class ProductController {
             @RequestParam(defaultValue = "productName,ASC") String sort) {
 
         String[] sortParts = sort.split(",");
+        String sortField = sortParts[0];
         Sort.Direction direction = Sort.Direction.fromString(sortParts[1]);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortParts[0]));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
 
         return productService.getProducts(category, pageable);
     }
@@ -64,6 +65,8 @@ public class ProductController {
             Object productId = map.get("productId");
             if (productId instanceof Integer) {
                 productService.deactivateProduct(((Integer) productId).longValue());
+            } else if (productId instanceof Number) {
+                productService.deactivateProduct(((Number) productId).longValue());
             }
         }
     }

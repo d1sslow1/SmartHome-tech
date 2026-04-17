@@ -9,5 +9,7 @@ import ru.yandex.practicum.model.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
     Page<Product> findByCategory(ProductCategory category, Pageable pageable);
+
 }
