@@ -40,10 +40,13 @@ public class ProductController {
         if (page != null) {
             String sortField = "productName";
             Sort.Direction direction = Sort.Direction.ASC;
+            boolean sorted = false;
+
             if (sort != null) {
                 String[] sortParts = sort.split(",");
                 sortField = sortParts[0];
                 direction = Sort.Direction.fromString(sortParts[1]);
+                sorted = true;
             }
 
             Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
@@ -54,9 +57,12 @@ public class ProductController {
                     productPage.getNumber(),
                     productPage.getSize(),
                     productPage.getTotalElements(),
-                    productPage.getTotalPages()
+                    productPage.getTotalPages(),
+                    sorted  // ← ПЕРЕДАЁМ sorted!
             );
         }
+
+        // Иначе возвращаем простой массив
         return productService.getProductsList(category);
     }
 

@@ -6,16 +6,22 @@ import java.util.Map;
 public class ProductsPageResponse {
     private List<ProductDto> content;
     private Map<String, Object> page;
+    private Map<String, Boolean> sort;  // ← ДОБАВЛЯЕМ SORT!
 
     public ProductsPageResponse() {}
 
-    public ProductsPageResponse(List<ProductDto> content, int page, int size, long totalElements, int totalPages) {
+    public ProductsPageResponse(List<ProductDto> content, int page, int size, long totalElements, int totalPages, boolean sorted) {
         this.content = content;
         this.page = Map.of(
                 "size", size,
                 "number", page,
                 "totalElements", totalElements,
                 "totalPages", totalPages
+        );
+        this.sort = Map.of(
+                "sorted", sorted,
+                "unsorted", !sorted,
+                "empty", false
         );
     }
 
@@ -33,5 +39,13 @@ public class ProductsPageResponse {
 
     public void setPage(Map<String, Object> page) {
         this.page = page;
+    }
+
+    public Map<String, Boolean> getSort() {
+        return sort;
+    }
+
+    public void setSort(Map<String, Boolean> sort) {
+        this.sort = sort;
     }
 }
