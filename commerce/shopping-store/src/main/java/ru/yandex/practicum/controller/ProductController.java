@@ -10,7 +10,9 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/shopping-store")
@@ -34,21 +36,33 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
+        // Если есть параметр page - получаем Page из БД
+        if (page != null) {
+            String sortField = "productName";
+            Sort.Direction direction = Sort.Direction.ASC;
+            if (sort != null) {
+                String[] sortParts = sort.split(",");
+                sortField = sortParts[0];
+                direction = Sort.Direction.fromString(sortParts[1]);
+            }
 
-        if (page == null) {
-            return productService.getProductsList(category);
+            Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
+            Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
+
+            // Формируем ответ в виде Map
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("content", productPage.getContent());
+            response.put("page", Map.of(
+                    "size", productPage.getSize(),
+                    "number", productPage.getNumber(),
+                    "totalElements", productPage.getTotalElements(),
+                    "totalPages", productPage.getTotalPages()
+            ));
+            return response;
         }
 
-        String sortField = "productName";
-        Sort.Direction direction = Sort.Direction.ASC;
-        if (sort != null) {
-            String[] sortParts = sort.split(",");
-            sortField = sortParts[0];
-            direction = Sort.Direction.fromString(sortParts[1]);
-        }
-
-        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
-        return productService.getProducts(category, pageable);
+        // Иначе возвращаем простой массив
+        return productService.getProductsList(category);
     }
 
     @PutMapping
@@ -71,8 +85,8 @@ public class ProductController {
             productService.deactivateProduct(((Integer) body).longValue());
         } else if (body instanceof Number) {
             productService.deactivateProduct(((Number) body).longValue());
-        } else if (body instanceof java.util.Map) {
-            java.util.Map<String, Object> map = (java.util.Map<String, Object>) body;
+        } else if (body instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) body;
             Object productId = map.get("productId");
             if (productId instanceof Integer) {
                 productService.deactivateProduct(((Integer) productId).longValue());

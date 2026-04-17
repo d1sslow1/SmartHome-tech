@@ -25,7 +25,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+    public Page<ProductDto> getProductsPage(ProductCategory category, Pageable pageable) {
         Page<Product> products;
         if (category != null) {
             products = repository.findByCategory(category, pageable);
@@ -33,6 +33,18 @@ public class ProductServiceImpl implements ProductService {
             products = repository.findAll(pageable);
         }
         return products.map(this::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductDto> getProductsList(ProductCategory category) {
+        List<Product> products;
+        if (category != null) {
+            products = repository.findByCategory(category);
+        } else {
+            products = repository.findAll();
+        }
+        return products.stream().map(this::toDto).toList();
     }
 
     @Override
@@ -46,7 +58,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto addProduct(ProductDto dto) {
         Product product = new Product();
-        product.setProductName(dto.getName());  // ← меняем на setProductName()
+        product.setProductName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
@@ -60,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getId()));
-        product.setProductName(dto.getName());  // ← меняем на setProductName()
+        product.setProductName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());
         product.setAvailability(dto.getAvailability());
@@ -91,7 +103,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductDto toDto(Product product) {
         ProductDto dto = new ProductDto();
         dto.setId(product.getId());
-        dto.setName(product.getProductName());  // ← меняем на getProductName()
+        dto.setName(product.getProductName());
         dto.setDescription(product.getDescription());
         dto.setCategory(product.getCategory());
         dto.setAvailability(product.getAvailability());
@@ -99,16 +111,5 @@ public class ProductServiceImpl implements ProductService {
         dto.setImageSrc(product.getImageSrc());
         dto.setPrice(product.getPrice());
         return dto;
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductDto> getProductsList(ProductCategory category) {
-        List<Product> products;
-        if (category != null) {
-            products = repository.findByCategory(category);
-        } else {
-            products = repository.findAll();
-        }
-        return products.stream().map(this::toDto).toList();
     }
 }

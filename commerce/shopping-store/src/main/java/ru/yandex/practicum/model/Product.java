@@ -13,8 +13,8 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "product_name")  // в БД product_name
-    private String productName;      // в Java productName
+    @Column(name = "product_name")
+    private String productName;
 
     private String description;
     private Double price;
