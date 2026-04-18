@@ -35,7 +35,7 @@ public class ProductController {
 
         Sort sorting = Sort.unsorted();
         boolean sorted = false;
-        String direction = "ASC";
+        String direction = "DESC";
         String property = "productName";
 
         if (sort != null && sort.length > 0) {
