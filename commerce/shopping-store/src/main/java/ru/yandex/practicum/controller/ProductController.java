@@ -37,15 +37,19 @@ public class ProductController {
 
         Sort sorting = Sort.unsorted();
         boolean sorted = false;
+        String direction = "ASC";
+
         if (sort != null && sort.length > 0) {
             sorted = true;
             String[] sortParts = sort[0].split(",");
             String property = sortParts[0];
-            Sort.Direction direction = Sort.Direction.ASC;
+            direction = "ASC";
+            Sort.Direction sortDirection = Sort.Direction.ASC;
             if (sortParts.length > 1 && "DESC".equalsIgnoreCase(sortParts[1])) {
-                direction = Sort.Direction.DESC;
+                sortDirection = Sort.Direction.DESC;
+                direction = "DESC";
             }
-            sorting = Sort.by(direction, property);
+            sorting = Sort.by(sortDirection, property);
         }
 
         Pageable pageable = PageRequest.of(page, size, sorting);
@@ -57,7 +61,8 @@ public class ProductController {
                 productPage.getSize(),
                 productPage.getTotalElements(),
                 productPage.getTotalPages(),
-                sorted
+                sorted,
+                direction
         );
     }
 
