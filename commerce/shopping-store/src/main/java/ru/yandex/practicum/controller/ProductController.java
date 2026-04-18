@@ -11,6 +11,7 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,29 +41,30 @@ public class ProductController {
             return productService.getProductsList(category);
         }
 
-        // ПРАВИЛЬНАЯ СОРТИРОВКА!
         Sort.Direction direction = Sort.Direction.ASC;
         String sortField = "productName";
-        boolean sorted = false;
 
         if (sort != null) {
             String[] sortParts = sort.split(",");
             sortField = sortParts[0];
-            direction = Sort.Direction.fromString(sortParts[1].toUpperCase()); // ← DESC!
-            sorted = true;
+            direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
         }
 
         Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
         Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
-        return new ProductsPageResponse(
-                productPage.getContent(),
-                productPage.getNumber(),
-                productPage.getSize(),
-                productPage.getTotalElements(),
-                productPage.getTotalPages(),
-                sorted
-        );
+        // Возвращаем Map БЕЗ поля sort!
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("content", productPage.getContent());
+        response.put("page", Map.of(
+                "size", productPage.getSize(),
+                "number", productPage.getNumber(),
+                "totalElements", productPage.getTotalElements(),
+                "totalPages", productPage.getTotalPages()
+        ));
+        // НЕ ДОБАВЛЯЕМ sort!
+
+        return response;
     }
 
     @PutMapping
