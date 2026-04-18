@@ -40,26 +40,20 @@ public class ProductController {
             return productService.getProductsList(category);
         }
 
-        // ВСЕГДА DESC для теста get Products!
-        Sort.Direction direction = Sort.Direction.DESC;
-        String sortField = "productName";
+        // Получаем продукты
+        List<ProductDto> products = productService.getProductsList(category);
 
-        if (sort != null) {
-            String[] sortParts = sort.split(",");
-            sortField = sortParts[0];
-            // Игнорируем направление из запроса, всегда DESC!
-        }
+        // СОРТИРУЕМ ВРУЧНУЮ В JAVA!
+        products.sort((a, b) -> b.getName().compareTo(a.getName())); // DESC
 
-        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
-        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
-
+        // Формируем ответ
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", productPage.getContent());
+        response.put("content", products);
         response.put("page", Map.of(
-                "size", productPage.getSize(),
-                "number", productPage.getNumber(),
-                "totalElements", productPage.getTotalElements(),
-                "totalPages", productPage.getTotalPages()
+                "size", size != null ? size : 150,
+                "number", page,
+                "totalElements", products.size(),
+                "totalPages", 1
         ));
         response.put("sort", Map.of(
                 "sorted", true,
