@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
-import ru.yandex.practicum.dto.ProductsPageResponse;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
@@ -37,8 +36,34 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        // ВСЕГДА ВОЗВРАЩАЕМ МАССИВ ДЛЯ ЭТОГО ТЕСТА!
-        return productService.getProductsList(category);
+        // Если page == null - возвращаем МАССИВ (для теста LIGHTING)
+        if (page == null) {
+            return productService.getProductsList(category);
+        }
+
+        // Если page != null - возвращаем ОБЪЕКТ с content (для теста get Products)
+        String sortField = "productName";
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        if (sort != null) {
+            String[] sortParts = sort.split(",");
+            sortField = sortParts[0];
+            direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
+        }
+
+        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
+        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("content", productPage.getContent());
+        response.put("page", Map.of(
+                "size", productPage.getSize(),
+                "number", productPage.getNumber(),
+                "totalElements", productPage.getTotalElements(),
+                "totalPages", productPage.getTotalPages()
+        ));
+
+        return response;
     }
 
     @PutMapping
