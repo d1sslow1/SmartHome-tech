@@ -11,7 +11,6 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -32,8 +31,8 @@ public class ProductController {
     @GetMapping
     public ProductsPageResponse getProducts(
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "20") Integer size,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String[] sort) {
 
         Sort sorting = Sort.unsorted();
@@ -88,29 +87,37 @@ public class ProductController {
     }
 
     @PostMapping("/quantityState")
-    public boolean setQuantityState(@RequestBody Map<String, Object> request) {
-        Object productIdObj = request.get("productId");
-        Object quantityStateObj = request.get("quantityState");
+    public boolean setQuantityState(
+            @RequestParam(required = false) Long productId,
+            @RequestParam(required = false) ProductAvailability quantityState,
+            @RequestBody(required = false) Map<String, Object> body) {
 
-        Long productId;
-        if (productIdObj instanceof Integer) {
-            productId = ((Integer) productIdObj).longValue();
-        } else if (productIdObj instanceof Long) {
-            productId = (Long) productIdObj;
-        } else if (productIdObj instanceof String) {
-            productId = Long.parseLong((String) productIdObj);
-        } else {
-            return false;
+        if (productId != null && quantityState != null) {
+            productService.updateQuantityState(productId, quantityState);
+            return true;
         }
 
-        ProductAvailability quantityState;
-        if (quantityStateObj instanceof String) {
-            quantityState = ProductAvailability.valueOf((String) quantityStateObj);
-        } else {
-            return false;
+        if (body != null && body.containsKey("productId") && body.containsKey("quantityState")) {
+            Long id = convertToLong(body.get("productId"));
+            ProductAvailability state = convertToAvailability(body.get("quantityState"));
+            if (id != null && state != null) {
+                productService.updateQuantityState(id, state);
+                return true;
+            }
         }
 
-        productService.updateQuantityState(productId, quantityState);
-        return true;
+        return false;
+    }
+
+    private Long convertToLong(Object obj) {
+        if (obj instanceof Integer) return ((Integer) obj).longValue();
+        if (obj instanceof Long) return (Long) obj;
+        if (obj instanceof String) return Long.parseLong((String) obj);
+        return null;
+    }
+
+    private ProductAvailability convertToAvailability(Object obj) {
+        if (obj instanceof String) return ProductAvailability.valueOf((String) obj);
+        return null;
     }
 }
