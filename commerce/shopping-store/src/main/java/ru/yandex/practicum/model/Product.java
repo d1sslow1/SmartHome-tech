@@ -20,6 +20,9 @@ public class Product {
     private Double price;
     private String imageSrc;
 
+    @Column(name = "sort_order")
+    private Long sortOrder;  // ← ДОБАВЛЯЕМ ПОЛЕ ДЛЯ СОРТИРОВКИ!
+
     @Enumerated(EnumType.STRING)
     private ProductCategory category;
 
@@ -54,4 +57,7 @@ public class Product {
 
     public Double getPrice() { return price; }
     public void setPrice(Double price) { this.price = price; }
+
+    public Long getSortOrder() { return sortOrder; }
+    public void setSortOrder(Long sortOrder) { this.sortOrder = sortOrder; }
 }

@@ -28,12 +28,13 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductDto> getProductsPage(ProductCategory category, Pageable pageable) {
         Page<Product> products;
         if (category != null) {
-            products = repository.findByCategory(category, pageable);
+            products = repository.findByCategoryOrderBySortOrderDesc(category, pageable);
         } else {
             products = repository.findAll(pageable);
         }
         return products.map(this::toDto);
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -65,6 +66,9 @@ public class ProductServiceImpl implements ProductService {
         product.setImageSrc(dto.getImageSrc());
         product.setPrice(dto.getPrice());
         product.setStatus(dto.getStatus() != null ? dto.getStatus() : ProductStatus.ACTIVE);
+
+        product.setSortOrder(System.currentTimeMillis());
+
         return toDto(repository.save(product));
     }
 

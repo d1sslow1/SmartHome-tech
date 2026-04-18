@@ -40,20 +40,17 @@ public class ProductController {
             return productService.getProductsList(category);
         }
 
-        // Получаем продукты
-        List<ProductDto> products = productService.getProductsList(category);
+        // Всегда используем Page из БД (сортировка уже в репозитории!)
+        Pageable pageable = PageRequest.of(page, size != null ? size : 150);
+        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
-        // СОРТИРУЕМ ВРУЧНУЮ В JAVA!
-        products.sort((a, b) -> b.getName().compareTo(a.getName())); // DESC
-
-        // Формируем ответ
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", products);
+        response.put("content", productPage.getContent());
         response.put("page", Map.of(
-                "size", size != null ? size : 150,
-                "number", page,
-                "totalElements", products.size(),
-                "totalPages", 1
+                "size", productPage.getSize(),
+                "number", productPage.getNumber(),
+                "totalElements", productPage.getTotalElements(),
+                "totalPages", productPage.getTotalPages()
         ));
         response.put("sort", Map.of(
                 "sorted", true,

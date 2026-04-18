@@ -29,8 +29,6 @@ eureka:
     health-check-url-path: /actuator/health
 
 management:
-  server:
-    port: 8081
   endpoints:
     web:
       exposure:
@@ -39,6 +37,7 @@ management:
   endpoint:
     health:
       show-details: always
+      enabled: true
 
 logging:
   level:
