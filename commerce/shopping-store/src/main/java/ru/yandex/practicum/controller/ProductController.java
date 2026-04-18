@@ -30,18 +30,16 @@ public class ProductController {
     }
 
     @GetMapping
-    public Object getProducts(
+    public ProductsPageResponse getProducts(
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size,
             @RequestParam(required = false) String[] sort) {
 
-        if (page == null) {
-            return productService.getProductsList(category);
-        }
-
         Sort sorting = Sort.unsorted();
+        boolean sorted = false;
         if (sort != null && sort.length > 0) {
+            sorted = true;
             String[] sortParts = sort[0].split(",");
             String property = sortParts[0];
             Sort.Direction direction = Sort.Direction.ASC;
@@ -51,7 +49,7 @@ public class ProductController {
             sorting = Sort.by(direction, property);
         }
 
-        Pageable pageable = PageRequest.of(page, size != null ? size : 20, sorting);
+        Pageable pageable = PageRequest.of(page, size, sorting);
         Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
         return new ProductsPageResponse(
@@ -60,7 +58,7 @@ public class ProductController {
                 productPage.getSize(),
                 productPage.getTotalElements(),
                 productPage.getTotalPages(),
-                sorting.isSorted()
+                sorted
         );
     }
 
@@ -79,58 +77,40 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public boolean removeProductFromStore(@RequestBody Object body) {
-        Long productId = extractProductId(body);
-        if (productId != null) {
-            productService.deactivateProduct(productId);
+    public boolean removeProductFromStore(@RequestBody String productId) {
+        try {
+            Long id = Long.parseLong(productId.replace("\"", ""));
+            productService.deactivateProduct(id);
             return true;
+        } catch (Exception e) {
+            return false;
         }
-        return false;
     }
 
     @PostMapping("/quantityState")
-    public boolean setQuantityState(@RequestBody SetQuantityStateRequest request) {
-        productService.updateQuantityState(request.getProductId(), request.getQuantityState());
-        return true;
-    }
+    public boolean setQuantityState(@RequestBody Map<String, Object> request) {
+        Object productIdObj = request.get("productId");
+        Object quantityStateObj = request.get("quantityState");
 
-    private Long extractProductId(Object body) {
-        if (body instanceof Integer) {
-            return ((Integer) body).longValue();
-        } else if (body instanceof Number) {
-            return ((Number) body).longValue();
-        } else if (body instanceof String) {
-            try {
-                return Long.parseLong((String) body);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        } else if (body instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) body;
-            Object productId = map.get("productId");
-            if (productId instanceof Integer) {
-                return ((Integer) productId).longValue();
-            } else if (productId instanceof Number) {
-                return ((Number) productId).longValue();
-            } else if (productId instanceof String) {
-                try {
-                    return Long.parseLong((String) productId);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
+        Long productId;
+        if (productIdObj instanceof Integer) {
+            productId = ((Integer) productIdObj).longValue();
+        } else if (productIdObj instanceof Long) {
+            productId = (Long) productIdObj;
+        } else if (productIdObj instanceof String) {
+            productId = Long.parseLong((String) productIdObj);
+        } else {
+            return false;
         }
-        return null;
-    }
 
-    static class SetQuantityStateRequest {
-        private Long productId;
-        private ProductAvailability quantityState;
+        ProductAvailability quantityState;
+        if (quantityStateObj instanceof String) {
+            quantityState = ProductAvailability.valueOf((String) quantityStateObj);
+        } else {
+            return false;
+        }
 
-        public Long getProductId() { return productId; }
-        public void setProductId(Long productId) { this.productId = productId; }
-
-        public ProductAvailability getQuantityState() { return quantityState; }
-        public void setQuantityState(ProductAvailability quantityState) { this.quantityState = quantityState; }
+        productService.updateQuantityState(productId, quantityState);
+        return true;
     }
 }
