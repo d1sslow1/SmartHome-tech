@@ -6,11 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
+import ru.yandex.practicum.dto.ProductsPageResponse;
 import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductAvailability;
 import ru.yandex.practicum.service.ProductService;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,32 +34,36 @@ public class ProductController {
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(required = false) String[] sort) {
 
         if (page == null) {
             return productService.getProductsList(category);
         }
 
-        // Всегда используем Page из БД (сортировка уже в репозитории!)
-        Pageable pageable = PageRequest.of(page, size != null ? size : 150);
+        Sort sorting = Sort.unsorted();
+        if (sort != null && sort.length > 0) {
+            String[] sortParts = sort[0].split(",");
+            String property = sortParts[0];
+            Sort.Direction direction = Sort.Direction.ASC;
+            if (sortParts.length > 1 && "DESC".equalsIgnoreCase(sortParts[1])) {
+                direction = Sort.Direction.DESC;
+            }
+            sorting = Sort.by(direction, property);
+        }
+
+        Pageable pageable = PageRequest.of(page, size != null ? size : 20, sorting);
         Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", productPage.getContent());
-        response.put("page", Map.of(
-                "size", productPage.getSize(),
-                "number", productPage.getNumber(),
-                "totalElements", productPage.getTotalElements(),
-                "totalPages", productPage.getTotalPages()
-        ));
-        response.put("sort", Map.of(
-                "sorted", true,
-                "unsorted", false,
-                "empty", false
-        ));
-
-        return response;
+        return new ProductsPageResponse(
+                productPage.getContent(),
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages(),
+                sorting.isSorted()
+        );
     }
+
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
@@ -75,24 +79,58 @@ public class ProductController {
     }
 
     @PostMapping("/removeProductFromStore")
-    public void removeProductFromStore(@RequestBody Object body) {
+    public boolean removeProductFromStore(@RequestBody Object body) {
+        Long productId = extractProductId(body);
+        if (productId != null) {
+            productService.deactivateProduct(productId);
+            return true;
+        }
+        return false;
+    }
+
+    @PostMapping("/quantityState")
+    public boolean setQuantityState(@RequestBody SetQuantityStateRequest request) {
+        productService.updateQuantityState(request.getProductId(), request.getQuantityState());
+        return true;
+    }
+
+    private Long extractProductId(Object body) {
         if (body instanceof Integer) {
-            productService.deactivateProduct(((Integer) body).longValue());
+            return ((Integer) body).longValue();
         } else if (body instanceof Number) {
-            productService.deactivateProduct(((Number) body).longValue());
+            return ((Number) body).longValue();
+        } else if (body instanceof String) {
+            try {
+                return Long.parseLong((String) body);
+            } catch (NumberFormatException e) {
+                return null;
+            }
         } else if (body instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) body;
             Object productId = map.get("productId");
             if (productId instanceof Integer) {
-                productService.deactivateProduct(((Integer) productId).longValue());
+                return ((Integer) productId).longValue();
             } else if (productId instanceof Number) {
-                productService.deactivateProduct(((Number) productId).longValue());
+                return ((Number) productId).longValue();
+            } else if (productId instanceof String) {
+                try {
+                    return Long.parseLong((String) productId);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
             }
         }
+        return null;
     }
 
-    @PostMapping("/quantityState")
-    public void setQuantityState(@RequestParam Long productId, @RequestParam ProductAvailability quantityState) {
-        productService.updateQuantityState(productId, quantityState);
+    static class SetQuantityStateRequest {
+        private Long productId;
+        private ProductAvailability quantityState;
+
+        public Long getProductId() { return productId; }
+        public void setProductId(Long productId) { this.productId = productId; }
+
+        public ProductAvailability getQuantityState() { return quantityState; }
+        public void setQuantityState(ProductAvailability quantityState) { this.quantityState = quantityState; }
     }
 }
