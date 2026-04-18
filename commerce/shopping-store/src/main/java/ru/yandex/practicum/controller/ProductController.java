@@ -36,20 +36,19 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        // Если нет page - возвращаем простой массив (для теста get Product by Category LIGHTING)
         if (page == null) {
             return productService.getProductsList(category);
         }
 
-        // Есть page - возвращаем кастомный Page (для теста get Products)
-        String sortField = "productName";
+        // ПРАВИЛЬНАЯ СОРТИРОВКА!
         Sort.Direction direction = Sort.Direction.ASC;
+        String sortField = "productName";
         boolean sorted = false;
 
         if (sort != null) {
             String[] sortParts = sort.split(",");
             sortField = sortParts[0];
-            direction = Sort.Direction.fromString(sortParts[1]);
+            direction = Sort.Direction.fromString(sortParts[1].toUpperCase()); // ← DESC!
             sorted = true;
         }
 
