@@ -12,8 +12,9 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Сортировка по sortOrder вместо productName!
-    Page<Product> findByCategoryOrderBySortOrderDesc(ProductCategory category, Pageable pageable);
+    Page<Product> findByCategory(ProductCategory category, Pageable pageable);
 
     List<Product> findByCategory(ProductCategory category);
+
+    Page<Product> findAll(Pageable pageable);
 }
