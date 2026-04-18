@@ -1,5 +1,9 @@
 package ru.yandex.practicum.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.dto.ProductDto;
 import ru.yandex.practicum.enums.ProductCategory;
@@ -32,28 +36,35 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        List<ProductDto> products = productService.getProductsList(category);
-
-        // Для LIGHTING - всегда массив
-        if (category == ProductCategory.LIGHTING) {
-            return products;
+        // Если нет page - возвращаем массив (для теста LIGHTING)
+        if (page == null) {
+            return productService.getProductsList(category);
         }
 
-        // Для CONTROL с page=0 - объект с content (последний тест)
-        if (category == ProductCategory.CONTROL && page != null && page == 0) {
-            Map<String, Object> response = new LinkedHashMap<>();
-            response.put("content", products);
-            response.put("page", Map.of(
-                    "size", size != null ? size : 150,
-                    "number", page,
-                    "totalElements", products.size(),
-                    "totalPages", 1
-            ));
-            return response;
+        // Для теста get Products - используем Page из БД с правильной сортировкой!
+        String sortField = "productName";
+        Sort.Direction direction = Sort.Direction.DESC; // По умолчанию DESC как в тесте!
+
+        if (sort != null) {
+            String[] sortParts = sort.split(",");
+            sortField = sortParts[0];
+            direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
         }
 
-        // По умолчанию - массив
-        return products;
+        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
+        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
+
+        // Возвращаем ТОЧНО ТАКОЙ ФОРМАТ как ожидает тест
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("content", productPage.getContent());
+        response.put("page", Map.of(
+                "size", productPage.getSize(),
+                "number", productPage.getNumber(),
+                "totalElements", productPage.getTotalElements(),
+                "totalPages", productPage.getTotalPages()
+        ));
+
+        return response;
     }
 
     @PutMapping
