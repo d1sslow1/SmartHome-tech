@@ -11,8 +11,8 @@ public class ProductsPageResponse {
     @JsonProperty("page")
     private Map<String, Object> pageMetadata;
 
-    @JsonProperty("sort")
-    private Map<String, Boolean> sortMetadata;
+    // Меняем на массив
+    private SortObject[] sort;
 
     private long totalElements;
     private int totalPages;
@@ -46,11 +46,7 @@ public class ProductsPageResponse {
                 "totalPages", totalPages
         );
 
-        this.sortMetadata = Map.of(
-                "sorted", sorted,
-                "unsorted", !sorted,
-                "empty", false
-        );
+        this.sort = new SortObject[] { new SortObject(sorted) };
 
         this.pageable = new PageableObject(page, size, sorted);
     }
@@ -61,8 +57,8 @@ public class ProductsPageResponse {
     public Map<String, Object> getPage() { return pageMetadata; }
     public void setPage(Map<String, Object> page) { this.pageMetadata = page; }
 
-    public Map<String, Boolean> getSort() { return sortMetadata; }
-    public void setSort(Map<String, Boolean> sort) { this.sortMetadata = sort; }
+    public SortObject[] getSort() { return sort; }
+    public void setSort(SortObject[] sort) { this.sort = sort; }
 
     public long getTotalElements() { return totalElements; }
     public void setTotalElements(long totalElements) { this.totalElements = totalElements; }
@@ -90,6 +86,27 @@ public class ProductsPageResponse {
 
     public PageableObject getPageable() { return pageable; }
     public void setPageable(PageableObject pageable) { this.pageable = pageable; }
+
+    public static class SortObject {
+        private boolean sorted;
+        private boolean unsorted;
+        private boolean empty;
+
+        public SortObject(boolean sorted) {
+            this.sorted = sorted;
+            this.unsorted = !sorted;
+            this.empty = false;
+        }
+
+        public boolean isSorted() { return sorted; }
+        public void setSorted(boolean sorted) { this.sorted = sorted; }
+
+        public boolean isUnsorted() { return unsorted; }
+        public void setUnsorted(boolean unsorted) { this.unsorted = unsorted; }
+
+        public boolean isEmpty() { return empty; }
+        public void setEmpty(boolean empty) { this.empty = empty; }
+    }
 
     public static class PageableObject {
         private int pageNumber;
@@ -125,26 +142,5 @@ public class ProductsPageResponse {
 
         public long getOffset() { return offset; }
         public void setOffset(long offset) { this.offset = offset; }
-    }
-
-    public static class SortObject {
-        private boolean sorted;
-        private boolean unsorted;
-        private boolean empty;
-
-        public SortObject(boolean sorted) {
-            this.sorted = sorted;
-            this.unsorted = !sorted;
-            this.empty = false;
-        }
-
-        public boolean isSorted() { return sorted; }
-        public void setSorted(boolean sorted) { this.sorted = sorted; }
-
-        public boolean isUnsorted() { return unsorted; }
-        public void setUnsorted(boolean unsorted) { this.unsorted = unsorted; }
-
-        public boolean isEmpty() { return empty; }
-        public void setEmpty(boolean empty) { this.empty = empty; }
     }
 }
