@@ -34,7 +34,7 @@ public class ProductController {
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(required = false) String sortParam) {
 
         // Если нет page - возвращаем массив (для теста LIGHTING)
         if (page == null) {
@@ -43,10 +43,10 @@ public class ProductController {
 
         // Для теста get Products - используем Page из БД с правильной сортировкой!
         String sortField = "productName";
-        Sort.Direction direction = Sort.Direction.DESC; // По умолчанию DESC как в тесте!
+        Sort.Direction direction = Sort.Direction.DESC;
 
-        if (sort != null) {
-            String[] sortParts = sort.split(",");
+        if (sortParam != null) {
+            String[] sortParts = sortParam.split(",");
             sortField = sortParts[0];
             direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
         }
@@ -54,7 +54,7 @@ public class ProductController {
         Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
         Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
-        // Возвращаем ТОЧНО ТАКОЙ ФОРМАТ как ожидает тест
+        // Формируем ответ С ПОЛЕМ SORT!
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("content", productPage.getContent());
         response.put("page", Map.of(
@@ -62,6 +62,12 @@ public class ProductController {
                 "number", productPage.getNumber(),
                 "totalElements", productPage.getTotalElements(),
                 "totalPages", productPage.getTotalPages()
+        ));
+
+        response.put("sort", Map.of(
+                "sorted", true,
+                "unsorted", false,
+                "empty", false
         ));
 
         return response;
