@@ -27,7 +27,8 @@ public class ProductsPageResponse {
     public ProductsPageResponse() {}
 
     public ProductsPageResponse(List<ProductDto> content, int page, int size,
-                                long totalElements, int totalPages, boolean sorted, String direction) {
+                                long totalElements, int totalPages, boolean sorted,
+                                String direction, String property) {
         this.content = content;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
@@ -45,8 +46,8 @@ public class ProductsPageResponse {
                 "totalPages", totalPages
         );
 
-        this.sort = new SortObject[] { new SortObject(sorted, direction) };
-        this.pageable = new PageableObject(page, size, sorted, direction);
+        this.sort = new SortObject[] { new SortObject(sorted, direction, property) };
+        this.pageable = new PageableObject(page, size, sorted, direction, property);
     }
 
     public List<ProductDto> getContent() { return content; }
@@ -90,14 +91,16 @@ public class ProductsPageResponse {
         private boolean unsorted;
         private boolean empty;
         private String direction;
+        private String property;
 
         public SortObject() {}
 
-        public SortObject(boolean sorted, String direction) {
+        public SortObject(boolean sorted, String direction, String property) {
             this.sorted = sorted;
             this.unsorted = !sorted;
             this.empty = false;
             this.direction = direction;
+            this.property = property;
         }
 
         public boolean isSorted() { return sorted; }
@@ -111,6 +114,9 @@ public class ProductsPageResponse {
 
         public String getDirection() { return direction; }
         public void setDirection(String direction) { this.direction = direction; }
+
+        public String getProperty() { return property; }
+        public void setProperty(String property) { this.property = property; }
     }
 
     public static class PageableObject {
@@ -123,10 +129,11 @@ public class ProductsPageResponse {
 
         public PageableObject() {}
 
-        public PageableObject(int pageNumber, int pageSize, boolean sorted, String direction) {
+        public PageableObject(int pageNumber, int pageSize, boolean sorted,
+                              String direction, String property) {
             this.pageNumber = pageNumber;
             this.pageSize = pageSize;
-            this.sort = new SortObject(sorted, direction);
+            this.sort = new SortObject(sorted, direction, property);
             this.paged = true;
             this.unpaged = false;
             this.offset = (long) pageNumber * pageSize;

@@ -38,11 +38,12 @@ public class ProductController {
         Sort sorting = Sort.unsorted();
         boolean sorted = false;
         String direction = "ASC";
+        String property = "productName";
 
         if (sort != null && sort.length > 0) {
             sorted = true;
             String[] sortParts = sort[0].split(",");
-            String property = sortParts[0];
+            property = sortParts[0];
             direction = "ASC";
             Sort.Direction sortDirection = Sort.Direction.ASC;
             if (sortParts.length > 1 && "DESC".equalsIgnoreCase(sortParts[1])) {
@@ -62,7 +63,8 @@ public class ProductController {
                 productPage.getTotalElements(),
                 productPage.getTotalPages(),
                 sorted,
-                direction
+                direction,
+                property
         );
     }
 
