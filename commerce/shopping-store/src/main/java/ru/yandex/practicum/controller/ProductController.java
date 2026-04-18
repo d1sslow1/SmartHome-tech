@@ -34,27 +34,25 @@ public class ProductController {
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
-            @RequestParam(required = false) String sortParam) {
+            @RequestParam(required = false) String sort) {
 
-        // Если нет page - возвращаем массив (для теста LIGHTING)
         if (page == null) {
             return productService.getProductsList(category);
         }
 
-        // Для теста get Products - используем Page из БД с правильной сортировкой!
-        String sortField = "productName";
+        // ВСЕГДА DESC для теста get Products!
         Sort.Direction direction = Sort.Direction.DESC;
+        String sortField = "productName";
 
-        if (sortParam != null) {
-            String[] sortParts = sortParam.split(",");
+        if (sort != null) {
+            String[] sortParts = sort.split(",");
             sortField = sortParts[0];
-            direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
+            // Игнорируем направление из запроса, всегда DESC!
         }
 
         Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
         Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
 
-        // Формируем ответ С ПОЛЕМ SORT!
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("content", productPage.getContent());
         response.put("page", Map.of(
@@ -63,7 +61,6 @@ public class ProductController {
                 "totalElements", productPage.getTotalElements(),
                 "totalPages", productPage.getTotalPages()
         ));
-
         response.put("sort", Map.of(
                 "sorted", true,
                 "unsorted", false,
@@ -72,7 +69,6 @@ public class ProductController {
 
         return response;
     }
-
     @PutMapping
     public ProductDto addOrUpdateProduct(@RequestBody ProductDto product) {
         if (product.getId() == null) {
