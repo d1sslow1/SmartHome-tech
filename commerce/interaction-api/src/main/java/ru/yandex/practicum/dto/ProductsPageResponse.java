@@ -23,6 +23,8 @@ public class ProductsPageResponse {
     private int numberOfElements;
     private boolean empty;
 
+    private PageableObject pageable;
+
     public ProductsPageResponse() {}
 
     public ProductsPageResponse(List<ProductDto> content, int page, int size,
@@ -49,6 +51,8 @@ public class ProductsPageResponse {
                 "unsorted", !sorted,
                 "empty", false
         );
+
+        this.pageable = new PageableObject(page, size, sorted);
     }
 
     public List<ProductDto> getContent() { return content; }
@@ -83,4 +87,64 @@ public class ProductsPageResponse {
 
     public boolean isEmpty() { return empty; }
     public void setEmpty(boolean empty) { this.empty = empty; }
+
+    public PageableObject getPageable() { return pageable; }
+    public void setPageable(PageableObject pageable) { this.pageable = pageable; }
+
+    public static class PageableObject {
+        private int pageNumber;
+        private int pageSize;
+        private SortObject sort;
+        private boolean paged;
+        private boolean unpaged;
+        private long offset;
+
+        public PageableObject(int pageNumber, int pageSize, boolean sorted) {
+            this.pageNumber = pageNumber;
+            this.pageSize = pageSize;
+            this.sort = new SortObject(sorted);
+            this.paged = true;
+            this.unpaged = false;
+            this.offset = (long) pageNumber * pageSize;
+        }
+
+        public int getPageNumber() { return pageNumber; }
+        public void setPageNumber(int pageNumber) { this.pageNumber = pageNumber; }
+
+        public int getPageSize() { return pageSize; }
+        public void setPageSize(int pageSize) { this.pageSize = pageSize; }
+
+        public SortObject getSort() { return sort; }
+        public void setSort(SortObject sort) { this.sort = sort; }
+
+        public boolean isPaged() { return paged; }
+        public void setPaged(boolean paged) { this.paged = paged; }
+
+        public boolean isUnpaged() { return unpaged; }
+        public void setUnpaged(boolean unpaged) { this.unpaged = unpaged; }
+
+        public long getOffset() { return offset; }
+        public void setOffset(long offset) { this.offset = offset; }
+    }
+
+    public static class SortObject {
+        private boolean sorted;
+        private boolean unsorted;
+        private boolean empty;
+
+        public SortObject(boolean sorted) {
+            this.sorted = sorted;
+            this.unsorted = !sorted;
+            this.empty = false;
+        }
+
+        public boolean isSorted() { return sorted; }
+        public void setSorted(boolean sorted) { this.sorted = sorted; }
+
+        public boolean isUnsorted() { return unsorted; }
+        public void setUnsorted(boolean unsorted) { this.unsorted = unsorted; }
+
+        public boolean isEmpty() { return empty; }
+        public void setEmpty(boolean empty) { this.empty = empty; }
+    }
 }
