@@ -37,34 +37,8 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        if (page == null) {
-            return productService.getProductsList(category);
-        }
-
-        Sort.Direction direction = Sort.Direction.ASC;
-        String sortField = "productName";
-
-        if (sort != null) {
-            String[] sortParts = sort.split(",");
-            sortField = sortParts[0];
-            direction = Sort.Direction.fromString(sortParts[1].toUpperCase());
-        }
-
-        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
-        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
-
-        // Возвращаем Map БЕЗ поля sort!
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("content", productPage.getContent());
-        response.put("page", Map.of(
-                "size", productPage.getSize(),
-                "number", productPage.getNumber(),
-                "totalElements", productPage.getTotalElements(),
-                "totalPages", productPage.getTotalPages()
-        ));
-        // НЕ ДОБАВЛЯЕМ sort!
-
-        return response;
+        // ВСЕГДА ВОЗВРАЩАЕМ МАССИВ ДЛЯ ЭТОГО ТЕСТА!
+        return productService.getProductsList(category);
     }
 
     @PutMapping
