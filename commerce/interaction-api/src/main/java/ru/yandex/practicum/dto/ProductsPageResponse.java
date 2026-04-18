@@ -6,7 +6,7 @@ import java.util.Map;
 public class ProductsPageResponse {
     private List<ProductDto> content;
     private Map<String, Object> page;
-    private Map<String, Boolean> sort;  // ← ДОБАВЛЯЕМ SORT!
+    private Map<String, Boolean> sort;
 
     public ProductsPageResponse() {}
 
@@ -25,27 +25,12 @@ public class ProductsPageResponse {
         );
     }
 
-    public List<ProductDto> getContent() {
-        return content;
-    }
+    public List<ProductDto> getContent() { return content; }
+    public void setContent(List<ProductDto> content) { this.content = content; }
 
-    public void setContent(List<ProductDto> content) {
-        this.content = content;
-    }
+    public Map<String, Object> getPage() { return page; }
+    public void setPage(Map<String, Object> page) { this.page = page; }
 
-    public Map<String, Object> getPage() {
-        return page;
-    }
-
-    public void setPage(Map<String, Object> page) {
-        this.page = page;
-    }
-
-    public Map<String, Boolean> getSort() {
-        return sort;
-    }
-
-    public void setSort(Map<String, Boolean> sort) {
-        this.sort = sort;
-    }
+    public Map<String, Boolean> getSort() { return sort; }
+    public void setSort(Map<String, Boolean> sort) { this.sort = sort; }
 }

@@ -1,8 +1,5 @@
 package ru.yandex.practicum.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +18,7 @@ import java.util.Map;
 @RequestMapping("/shopping-store")
 public class ProductController {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ProductController(ProductService productService) {
         this.productService = productService;
@@ -41,57 +36,34 @@ public class ProductController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort) {
 
-        log.info("=== GET PRODUCTS CALLED ===");
-        log.info("category: {}, page: {}, size: {}, sort: {}", category, page, size, sort);
-
-        // Если есть параметр page - возвращаем объект с content
-        if (page != null) {
-            String sortField = "productName";
-            Sort.Direction direction = Sort.Direction.ASC;
-            boolean sorted = false;
-
-            if (sort != null) {
-                String[] sortParts = sort.split(",");
-                sortField = sortParts[0];
-                direction = Sort.Direction.fromString(sortParts[1]);
-                sorted = true;
-            }
-
-            Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
-            Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
-
-            ProductsPageResponse response = new ProductsPageResponse(
-                    productPage.getContent(),
-                    productPage.getNumber(),
-                    productPage.getSize(),
-                    productPage.getTotalElements(),
-                    productPage.getTotalPages(),
-                    sorted
-            );
-
-            // ЛОГИРУЕМ ОТВЕТ
-            try {
-                String json = objectMapper.writeValueAsString(response);
-                log.info("RESPONSE: {}", json);
-            } catch (Exception e) {
-                log.error("Failed to serialize response", e);
-            }
-
-            return response;
+        // Если нет page - возвращаем простой массив (для теста get Product by Category LIGHTING)
+        if (page == null) {
+            return productService.getProductsList(category);
         }
 
-        // Иначе возвращаем простой массив
-        List<ProductDto> products = productService.getProductsList(category);
+        // Есть page - возвращаем кастомный Page (для теста get Products)
+        String sortField = "productName";
+        Sort.Direction direction = Sort.Direction.ASC;
+        boolean sorted = false;
 
-        // ЛОГИРУЕМ ОТВЕТ
-        try {
-            String json = objectMapper.writeValueAsString(products);
-            log.info("RESPONSE (array): {}", json);
-        } catch (Exception e) {
-            log.error("Failed to serialize response", e);
+        if (sort != null) {
+            String[] sortParts = sort.split(",");
+            sortField = sortParts[0];
+            direction = Sort.Direction.fromString(sortParts[1]);
+            sorted = true;
         }
 
-        return products;
+        Pageable pageable = PageRequest.of(page, size != null ? size : 150, Sort.by(direction, sortField));
+        Page<ProductDto> productPage = productService.getProductsPage(category, pageable);
+
+        return new ProductsPageResponse(
+                productPage.getContent(),
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages(),
+                sorted
+        );
     }
 
     @PutMapping
