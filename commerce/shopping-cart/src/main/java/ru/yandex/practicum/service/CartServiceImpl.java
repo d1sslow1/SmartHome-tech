@@ -38,27 +38,31 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Корзина деактивирована");
         }
 
-        // Игнорируем проверку склада для тестов
+        // Проверяем наличие на складе
         try {
-            WarehouseCheckRequestDto request = new WarehouseCheckRequestDto();
-            request.setItems(List.of(itemDto));
-            warehouseClient.checkAvailability(request);
+            WarehouseCheckRequestDto checkRequest = new WarehouseCheckRequestDto();
+            checkRequest.setItems(List.of(itemDto));
+            WarehouseCheckResponseDto availability = warehouseClient.checkAvailability(checkRequest);
+
+            if (!availability.isAvailable(itemDto.getProductId())) {
+                throw new RuntimeException("Товар недоступен в нужном количестве");
+            }
         } catch (Exception e) {
-            // Игнорируем ошибки склада
+            throw new RuntimeException("Ошибка проверки склада: " + e.getMessage());
         }
 
         Optional<CartItem> existingItem = cart.getItems().stream()
-                .filter(i -> i.getProductId().equals(itemDto.getProductId()))
+                .filter(item -> item.getProductId().equals(itemDto.getProductId()))
                 .findFirst();
 
         if (existingItem.isPresent()) {
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + itemDto.getQuantity());
+            CartItem cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + itemDto.getQuantity());
         } else {
-            CartItem item = new CartItem();
-            item.setProductId(itemDto.getProductId());
-            item.setQuantity(itemDto.getQuantity());
-            cart.getItems().add(item);
+            CartItem newCartItem = new CartItem();
+            newCartItem.setProductId(itemDto.getProductId());
+            newCartItem.setQuantity(itemDto.getQuantity());
+            cart.getItems().add(newCartItem);
         }
 
         cartRepository.save(cart);
@@ -74,21 +78,21 @@ public class CartServiceImpl implements CartService {
         }
 
         if (itemDto.getQuantity() <= 0) {
-            cart.getItems().removeIf(item -> item.getProductId().equals(itemDto.getProductId()));
+            cart.getItems().removeIf(cartItem -> cartItem.getProductId().equals(itemDto.getProductId()));
         } else {
-            boolean found = false;
-            for (CartItem item : cart.getItems()) {
-                if (item.getProductId().equals(itemDto.getProductId())) {
-                    item.setQuantity(itemDto.getQuantity());
-                    found = true;
+            boolean itemFound = false;
+            for (CartItem cartItem : cart.getItems()) {
+                if (cartItem.getProductId().equals(itemDto.getProductId())) {
+                    cartItem.setQuantity(itemDto.getQuantity());
+                    itemFound = true;
                     break;
                 }
             }
-            if (!found) {
-                CartItem newItem = new CartItem();
-                newItem.setProductId(itemDto.getProductId());
-                newItem.setQuantity(itemDto.getQuantity());
-                cart.getItems().add(newItem);
+            if (!itemFound) {
+                CartItem newCartItem = new CartItem();
+                newCartItem.setProductId(itemDto.getProductId());
+                newCartItem.setQuantity(itemDto.getQuantity());
+                cart.getItems().add(newCartItem);
             }
         }
 
@@ -105,24 +109,29 @@ public class CartServiceImpl implements CartService {
 
     private Cart getOrCreateCart(String username) {
         return cartRepository.findByUsernameAndActiveTrue(username).orElseGet(() -> {
-            Cart cart = new Cart();
-            cart.setUsername(username);
-            return cartRepository.save(cart);
+            Cart newCart = new Cart();
+            newCart.setUsername(username);
+            return cartRepository.save(newCart);
         });
     }
 
     private CartDto toDto(Cart cart) {
-        CartDto dto = new CartDto();
-        dto.setUsername(cart.getUsername());
-        dto.setActive(cart.isActive());
+        CartDto cartDto = new CartDto();
+        cartDto.setUsername(cart.getUsername());
+        cartDto.setActive(cart.isActive());
 
-        dto.setItems(cart.getItems().stream().map(item -> {
-            CartItemDto i = new CartItemDto();
-            i.setProductId(item.getProductId());
-            i.setQuantity(item.getQuantity());
-            return i;
-        }).toList());
+        List<CartItemDto> itemDtos = cart.getItems().stream()
+                .map(this::toItemDto)
+                .toList();
+        cartDto.setItems(itemDtos);
 
-        return dto;
+        return cartDto;
+    }
+
+    private CartItemDto toItemDto(CartItem cartItem) {
+        CartItemDto itemDto = new CartItemDto();
+        itemDto.setProductId(cartItem.getProductId());
+        itemDto.setQuantity(cartItem.getQuantity());
+        return itemDto;
     }
 }
