@@ -12,16 +12,11 @@
     <artifactId>commerce</artifactId>
     <packaging>pom</packaging>
 
-<<<<<<< Updated upstream
-=======
     <modules>
         <module>interaction-api</module>
         <module>shopping-store</module>
         <module>shopping-cart</module>
         <module>warehouse</module>
-        <module>order</module>
-        <module>payment</module>
-        <module>delivery</module>
     </modules>
 
     <properties>
@@ -71,5 +66,4 @@
         </pluginManagement>
     </build>
 
->>>>>>> Stashed changes
 </project>

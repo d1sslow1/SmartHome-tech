@@ -10,7 +10,6 @@ import ru.yandex.practicum.enums.ProductCategory;
 import ru.yandex.practicum.enums.ProductStatus;
 import ru.yandex.practicum.model.Product;
 import ru.yandex.practicum.repository.ProductRepository;
-import ru.yandex.practicum.exception.ProductNotFoundException;
 
 import java.util.List;
 
@@ -53,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional(readOnly = true)
     public ProductDto getProduct(Long id) {
         Product product = repository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + id));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + id));
         return toDto(product);
     }
 
@@ -76,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto updateProduct(ProductDto dto) {
         Product product = repository.findById(dto.getId())
-                .orElseThrow(() -> new ProductNotFoundException("Product not found: " + dto.getId()));
+                .orElseThrow(() -> new RuntimeException("Product not found: " + dto.getId()));
         product.setProductName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setCategory(dto.getCategory());

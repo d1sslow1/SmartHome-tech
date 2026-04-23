@@ -1,14 +1,15 @@
 package ru.yandex.practicum.controller;
 
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.api.WarehouseApi;
-import ru.yandex.practicum.dto.*;
+import ru.yandex.practicum.dto.WarehouseAddressDto;
+import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
+import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
+import ru.yandex.practicum.dto.WarehouseItemDto;
 import ru.yandex.practicum.service.WarehouseService;
 
-import java.util.Map;
-
 @RestController
-public class WarehouseController implements WarehouseApi {
+@RequestMapping("/warehouse")
+public class WarehouseController {
 
     private final WarehouseService warehouseService;
 
@@ -16,45 +17,23 @@ public class WarehouseController implements WarehouseApi {
         this.warehouseService = warehouseService;
     }
 
-    @Override
-    @GetMapping("/warehouse/address")
-    public AddressDto getWarehouseAddress() {
+    @GetMapping("/address")
+    public WarehouseAddressDto getAddress() {
         return warehouseService.getCurrentAddress();
     }
 
-    @Override
-    @PostMapping("/warehouse/check")
-    public BookedProductsDto checkProductQuantityEnoughForShoppingCart(@RequestBody ShoppingCartDto cart) {
-        return warehouseService.checkAvailability(cart);
+    @PutMapping
+    public void addNewProduct(@RequestBody WarehouseItemDto dto) {
+        warehouseService.addItem(dto);
     }
 
-    @Override
-    @PostMapping("/warehouse/assembly")
-    public BookedProductsDto assemblyProductsForOrder(@RequestBody AssemblyProductsForOrderRequest request) {
-        return warehouseService.assemblyProducts(request);
+    @PostMapping("/add")
+    public void addProduct(@RequestBody WarehouseItemDto dto) {
+        warehouseService.addItem(dto);
     }
 
-    @Override
-    @PostMapping("/warehouse/add")
-    public void addProductToWarehouse(@RequestBody AddProductToWarehouseRequest request) {
-        warehouseService.addItem(request);
-    }
-
-    @Override
-    @PutMapping("/warehouse")
-    public void newProductInWarehouse(@RequestBody NewProductInWarehouseRequest request) {
-        warehouseService.newProduct(request);
-    }
-
-    @Override
-    @PostMapping("/warehouse/shipped")
-    public void shippedToDelivery(@RequestBody ShippedToDeliveryRequest request) {
-        warehouseService.shippedToDelivery(request);
-    }
-
-    @Override
-    @PostMapping("/warehouse/return")
-    public void acceptReturn(@RequestBody Map<String, Integer> products) {
-        warehouseService.acceptReturn(products);
+    @PostMapping("/check")
+    public WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request) {
+        return warehouseService.checkAvailability(request);
     }
 }

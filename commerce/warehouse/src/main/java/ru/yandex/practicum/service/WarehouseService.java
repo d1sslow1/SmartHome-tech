@@ -1,22 +1,17 @@
 package ru.yandex.practicum.service;
 
-import ru.yandex.practicum.dto.*;
-
-import java.util.Map;
+import ru.yandex.practicum.dto.WarehouseAddressDto;
+import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
+import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
+import ru.yandex.practicum.dto.WarehouseItemDto;
 
 public interface WarehouseService {
 
-    void addItem(AddProductToWarehouseRequest request);
+    void addItem(WarehouseItemDto dto);
 
-    void newProduct(NewProductInWarehouseRequest request);
+    void updateQuantity(String productId, int quantity);
 
-    BookedProductsDto checkAvailability(ShoppingCartDto cart);
+    WarehouseCheckResponseDto checkAvailability(WarehouseCheckRequestDto request);
 
-    BookedProductsDto assemblyProducts(AssemblyProductsForOrderRequest request);
-
-    void shippedToDelivery(ShippedToDeliveryRequest request);
-
-    void acceptReturn(Map<String, Integer> products);
-
-    AddressDto getCurrentAddress();
+    WarehouseAddressDto getCurrentAddress();
 }

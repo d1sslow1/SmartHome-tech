@@ -11,14 +11,10 @@
 
     <artifactId>infra</artifactId>
     <packaging>pom</packaging>
-<<<<<<< Updated upstream
-=======
     <modules>
         <module>config-server</module>
         <module>discovery-server</module>
         <module>eureka-server</module>
-        <module>gateway</module>
     </modules>
->>>>>>> Stashed changes
 
 </project>

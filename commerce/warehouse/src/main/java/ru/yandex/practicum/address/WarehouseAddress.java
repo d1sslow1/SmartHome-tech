@@ -1,7 +1,7 @@
 package ru.yandex.practicum.address;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.dto.AddressDto;
+import ru.yandex.practicum.dto.WarehouseAddressDto;
 
 import java.security.SecureRandom;
 
@@ -16,13 +16,13 @@ public class WarehouseAddress {
         this.currentAddress = ADDRESSES[random.nextInt(ADDRESSES.length)];
     }
 
-    public AddressDto getAddress() {
-        AddressDto dto = new AddressDto();
-        dto.setCountry(currentAddress);
-        dto.setCity(currentAddress);
-        dto.setStreet(currentAddress);
-        dto.setHouse(currentAddress);
-        dto.setFlat(currentAddress);
-        return dto;
+    public WarehouseAddressDto getAddress() {
+        return new WarehouseAddressDto(
+                currentAddress,
+                currentAddress,
+                currentAddress,
+                currentAddress,
+                currentAddress
+        );
     }
 }
