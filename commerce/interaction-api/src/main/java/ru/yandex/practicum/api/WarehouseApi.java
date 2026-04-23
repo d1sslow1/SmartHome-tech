@@ -1,22 +1,30 @@
 package ru.yandex.practicum.api;
 
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.dto.WarehouseAddressDto;
-import ru.yandex.practicum.dto.WarehouseCheckRequestDto;
-import ru.yandex.practicum.dto.WarehouseCheckResponseDto;
-import ru.yandex.practicum.dto.WarehouseItemDto;
+import ru.yandex.practicum.dto.*;
+
+import java.util.Map;
 
 public interface WarehouseApi {
 
-    @GetMapping("/address")
-    WarehouseAddressDto getCurrentAddress();
+    @GetMapping("/warehouse/address")
+    AddressDto getWarehouseAddress();
 
-    @PostMapping("/check")
-    WarehouseCheckResponseDto checkAvailability(@RequestBody WarehouseCheckRequestDto request);
+    @PostMapping("/warehouse/check")
+    BookedProductsDto checkProductQuantityEnoughForShoppingCart(@RequestBody ShoppingCartDto shoppingCart);
 
-    @PostMapping("/add")
-    void addItem(@RequestBody WarehouseItemDto dto);
+    @PostMapping("/warehouse/assembly")
+    BookedProductsDto assemblyProductsForOrder(@RequestBody AssemblyProductsForOrderRequest request);
 
-    @PostMapping("/update")
-    void updateQuantity(@RequestParam Long productId, @RequestParam int quantity);
+    @PostMapping("/warehouse/add")
+    void addProductToWarehouse(@RequestBody AddProductToWarehouseRequest request);
+
+    @PutMapping("/warehouse")
+    void newProductInWarehouse(@RequestBody NewProductInWarehouseRequest request);
+
+    @PostMapping("/warehouse/shipped")
+    void shippedToDelivery(@RequestBody ShippedToDeliveryRequest request);
+
+    @PostMapping("/warehouse/return")
+    void acceptReturn(@RequestBody Map<String, Integer> products);
 }
