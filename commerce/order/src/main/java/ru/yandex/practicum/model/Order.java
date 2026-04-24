@@ -1,33 +1,36 @@
 package ru.yandex.practicum.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import java.util.Map;
 
 @Entity
 @Table(name = "orders")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String orderId;
+    String orderId;
 
-    private String shoppingCartId;
+    String shoppingCartId;
 
     @ElementCollection
     @CollectionTable(name = "order_products", joinColumns = @JoinColumn(name = "order_id"))
     @MapKeyColumn(name = "product_id")
     @Column(name = "quantity")
-    private Map<String, Integer> products;
+    Map<String, Integer> products;
 
-    private String paymentId;
-    private String deliveryId;
-    private String state;
-    private Double deliveryWeight;
-    private Double deliveryVolume;
-    private Boolean fragile;
-    private Double totalPrice;
-    private Double deliveryPrice;
-    private Double productPrice;
+    String paymentId;
+    String deliveryId;
+    String state;
+    Double deliveryWeight;
+    Double deliveryVolume;
+    Boolean fragile;
+    Double totalPrice;
+    Double deliveryPrice;
+    Double productPrice;
 
     public String getOrderId() { return orderId; }
     public void setOrderId(String orderId) { this.orderId = orderId; }

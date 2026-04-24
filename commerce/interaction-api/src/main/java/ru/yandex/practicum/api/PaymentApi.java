@@ -7,18 +7,20 @@ import ru.yandex.practicum.dto.PaymentDto;
 
 public interface PaymentApi {
 
-    @PostMapping("/payment")
+    String BASE_PATH = "/payment";
+
+    @PostMapping(BASE_PATH)
     PaymentDto payment(@RequestBody OrderDto order);
 
-    @PostMapping("/payment/totalCost")
+    @PostMapping(BASE_PATH + "/totalCost")
     Double getTotalCost(@RequestBody OrderDto order);
 
-    @PostMapping("/payment/productCost")
+    @PostMapping(BASE_PATH + "/productCost")
     Double productCost(@RequestBody OrderDto order);
 
-    @PostMapping("/payment/refund")
+    @PostMapping(BASE_PATH + "/refund")
     void paymentSuccess(@RequestBody String paymentId);
 
-    @PostMapping("/payment/failed")
+    @PostMapping(BASE_PATH + "/failed")
     void paymentFailed(@RequestBody String paymentId);
 }

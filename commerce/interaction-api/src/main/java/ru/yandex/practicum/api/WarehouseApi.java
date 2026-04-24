@@ -7,24 +7,26 @@ import java.util.Map;
 
 public interface WarehouseApi {
 
-    @GetMapping("/warehouse/address")
+    String BASE_PATH = "/warehouse";
+
+    @GetMapping(BASE_PATH + "/address")
     AddressDto getWarehouseAddress();
 
-    @PostMapping("/warehouse/check")
+    @PostMapping(BASE_PATH + "/check")
     BookedProductsDto checkProductQuantityEnoughForShoppingCart(@RequestBody ShoppingCartDto shoppingCart);
 
-    @PostMapping("/warehouse/assembly")
+    @PostMapping(BASE_PATH + "/assembly")
     BookedProductsDto assemblyProductsForOrder(@RequestBody AssemblyProductsForOrderRequest request);
 
-    @PostMapping("/warehouse/add")
+    @PostMapping(BASE_PATH + "/add")
     void addProductToWarehouse(@RequestBody AddProductToWarehouseRequest request);
 
-    @PutMapping("/warehouse")
+    @PutMapping(BASE_PATH)
     void newProductInWarehouse(@RequestBody NewProductInWarehouseRequest request);
 
-    @PostMapping("/warehouse/shipped")
+    @PostMapping(BASE_PATH + "/shipped")
     void shippedToDelivery(@RequestBody ShippedToDeliveryRequest request);
 
-    @PostMapping("/warehouse/return")
+    @PostMapping(BASE_PATH + "/return")
     void acceptReturn(@RequestBody Map<String, Integer> products);
 }

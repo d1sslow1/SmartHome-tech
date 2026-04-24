@@ -6,18 +6,20 @@ import ru.yandex.practicum.dto.OrderDto;
 
 public interface DeliveryApi {
 
-    @PutMapping("/delivery")
+    String BASE_PATH = "/delivery";
+
+    @PutMapping(BASE_PATH)
     DeliveryDto planDelivery(@RequestBody DeliveryDto delivery);
 
-    @PostMapping("/delivery/successful")
+    @PostMapping(BASE_PATH + "/successful")
     void deliverySuccessful(@RequestBody String orderId);
 
-    @PostMapping("/delivery/picked")
+    @PostMapping(BASE_PATH + "/picked")
     void deliveryPicked(@RequestBody String orderId);
 
-    @PostMapping("/delivery/failed")
+    @PostMapping(BASE_PATH + "/failed")
     void deliveryFailed(@RequestBody String orderId);
 
-    @PostMapping("/delivery/cost")
+    @PostMapping(BASE_PATH + "/cost")
     Double deliveryCost(@RequestBody OrderDto order);
 }

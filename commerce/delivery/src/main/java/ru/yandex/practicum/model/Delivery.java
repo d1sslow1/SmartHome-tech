@@ -1,31 +1,34 @@
 package ru.yandex.practicum.model;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 @Entity
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Delivery {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String deliveryId;
+    String deliveryId;
 
-    private String fromCountry;
-    private String fromCity;
-    private String fromStreet;
-    private String fromHouse;
-    private String fromFlat;
+    String fromCountry;
+    String fromCity;
+    String fromStreet;
+    String fromHouse;
+    String fromFlat;
 
-    private String toCountry;
-    private String toCity;
-    private String toStreet;
-    private String toHouse;
-    private String toFlat;
+    String toCountry;
+    String toCity;
+    String toStreet;
+    String toHouse;
+    String toFlat;
 
-    private String orderId;
-    private String deliveryState;
-    private Double deliveryWeight;
-    private Double deliveryVolume;
-    private Boolean fragile;
+    String orderId;
+    String deliveryState;
+    Double deliveryWeight;
+    Double deliveryVolume;
+    Boolean fragile;
 
     public String getDeliveryId() { return deliveryId; }
     public void setDeliveryId(String deliveryId) { this.deliveryId = deliveryId; }

@@ -9,39 +9,41 @@ import java.util.List;
 
 public interface OrderApi {
 
-    @GetMapping("/order")
+    String BASE_PATH = "/order";
+
+    @GetMapping(BASE_PATH)
     List<OrderDto> getClientOrders(@RequestParam String username);
 
-    @PutMapping("/order")
+    @PutMapping(BASE_PATH)
     OrderDto createNewOrder(@RequestBody CreateNewOrderRequest request);
 
-    @PostMapping("/order/return")
+    @PostMapping(BASE_PATH + "/return")
     OrderDto productReturn(@RequestBody ProductReturnRequest request);
 
-    @PostMapping("/order/payment")
+    @PostMapping(BASE_PATH + "/payment")
     OrderDto payment(@RequestBody String orderId);
 
-    @PostMapping("/order/payment/failed")
+    @PostMapping(BASE_PATH + "/payment/failed")
     OrderDto paymentFailed(@RequestBody String orderId);
 
-    @PostMapping("/order/delivery")
+    @PostMapping(BASE_PATH + "/delivery")
     OrderDto delivery(@RequestBody String orderId);
 
-    @PostMapping("/order/delivery/failed")
+    @PostMapping(BASE_PATH + "/delivery/failed")
     OrderDto deliveryFailed(@RequestBody String orderId);
 
-    @PostMapping("/order/completed")
+    @PostMapping(BASE_PATH + "/completed")
     OrderDto complete(@RequestBody String orderId);
 
-    @PostMapping("/order/calculate/total")
+    @PostMapping(BASE_PATH + "/calculate/total")
     OrderDto calculateTotalCost(@RequestBody String orderId);
 
-    @PostMapping("/order/calculate/delivery")
+    @PostMapping(BASE_PATH + "/calculate/delivery")
     OrderDto calculateDeliveryCost(@RequestBody String orderId);
 
-    @PostMapping("/order/assembly")
+    @PostMapping(BASE_PATH + "/assembly")
     OrderDto assembly(@RequestBody String orderId);
 
-    @PostMapping("/order/assembly/failed")
+    @PostMapping(BASE_PATH + "/assembly/failed")
     OrderDto assemblyFailed(@RequestBody String orderId);
 }
