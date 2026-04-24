@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface StoreApi {
 
-    String BASE_PATH = "/api/v1/shopping-store";
+    String BASE_PATH = "/shopping-store";
 
     @GetMapping(BASE_PATH + "/{id}")
     ProductDto getProduct(@PathVariable Long id);
